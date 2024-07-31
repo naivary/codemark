@@ -6,15 +6,20 @@ import (
 )
 
 func isSpace(r rune) bool {
-	return r == ' ' || r == '\n' || r == '\r' || r == '\t'
+	return r == ' ' || r == '\t' || isNewline(r)
 }
 
-func isNewLine(r rune) bool {
+func isNewline(r rune) bool {
 	return r == '\n' || r == '\r'
 }
 
 func hasPlusPrefix(input string, pos int) bool {
 	return strings.HasPrefix(input[pos:], plus)
+}
+
+// isAlphaLower checks if `r` is lower and a letter
+func isAlphaLower(r rune) bool {
+	return unicode.IsLetter(r) && unicode.IsLower(r)
 }
 
 // isAlphaNumeric is checking if the rune is a letter, digit or underscore
@@ -23,21 +28,22 @@ func isAlphaNumeric(r rune) bool {
 }
 
 func lexText(l *lexer) stateFunc {
-	for {
-		// check for the position 0
-		if hasPlusPrefix(l.input, l.pos) {
-			return lexPlus
-		}
+	// check for the position 0
+	if hasPlusPrefix(l.input, l.pos) {
+		return lexPlus
+	}
 
+	for {
 		r := l.next()
 		if r == eof {
 			break
 		}
-		// ignore anything before the new position
-		// because it's not relevant
-		l.ignore()
-		if hasPlusPrefix(l.input, l.pos) {
-			return lexPlus
+		if isNewline(r) {
+            l.acceptFunc(isSpace)
+			l.ignore()
+			if hasPlusPrefix(l.input, l.pos) {
+				return lexPlus
+			}
 		}
 	}
 	l.emit(TokenKindEOF)
@@ -45,7 +51,11 @@ func lexText(l *lexer) stateFunc {
 }
 
 func lexPlus(l *lexer) stateFunc {
-	l.pos += len(l.plus)
+	l.next()
+	switch r := l.peek(); {
+	case !isAlphaLower(r):
+		return l.errorf("expected an identfier")
+	}
 	l.emit(TokenKindPlus)
 	return lexIdent
 }
@@ -108,6 +118,12 @@ func lexString(l *lexer) stateFunc {
 	}
 	l.acceptFunc(valid)
 	l.emit(TokenKindString)
+
+	r := l.peek()
+	if isNewline(r) {
+		l.next()
+		l.ignore()
+	}
 	return lexText
 }
 
@@ -141,11 +157,17 @@ func lexNumber(l *lexer) stateFunc {
 	// Is it imaginary?
 	l.accept("i")
 	// Next thing mustn't be alphanumeric.
-	if isAlphaNumeric(l.peek()) {
+	r := l.peek()
+	if isAlphaNumeric(r) {
 		l.next()
 		return l.errorf("bad syntax for number")
 	}
 	l.emit(TokenKindNumber)
+	if isNewline(r) {
+		l.next()
+		// ignore the new line
+		l.ignore()
+	}
 	return lexText
 }
 

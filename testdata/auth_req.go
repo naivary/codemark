@@ -1,4 +1,3 @@
-// This is the package documentatino for testdata
 package testdata
 
 import "time"
@@ -6,11 +5,11 @@ import "time"
 // name is very important
 const Name = "test-name"
 
-// current time of the package
+// +jsonschema:validation=231
 var Now = time.Now()
 
 // AuthRequest is a request to authenticate
-// a user using email and password
+// a user using email and password 
 type AuthRequest struct {
     // Size of the request
     //

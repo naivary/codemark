@@ -7,9 +7,10 @@ import (
 )
 
 const (
-	eof  = -1
-	plus = "+"
-    colon = ':'
+	eof     = -1
+	plus    = "+"
+	colon   = ':'
+	newline = '\n'
 )
 
 type stateFunc func(*lexer) stateFunc
@@ -45,7 +46,7 @@ type lexer struct {
 }
 
 func (l *lexer) errorf(format string, args ...any) stateFunc {
-	l.token = NewToken(TokenKindError, fmt.Sprintf(format, args...))
+	l.tokens <- NewToken(TokenKindError, fmt.Sprintf(format, args...))
 	l.start = 0
 	l.pos = 0
 	l.input = l.input[:0]
@@ -118,5 +119,5 @@ func (l *lexer) acceptFunc(fn func(r rune) bool) {
 }
 
 func (l *lexer) currentValue() string {
-    return l.input[l.start:l.pos]
+	return l.input[l.start:l.pos]
 }
