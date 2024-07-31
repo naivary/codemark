@@ -85,6 +85,13 @@ dasdasd asdasd as dasdasd ads adsd`,
             input: `       +jsonschema:validation:maximum=3`,
 			isValid: true,
 		},
+		{
+			name: "multi marker without doc",
+			input: `+jsonschema:validation:maximum=3 dashdasjdhasjdhasd
++jsonschema:validatiom:format=email`,
+			isValid: true,
+		},
+
 
 	}
 
