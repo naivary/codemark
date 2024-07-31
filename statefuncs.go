@@ -9,29 +9,36 @@ func isSpace(r rune) bool {
 	return r == ' ' || r == '\n' || r == '\r' || r == '\t'
 }
 
-// isIdenfitier is returning if `r` is a correct
-// identifier character
-func isIdenfitier(r rune) bool {
-	if unicode.IsLetter(r) && unicode.IsLower(r) {
-		return true
-	}
-	return r == ':'
+func isNewLine(r rune) bool {
+	return r == '\n' || r == '\r'
 }
 
 func hasPlusPrefix(input string, pos int) bool {
-	return strings.HasPrefix(input[pos:], "+")
+	return strings.HasPrefix(input[pos:], plus)
+}
+
+// isAlphaNumeric is checking if the rune is a letter, digit or underscore
+func isAlphaNumeric(r rune) bool {
+	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
 func lexText(l *lexer) stateFunc {
-	if hasPlusPrefix(l.input, l.pos) {
-		return lexPlus
-	}
-	for r := l.next(); r != eof; l.next() {
+	for {
+		// check for the position 0
 		if hasPlusPrefix(l.input, l.pos) {
-			l.ignore()
 			return lexPlus
 		}
+
+		r := l.next()
+		if r == eof {
+			break
+		}
+		// ignore anything before the new position
+		// because it's not relevant
 		l.ignore()
+		if hasPlusPrefix(l.input, l.pos) {
+			return lexPlus
+		}
 	}
 	l.emit(TokenKindEOF)
 	return nil
@@ -44,37 +51,44 @@ func lexPlus(l *lexer) stateFunc {
 }
 
 func lexIdent(l *lexer) stateFunc {
-	switch r := l.next(); {
-	case r == '\n':
+	valid := func(r rune) bool {
+		return (unicode.IsLetter(r) && unicode.IsLower(r)) || r == colon
+	}
+	l.acceptFunc(valid)
+	r := l.peek()
+	if r == '\n' {
 		return l.errorf("marker cannot span multiple lines")
-	case isSpace(r):
-		return l.errorf("after a plus no space is allowed")
-	case unicode.IsDigit(r):
-		return l.errorf("no digits allowed as identifier")
-	case isIdenfitier(r):
-		return lexIdent
-	case r == '=':
+	}
+
+	if strings.Count(l.currentValue(), string(colon)) != 2 {
+		l.ignore()
+		return lexText
+	}
+	l.emit(TokenKindIdent)
+
+	switch r {
+	case '=':
 		return lexAssignment
-	case r == eof:
+	case eof:
 		return lexBool
 	default:
-		return l.errorf("unrecognized action")
+		return l.errorf("unexpected token")
 	}
 }
 
 func lexAssignment(l *lexer) stateFunc {
-	l.backup()
-	l.emit(TokenKindIdent)
-	l.forward()
+	l.next()
 	l.emit(TokenKindAssignment)
 	// figure out which is next
-	switch r := l.next(); {
+	switch r := l.peek(); {
 	case r == '[':
 		return lexOpenSquareBracket
 	case r == '{':
-		return lexMap
+		return lexOpenCurlyBracket
 	case unicode.IsDigit(r):
 		return lexNumber
+		// a string is only recognised if a letter
+		// follows the assignment symbol
 	case unicode.IsLetter(r):
 		return lexString
 	default:
@@ -82,61 +96,63 @@ func lexAssignment(l *lexer) stateFunc {
 	}
 }
 
-// [ value1, ]
-func lexOpenSquareBracket(l *lexer) stateFunc {
-	l.emit(TokenKindOpenSquareBracket)
-	return lexArrayValue
-}
-
-func lexArrayValue(l *lexer) stateFunc {
-	switch r := l.next(); {
-	case isSpace(r):
-		l.ignore()
-		return lexArrayValue
-	case r == ',':
-		return lexCommaSep
-	default:
-		return lexArrayValue
-	}
-}
-
-func lexCommaSep(l *lexer) stateFunc {
-	l.backup()
-	l.emit(TokenKindArrayValue)
-	l.forward()
-	l.emit(TokenKindCommaSeparator)
-	switch r := l.next(); {
-	case isSpace(r):
-		l.ignore()
-		return lexCommaSep
-	case r == ']':
-		return lexCloseSquareBracket
-	case unicode.IsLetter(r):
-		return lexArrayValue
-	default:
-		return l.errorf("expected value or closing squared bracket")
-	}
-}
-
-func lexCloseSquareBracket(l *lexer) stateFunc {
-	l.emit(TokenKindArrayValue)
+func lexBool(l *lexer) stateFunc {
+	t := NewToken(TokenKindBool, "true")
+	l.emitToken(t)
 	return lexText
-}
-
-func lexMap(l *lexer) stateFunc {
-	return nil
-}
-
-func lexNumber(l *lexer) stateFunc {
-	return nil
 }
 
 func lexString(l *lexer) stateFunc {
+	valid := func(r rune) bool {
+		return !isSpace(r) && r != eof
+	}
+	l.acceptFunc(valid)
+	l.emit(TokenKindString)
+	return lexText
+}
+
+func lexNumber(l *lexer) stateFunc {
+	// Optional leading sign.
+	l.accept("+-")
+	// Is it hex?
+	digits := "0123456789_"
+	if l.accept("0") {
+		// Note: Leading 0 does not mean octal in floats.
+		if l.accept("xX") {
+			digits = "0123456789abcdefABCDEF_"
+		} else if l.accept("oO") {
+			digits = "01234567_"
+		} else if l.accept("bB") {
+			digits = "01_"
+		}
+	}
+	l.acceptRun(digits)
+	if l.accept(".") {
+		l.acceptRun(digits)
+	}
+	if len(digits) == 10+1 && l.accept("eE") {
+		l.accept("+-")
+		l.acceptRun("0123456789_")
+	}
+	if len(digits) == 16+6+1 && l.accept("pP") {
+		l.accept("+-")
+		l.acceptRun("0123456789_")
+	}
+	// Is it imaginary?
+	l.accept("i")
+	// Next thing mustn't be alphanumeric.
+	if isAlphaNumeric(l.peek()) {
+		l.next()
+		return l.errorf("bad syntax for number")
+	}
+	l.emit(TokenKindNumber)
+	return lexText
+}
+
+func lexOpenCurlyBracket(l *lexer) stateFunc {
 	return nil
 }
 
-func lexBool(l *lexer) stateFunc {
-	l.emit(TokenKindIdent)
-	l.emitToken(NewToken(TokenKindBool, "true"))
-	return lexText
+func lexOpenSquareBracket(l *lexer) stateFunc {
+	return nil
 }

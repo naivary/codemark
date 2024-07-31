@@ -11,7 +11,5 @@ func main() {
 }
 
 func run() error {
-    l := lex("", "+jsonschema:validation:default=3")
-    l.run()
 	return nil
 }

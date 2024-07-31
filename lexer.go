@@ -6,24 +6,24 @@ import (
 	"unicode/utf8"
 )
 
-const eof = -1
+const (
+	eof  = -1
+	plus = "+"
+    colon = ':'
+)
 
 type stateFunc func(*lexer) stateFunc
 
-func lex(name, input string) *lexer {
-	l := &lexer{
-		name:   name,
+func lex(input string) *lexer {
+	return &lexer{
 		input:  strings.TrimSpace(input),
 		tokens: make(chan Token, 100),
 		state:  lexText,
-		plus:   "+",
+		plus:   plus,
 	}
-	return l
 }
 
 type lexer struct {
-	// used only for error reports
-	name string
 	// the string being scanned
 	input string
 	// start position of this item
@@ -37,6 +37,7 @@ type lexer struct {
 	// channel of scanned tokens
 	tokens chan Token
 
+	// needed sign to satrt the action
 	plus string
 
 	// token to return to the parser
@@ -71,7 +72,7 @@ func (l *lexer) run() {
 }
 
 func (l *lexer) emit(kind TokenKind) {
-	l.tokens <- NewToken(kind, l.input[l.start:l.pos])
+	l.tokens <- NewToken(kind, l.currentValue())
 	l.start = l.pos
 }
 
@@ -88,12 +89,34 @@ func (l *lexer) backup() {
 	l.pos -= l.width
 }
 
-func (l *lexer) forward() {
-	l.pos += l.width
-}
-
 func (l *lexer) peek() rune {
 	r := l.next()
 	l.backup()
 	return r
+}
+
+// accept is accepting the next rune
+// if it's from the `valid` set.
+func (l *lexer) accept(valid string) bool {
+	if strings.IndexRune(valid, l.next()) >= 0 {
+		return true
+	}
+	l.backup()
+	return false
+}
+
+func (l *lexer) acceptRun(valid string) {
+	for strings.IndexRune(valid, l.next()) >= 0 {
+	}
+	l.backup()
+}
+
+func (l *lexer) acceptFunc(fn func(r rune) bool) {
+	for fn(l.next()) {
+	}
+	l.backup()
+}
+
+func (l *lexer) currentValue() string {
+    return l.input[l.start:l.pos]
 }
