@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -130,9 +129,9 @@ func lexString(l *lexer) stateFunc {
 }
 
 func lexNumber(l *lexer) stateFunc {
-	state := scanNumber(l)
-	if state != nil {
-		return state
+	err := scanNumber(l)
+	if err != nil {
+		return l.errorf(err.Error())
 	}
 	l.emit(TokenKindNumber)
 	r := l.peek()
@@ -164,9 +163,9 @@ func lexOpenSquareBracket(l *lexer) stateFunc {
 }
 
 func lexNumberArrayValue(l *lexer) stateFunc {
-	errState := scanNumber(l)
-	if errState != nil {
-		return errState
+	err := scanNumber(l)
+	if err != nil {
+		return l.errorf(err.Error())
 	}
 	l.emit(TokenKindNumber)
 	switch r := l.peek(); {
@@ -198,16 +197,15 @@ func lexCommaSeperator(l *lexer) stateFunc {
 func lexStartDoubleQuotationMark(l *lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindDoubleQuotationMark)
-    err := scanStringWithEscape(l, `"`, ",]")
-    if err != nil {
-        return err
-    }
-    l.emit(TokenKindString)
+	err := scanStringWithEscape(l, `"`, ",]")
+	if err != nil {
+		return l.errorf(err.Error())
+	}
+	l.emit(TokenKindString)
 	switch r := l.peek(); {
 	case r == '"':
 		return lexEndDoubleQuotationMark
 	default:
-        fmt.Println(r)
 		return l.errorf("expected `\"` got `%s`", string(r))
 	}
 }

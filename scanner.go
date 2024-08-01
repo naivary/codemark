@@ -1,10 +1,12 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"strings"
 )
 
-func scanNumber(l *lexer) stateFunc {
+func scanNumber(l *lexer) error {
 	// Optional leading sign.
 	l.accept("+-")
 	digits := "0123456789_"
@@ -37,7 +39,7 @@ func scanNumber(l *lexer) stateFunc {
 	// Next thing mustn't be alphanumeric.
 	if isAlphaNumeric(r) {
 		l.next()
-		return l.errorf("bad syntax for number")
+		return errors.New("bad syntax for number")
 	}
 	return nil
 }
@@ -46,7 +48,11 @@ func isSpecialCharacter(escape string, r rune) bool {
 	return strings.Contains(escape, string(r))
 }
 
-func scanStringWithEscape(l *lexer, escape string, c string) stateFunc {
+// `c` is defining which characters have to follow after a
+// a character defined by `escape` so it is still a valid unescaped symbol.
+// For example +path:to:marker=["item\"s"]. The last `"` don't have to be
+// escaped because its the end of the string followed by a `]`.
+func scanStringWithEscape(l *lexer, escape string, c string) error {
 	// if no escape characters are provided
 	// none will be escaped
 	if escape != "" && !strings.Contains(escape, "\\") {
@@ -71,10 +77,10 @@ func scanStringWithEscape(l *lexer, escape string, c string) stateFunc {
 	l.next()
 	isCorrect := isCorrectUnescaped(l, c)
 	if isCorrect {
-        l.backup()
+		l.backup()
 		return nil
 	}
-	return l.errorf("special character `%s` is not escaped", string(r))
+	return fmt.Errorf("special character `%s` is not escaped", string(r))
 }
 
 func isCorrectUnescaped(l *lexer, c string) bool {
@@ -82,12 +88,12 @@ func isCorrectUnescaped(l *lexer, c string) bool {
 	return strings.Contains(c, string(r))
 }
 
-func escapeChar(l *lexer, escape string, c string) stateFunc {
+func escapeChar(l *lexer, escape string, c string) error {
 	if isSpecialCharacter(escape, l.peek()) {
 		l.next()
 		return scanStringWithEscape(l, escape, c)
 	}
-	return l.errorf("unexpected `\\` in string literal. Has to be escaped using `\\`")
+	return errors.New("unexpected `\\` in string literal. Has to be escaped using `\\`")
 }
 
 func scanString(l *lexer) {

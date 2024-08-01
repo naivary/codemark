@@ -114,6 +114,16 @@ dasdasd asdasd as dasdasd ads adsd`,
 		{
 			name:    "escaped",
 			input:   `+jsonschema:validation:items=["something\""]`,
+			isValid: true,
+		},
+		{
+			name:    "escaped with letter in between",
+			input:   `+jsonschema:validation:items=["something\"s"]`,
+			isValid: true,
+		},
+		{
+			name:    "invalid ending because its followed by space",
+			input:   `+jsonschema:validation:items=["something\"s" ]`,
 			isValid: false,
 		},
 	}
