@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strings"
+)
+
 func scanNumber(l *lexer) stateFunc {
 	// Optional leading sign.
 	l.accept("+-")
@@ -38,9 +42,57 @@ func scanNumber(l *lexer) stateFunc {
 	return nil
 }
 
+func isSpecialCharacter(escape string, r rune) bool {
+	return strings.Contains(escape, string(r))
+}
+
+func scanStringWithEscape(l *lexer, escape string, c string) stateFunc {
+	// if no escape characters are provided
+	// none will be escaped
+	if escape != "" && !strings.Contains(escape, "\\") {
+		// `\` has to be escaped too
+		escape += "\\"
+	}
+	valid := func(r rune) bool {
+		return !isSpace(r) && r != eof && !isSpecialCharacter(escape, r)
+	}
+	l.acceptFunc(valid)
+
+	r := l.peek()
+	if r == eof || isSpace(r) {
+		// scanned the full string without any error
+		return nil
+	}
+	if r == '\\' {
+		// check if correct escaping is taking place
+		l.next()
+		return escapeChar(l, escape, c)
+	}
+	l.next()
+	isCorrect := isCorrectUnescaped(l, c)
+	if isCorrect {
+        l.backup()
+		return nil
+	}
+	return l.errorf("special character `%s` is not escaped", string(r))
+}
+
+func isCorrectUnescaped(l *lexer, c string) bool {
+	r := l.peek()
+	return strings.Contains(c, string(r))
+}
+
+func escapeChar(l *lexer, escape string, c string) stateFunc {
+	if isSpecialCharacter(escape, l.peek()) {
+		l.next()
+		return scanStringWithEscape(l, escape, c)
+	}
+	return l.errorf("unexpected `\\` in string literal. Has to be escaped using `\\`")
+}
+
 func scanString(l *lexer) {
 	valid := func(r rune) bool {
-		return !isSpace(r) && r != eof
+		return !isSpace(r) && r != eof && !isNewline(r)
 	}
 	l.acceptFunc(valid)
 }

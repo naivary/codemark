@@ -103,7 +103,7 @@ dasdasd asdasd as dasdasd ads adsd`,
 		},
 		{
 			name:    "array string",
-			input:   `+jsonschema:validation:items=[somet3s]`,
+			input:   `+jsonschema:validation:items=["somet3s"]`,
 			isValid: true,
 		},
 		{
@@ -111,7 +111,11 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:items=[somet3s   ]`,
 			isValid: false,
 		},
-
+		{
+			name:    "escaped",
+			input:   `+jsonschema:validation:items=["something\""]`,
+			isValid: false,
+		},
 	}
 
 	for _, tc := range tests {

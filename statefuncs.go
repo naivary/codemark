@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 )
@@ -151,14 +152,14 @@ func lexOpenSquareBracket(l *lexer) stateFunc {
 		return lexCloseSquareBracket
 	case unicode.IsDigit(r):
 		return lexNumberArrayValue
-	case unicode.IsLetter(r):
-		return lexStringArrayValue
+	case r == '"':
+		return lexStartDoubleQuotationMark
 	case isSpace(r):
 		return l.errorf("no space allowed of the opening bracket of array")
 	case r == ',':
 		return l.errorf("expected value in array not seperator")
 	default:
-		return l.errorf("expected closing bracket")
+		return l.errorf("expected closing bracket. Be sure that there is no whitespace between the last element and `]`")
 	}
 }
 
@@ -185,8 +186,8 @@ func lexCommaSeperator(l *lexer) stateFunc {
 	switch r := l.peek(); {
 	case unicode.IsDigit(r):
 		return lexNumberArrayValue
-	case unicode.IsLetter(r):
-		return lexStringArrayValue
+	case r == '"':
+		return lexStartDoubleQuotationMark
 	case r == ']':
 		return l.errorf("remove the comma before the closing bracket of the array")
 	default:
@@ -194,19 +195,33 @@ func lexCommaSeperator(l *lexer) stateFunc {
 	}
 }
 
-func lexStringArrayValue(l *lexer) stateFunc {
-	valid := func(r rune) bool {
-		return !isSpace(r) && r != eof && r != ']'
-	}
-	l.acceptFunc(valid)
-	l.emit(TokenKindString)
+func lexStartDoubleQuotationMark(l *lexer) stateFunc {
+	l.next()
+	l.emit(TokenKindDoubleQuotationMark)
+    err := scanStringWithEscape(l, `"`, ",]")
+    if err != nil {
+        return err
+    }
+    l.emit(TokenKindString)
 	switch r := l.peek(); {
-	case r == ',':
-		return lexCommaSeperator
+	case r == '"':
+		return lexEndDoubleQuotationMark
+	default:
+        fmt.Println(r)
+		return l.errorf("expected `\"` got `%s`", string(r))
+	}
+}
+
+func lexEndDoubleQuotationMark(l *lexer) stateFunc {
+	l.next()
+	l.emit(TokenKindDoubleQuotationMark)
+	switch r := l.peek(); {
 	case r == ']':
 		return lexCloseSquareBracket
+	case r == ',':
+		return lexCommaSeperator
 	default:
-		return l.errorf("expected next array value or closing bracket")
+		return l.errorf("expected closing bracket or next value of array")
 	}
 }
 

@@ -34,6 +34,8 @@ const (
 	// represent the value of an array
 	TokenKindArrayValue
 
+    TokenKindDoubleQuotationMark
+
     TokenKindCommaSeparator
 
 	TokenKindError
