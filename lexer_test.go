@@ -11,8 +11,8 @@ func TestLexer_Lex(t *testing.T) {
 		isValid bool
 	}{
 		{
-			name:    "random input before",
-			input:   `dasdasd asd asdsadasd as 
+			name: "random input before",
+			input: `dasdasd asd asdsadasd as 
             +jsonschema:validation:maximum=3`,
 			isValid: false,
 		},
@@ -76,13 +76,13 @@ dasdasd asdasd as dasdasd ads adsd`,
 			isValid: true,
 		},
 		{
-			name: "no identifier",
-			input: `+=3`,
+			name:    "no identifier",
+			input:   `+=3`,
 			isValid: false,
 		},
 		{
-			name: "spaces before line",
-            input: `       +jsonschema:validation:maximum=3`,
+			name:    "spaces before line",
+			input:   `       +jsonschema:validation:maximum=3`,
 			isValid: true,
 		},
 		{
@@ -91,8 +91,21 @@ dasdasd asdasd as dasdasd ads adsd`,
 +jsonschema:validatiom:format=email`,
 			isValid: true,
 		},
-
-
+		{
+			name:    "array with single integer",
+			input:   `+jsonschema:validation:items=[21323]`,
+			isValid: true,
+		},
+		{
+			name:    "array multi integer",
+			input:   `+jsonschema:validation:items=[12345, 1234, 12]`,
+			isValid: true,
+		},
+		{
+			name:    "array string",
+			input:   `+jsonschema:validation:items=[somet3s]`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {
@@ -100,7 +113,7 @@ dasdasd asdasd as dasdasd ads adsd`,
 			l := lex(tc.input)
 			l.run()
 			for token := range l.tokens {
-                t.Log(token)
+				t.Log(token)
 			}
 		})
 	}

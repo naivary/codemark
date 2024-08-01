@@ -39,45 +39,6 @@ const (
 	TokenKindError
 )
 
-func (t TokenKind) String() string {
-	switch t {
-    case TokenKindEOF:
-        return "EOF"
-	case TokenKindArray:
-		return "array"
-	case TokenKindString:
-		return "string"
-	case TokenKindNumber:
-		return "number"
-	case TokenKindBool:
-		return "boolean"
-	case TokenKindMap:
-		return "map"
-	case TokenKindIdent:
-		return "identifier"
-	case TokenKindAssignment:
-		return "assignment"
-	case TokenKindOpenCurly:
-		return "open_curly"
-	case TokenKindCloseCurly:
-		return "close_curly"
-	case TokenKindPlus:
-		return "plus"
-	case TokenKindOpenSquareBracket:
-		return "open_squared_bracket"
-	case TokenKindCloseSquareBracket:
-		return "close_squared_bracket"
-    case TokenKindArrayValue:
-        return "array_value"
-    case TokenKindCommaSeparator:
-        return "comma"
-	case TokenKindError:
-		return "error"
-	default:
-		return "INVALID_KIND"
-	}
-}
-
 func NewToken(kind TokenKind, v string) Token {
 	return Token{
 		Kind:  kind,

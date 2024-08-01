@@ -5,8 +5,13 @@ import (
 	"unicode"
 )
 
+func ignoreSpace(l *lexer) {
+	l.acceptFunc(isSpace)
+	l.ignore()
+}
+
 func isSpace(r rune) bool {
-	return r == ' ' || r == '\t' || isNewline(r)
+	return r == ' ' || r == '\t'
 }
 
 func isNewline(r rune) bool {
@@ -39,7 +44,7 @@ func lexText(l *lexer) stateFunc {
 			break
 		}
 		if isNewline(r) {
-            l.acceptFunc(isSpace)
+			l.acceptFunc(isSpace)
 			l.ignore()
 			if hasPlusPrefix(l.input, l.pos) {
 				return lexPlus
@@ -98,7 +103,8 @@ func lexAssignment(l *lexer) stateFunc {
 	case unicode.IsDigit(r):
 		return lexNumber
 		// a string is only recognised if a letter
-		// follows the assignment symbol
+		// follows the assignment symbol. Can change it
+		// if an `"` token is introduced
 	case unicode.IsLetter(r):
 		return lexString
 	default:
@@ -113,56 +119,18 @@ func lexBool(l *lexer) stateFunc {
 }
 
 func lexString(l *lexer) stateFunc {
-	valid := func(r rune) bool {
-		return !isSpace(r) && r != eof
-	}
-	l.acceptFunc(valid)
+	scanString(l)
 	l.emit(TokenKindString)
-
-	r := l.peek()
-	if isNewline(r) {
-		l.next()
-		l.ignore()
-	}
 	return lexText
 }
 
 func lexNumber(l *lexer) stateFunc {
-	// Optional leading sign.
-	l.accept("+-")
-	// Is it hex?
-	digits := "0123456789_"
-	if l.accept("0") {
-		// Note: Leading 0 does not mean octal in floats.
-		if l.accept("xX") {
-			digits = "0123456789abcdefABCDEF_"
-		} else if l.accept("oO") {
-			digits = "01234567_"
-		} else if l.accept("bB") {
-			digits = "01_"
-		}
-	}
-	l.acceptRun(digits)
-	if l.accept(".") {
-		l.acceptRun(digits)
-	}
-	if len(digits) == 10+1 && l.accept("eE") {
-		l.accept("+-")
-		l.acceptRun("0123456789_")
-	}
-	if len(digits) == 16+6+1 && l.accept("pP") {
-		l.accept("+-")
-		l.acceptRun("0123456789_")
-	}
-	// Is it imaginary?
-	l.accept("i")
-	// Next thing mustn't be alphanumeric.
-	r := l.peek()
-	if isAlphaNumeric(r) {
-		l.next()
-		return l.errorf("bad syntax for number")
+	state := scanNumber(l)
+	if state != nil {
+		return state
 	}
 	l.emit(TokenKindNumber)
+	r := l.peek()
 	if isNewline(r) {
 		l.next()
 		// ignore the new line
@@ -171,10 +139,87 @@ func lexNumber(l *lexer) stateFunc {
 	return lexText
 }
 
-func lexOpenCurlyBracket(l *lexer) stateFunc {
+func lexOpenSquareBracket(l *lexer) stateFunc {
+	l.next()
+	l.emit(TokenKindOpenSquareBracket)
+	switch r := l.peek(); {
+	case r == ']':
+		return lexCloseSquareBracket
+	case unicode.IsDigit(r):
+		return lexNumberArrayValue
+	case unicode.IsLetter(r):
+		return lexStringArrayValue
+	case r == ',':
+		return l.errorf("expected value in array not seperator")
+    case isSpace(r):
+        return l.errorf("no space allowed of the opening bracket of array")
+	default:
+		return l.errorf("expected closing bracket")
+	}
+}
+
+func lexNumberArrayValue(l *lexer) stateFunc {
+	errState := scanNumber(l)
+	if errState != nil {
+		return errState
+	}
+	l.emit(TokenKindNumber)
+	switch r := l.peek(); {
+	case r == ',':
+		return lexCommaSeperator
+	case r == ']':
+		return lexCloseSquareBracket
+	default:
+		return l.errorf("expected next array value or closing bracket")
+	}
+}
+
+func lexCommaSeperator(l *lexer) stateFunc {
+	l.next()
+	l.emit(TokenKindCommaSeparator)
+	ignoreSpace(l)
+	switch r := l.peek(); {
+	case unicode.IsDigit(r):
+		return lexNumberArrayValue
+	case unicode.IsLetter(r):
+		return lexStringArrayValue
+	case r == ']':
+		return l.errorf("remove the comma before the closing bracket of the array")
+	default:
+		return l.errorf("expected next value in array after comma")
+	}
+}
+
+func lexStringArrayValue(l *lexer) stateFunc {
+	valid := func(r rune) bool {
+		return !isSpace(r) && r != eof && r != ']'
+	}
+	l.acceptFunc(valid)
+	l.emit(TokenKindString)
+	switch r := l.peek(); {
+	case r == ',':
+		return lexCommaSeperator
+	case r == ']':
+		return lexCloseSquareBracket
+	default:
+		return l.errorf("expected next array value or closing bracket")
+	}
+}
+
+func lexArrayValue(l *lexer) stateFunc {
+	r := l.next()
+
+	if unicode.IsDigit(r) {
+	}
 	return nil
 }
 
-func lexOpenSquareBracket(l *lexer) stateFunc {
+func lexCloseSquareBracket(l *lexer) stateFunc {
+	l.next()
+	l.emit(TokenKindCloseSquareBracket)
+	return lexText
+}
+
+func lexOpenCurlyBracket(l *lexer) stateFunc {
 	return nil
 }
