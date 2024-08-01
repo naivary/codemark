@@ -13,7 +13,6 @@ const (
 	newline = '\n'
 )
 
-type stateFunc func(*lexer) stateFunc
 
 func lex(input string) *lexer {
 	return &lexer{
@@ -112,7 +111,7 @@ func (l *lexer) acceptRun(valid string) {
 	l.backup()
 }
 
-func (l *lexer) acceptFunc(fn func(r rune) bool) {
+func (l *lexer) acceptFunc(fn validFunc) {
 	for fn(l.next()) {
 	}
 	l.backup()

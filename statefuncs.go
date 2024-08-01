@@ -5,6 +5,8 @@ import (
 	"unicode"
 )
 
+type validFunc func(rune) bool
+
 func ignoreSpace(l *lexer) {
 	l.acceptFunc(isSpace)
 	l.ignore()
@@ -31,6 +33,8 @@ func isAlphaLower(r rune) bool {
 func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
+
+type stateFunc func(*lexer) stateFunc
 
 func lexText(l *lexer) stateFunc {
 	// check for the position 0
@@ -149,10 +153,10 @@ func lexOpenSquareBracket(l *lexer) stateFunc {
 		return lexNumberArrayValue
 	case unicode.IsLetter(r):
 		return lexStringArrayValue
+	case isSpace(r):
+		return l.errorf("no space allowed of the opening bracket of array")
 	case r == ',':
 		return l.errorf("expected value in array not seperator")
-    case isSpace(r):
-        return l.errorf("no space allowed of the opening bracket of array")
 	default:
 		return l.errorf("expected closing bracket")
 	}
@@ -204,14 +208,6 @@ func lexStringArrayValue(l *lexer) stateFunc {
 	default:
 		return l.errorf("expected next array value or closing bracket")
 	}
-}
-
-func lexArrayValue(l *lexer) stateFunc {
-	r := l.next()
-
-	if unicode.IsDigit(r) {
-	}
-	return nil
 }
 
 func lexCloseSquareBracket(l *lexer) stateFunc {

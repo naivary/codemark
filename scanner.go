@@ -1,7 +1,6 @@
 package main
 
-
-func scanNumber(l *lexer) stateFunc{
+func scanNumber(l *lexer) stateFunc {
 	// Optional leading sign.
 	l.accept("+-")
 	digits := "0123456789_"
@@ -36,7 +35,7 @@ func scanNumber(l *lexer) stateFunc{
 		l.next()
 		return l.errorf("bad syntax for number")
 	}
-    return nil
+	return nil
 }
 
 func scanString(l *lexer) {

@@ -106,6 +106,12 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:items=[somet3s]`,
 			isValid: true,
 		},
+		{
+			name:    "space between end bracket",
+			input:   `+jsonschema:validation:items=[somet3s   ]`,
+			isValid: false,
+		},
+
 	}
 
 	for _, tc := range tests {
