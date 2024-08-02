@@ -31,12 +31,6 @@ const (
 	TokenKindOpenSquareBracket
 	// e.g. `[`
 	TokenKindCloseSquareBracket
-	// represent the value of an array
-	TokenKindArrayValue
-
-    TokenKindDoubleQuotationMark
-
-    TokenKindCommaSeparator
 
 	TokenKindError
 )

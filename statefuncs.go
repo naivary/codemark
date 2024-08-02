@@ -79,7 +79,7 @@ func lexIdent(l *lexer) stateFunc {
 		return l.errorf("marker cannot span multiple lines")
 	}
 
-	if strings.Count(l.currentValue(), string(colon)) != 2 {
+	if strings.Count(l.currentValue(), string(colon)) < 1 {
 		l.ignore()
 		return lexText
 	}
@@ -123,7 +123,7 @@ func lexBool(l *lexer) stateFunc {
 }
 
 func lexString(l *lexer) stateFunc {
-	scanString(l)
+	scanStringWithEscape(l, "", "")
 	l.emit(TokenKindString)
 	return lexText
 }
@@ -180,7 +180,7 @@ func lexNumberArrayValue(l *lexer) stateFunc {
 
 func lexCommaSeperator(l *lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindCommaSeparator)
+    l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {
 	case unicode.IsDigit(r):
@@ -196,7 +196,7 @@ func lexCommaSeperator(l *lexer) stateFunc {
 
 func lexStartDoubleQuotationMark(l *lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindDoubleQuotationMark)
+	l.ignore()
 	err := scanStringWithEscape(l, `"`, ",]")
 	if err != nil {
 		return l.errorf(err.Error())
@@ -212,7 +212,7 @@ func lexStartDoubleQuotationMark(l *lexer) stateFunc {
 
 func lexEndDoubleQuotationMark(l *lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindDoubleQuotationMark)
+	l.ignore()
 	switch r := l.peek(); {
 	case r == ']':
 		return lexCloseSquareBracket
