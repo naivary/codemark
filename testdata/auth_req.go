@@ -22,5 +22,10 @@ type AuthRequest struct {
     Email string `json:"email,omitempty"`
 
     // Password is the raw password of the user
+    // +jsonschema:validation:items={something: 3}
     Password string `json:"password,omitempty"`
+}
+
+var comp = map[complex128]string{
+    2+3i: "something",
 }
