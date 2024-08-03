@@ -126,6 +126,17 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:items=["something\"s" ]`,
 			isValid: false,
 		},
+		{
+			name:    "complex number",
+			input:   `+jsonschema:validation:max=2i+3`,
+			isValid: false,
+		},
+		{
+			name:    "complex number valid",
+			input:   `+jsonschema:validation:max=3+2i`,
+			isValid: true,
+		},
+
 	}
 
 	for _, tc := range tests {
@@ -133,8 +144,7 @@ dasdasd asdasd as dasdasd ads adsd`,
 			l := Lex(tc.input)
 			l.run()
 			for token := range l.tokens {
-				_ = token
-				//	t.Log(token)
+				t.Log(token)
 			}
 		})
 	}

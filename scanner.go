@@ -34,32 +34,16 @@ func scanRealNumber(l *lexer) (TokenKind, error) {
 }
 
 func scanNumber(l *lexer) (TokenKind, error) {
+	var err error
 	kind := TokenKindInt
-	// Optional leading sign.
-	l.accept("+-")
-	digits := "0123456789_"
-	// Is it hex?
-	if l.accept("0") {
-		// Note: Leading 0 does not mean octal in floats.
-		if l.accept("xX") {
-			digits = "0123456789abcdefABCDEF_"
-		} else if l.accept("oO") {
-			digits = "01234567_"
-		} else if l.accept("bB") {
-			digits = "01_"
-		}
+	kind, err = scanRealNumber(l)
+	if err != nil {
+		return TokenKindError, err
 	}
-	l.acceptRun(digits)
-	if l.accept(".") {
-		kind = TokenKindFloat
-		l.acceptRun(digits)
-	}
-	if len(digits) == 10+1 && l.accept("eE") {
-		l.accept("+-")
-		l.acceptRun("0123456789_")
-	}
-	// Is it imaginary?
 	if l.accept("i") {
+        if l.accept("+-") {
+            return TokenKindError, errors.New("real part of a complex number has to be defined before the imaginary part e.g. `3+2i` not `2i+3`")
+        }
 		kind = TokenKindComplex
 	}
 	r := l.peek()
@@ -68,7 +52,14 @@ func scanNumber(l *lexer) (TokenKind, error) {
 		l.next()
 		return TokenKindError, errors.New("bad syntax for number")
 	}
-	return kind, nil
+    if l.accept("+-") {
+        _, err = scanRealNumber(l)
+        if !l.accept("i") {
+            return TokenKindError, errors.New("missing imaginary symbol `i`")
+        }
+        kind = TokenKindComplex
+    }
+	return kind, err
 }
 
 func isSpecialCharacter(escape string, r rune) bool {

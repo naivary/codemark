@@ -120,8 +120,8 @@ func lexAssignment(l *lexer) stateFunc {
 }
 
 func lexBool(l *lexer) stateFunc {
-    assignToken := NewToken(TokenKindAssignment, "=")
-    l.emitToken(assignToken)
+	assignToken := NewToken(TokenKindAssignment, "=")
+	l.emitToken(assignToken)
 	t := NewToken(TokenKindBool, "true")
 	l.emitToken(t)
 	return lexText

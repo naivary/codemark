@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "complex",
-			input: "+jsonschema:validation:max=2i",
+			input: "+jsonschema:validation:max=0x2312+2i",
 		},
 	}
 

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type parseFunc func(*parser, Token) (parseFunc, Token)
@@ -98,8 +100,8 @@ func parseValue(p *parser, t Token) (parseFunc, Token) {
 		return parseString, t
 	case TokenKindInt:
 		return parseInt, t
-    case TokenKindComplex:
-        return parseComplex, t
+	case TokenKindComplex:
+		return parseComplex, t
 	case TokenKindOpenSquareBracket:
 		return parseSlice, t
 	case TokenKindBool:
@@ -122,30 +124,36 @@ func parseBool(p *parser, t Token) (parseFunc, Token) {
 }
 
 func parseString(p *parser, t Token) (parseFunc, Token) {
-    p.m.kind = reflect.String
-    p.m.value = reflect.ValueOf(t.Value)
+	p.m.kind = reflect.String
+	p.m.value = reflect.ValueOf(t.Value)
 	return parseEOF, p.next()
 }
 
 func parseInt(p *parser, t Token) (parseFunc, Token) {
-    i, err := strconv.ParseInt(t.Value, 0, 64)
-    if err != nil {
-        // error handling
-        return nil, t
-    }
-    p.m.kind = reflect.Int64
-    p.m.value = reflect.ValueOf(i)
+	i, err := strconv.ParseInt(t.Value, 0, 64)
+	if err != nil {
+		// error handling
+		return nil, t
+	}
+	p.m.kind = reflect.Int64
+	p.m.value = reflect.ValueOf(i)
 	return parseEOF, p.next()
 }
 
 func parseComplex(p *parser, t Token) (parseFunc, Token) {
-    c , err := strconv.ParseComplex(t.Value, 128)
+    re, img, _ := strings.Cut(t.Value, "+")
+    i , err  := strconv.ParseInt(re, 0, 64)
     if err != nil {
-        // error handling
         return nil, t
     }
-    p.m.kind = reflect.Complex128
-    p.m.value = reflect.ValueOf(c)
+    val := fmt.Sprintf("%d+%s", i, img)
+	c, err := strconv.ParseComplex(val, 128)
+	if err != nil {
+		// error handling
+		return nil, t
+	}
+	p.m.kind = reflect.Complex128
+	p.m.value = reflect.ValueOf(c)
 	return parseEOF, p.next()
 }
 
