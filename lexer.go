@@ -14,7 +14,7 @@ const (
 )
 
 
-func lex(input string) *lexer {
+func Lex(input string) *lexer {
 	return &lexer{
 		input:  strings.TrimSpace(input),
 		tokens: make(chan Token, 100),

@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-func scanNumber(l *lexer) error {
+func scanNumber(l *lexer) (TokenKind, error) {
+    kind := TokenKindInt
 	// Optional leading sign.
 	l.accept("+-")
 	digits := "0123456789_"
@@ -23,25 +24,24 @@ func scanNumber(l *lexer) error {
 	}
 	l.acceptRun(digits)
 	if l.accept(".") {
+        kind = TokenKindFloat
 		l.acceptRun(digits)
 	}
 	if len(digits) == 10+1 && l.accept("eE") {
 		l.accept("+-")
 		l.acceptRun("0123456789_")
 	}
-	if len(digits) == 16+6+1 && l.accept("pP") {
-		l.accept("+-")
-		l.acceptRun("0123456789_")
-	}
 	// Is it imaginary?
-	l.accept("i")
+	if l.accept("i") {
+        kind = TokenKindComplex
+    }
 	r := l.peek()
 	// Next thing mustn't be alphanumeric.
 	if isAlphaNumeric(r) {
 		l.next()
-		return errors.New("bad syntax for number")
+		return TokenKindError, errors.New("bad syntax for number")
 	}
-	return nil
+	return kind, nil
 }
 
 func isSpecialCharacter(escape string, r rune) bool {

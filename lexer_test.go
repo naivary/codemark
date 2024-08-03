@@ -130,10 +130,11 @@ dasdasd asdasd as dasdasd ads adsd`,
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			l := lex(tc.input)
+			l := Lex(tc.input)
 			l.run()
 			for token := range l.tokens {
-				t.Log(token)
+				_ = token
+				//	t.Log(token)
 			}
 		})
 	}

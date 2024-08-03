@@ -6,23 +6,30 @@ type DefinitionHelp struct {
 	Category string
 
 	Summary string
-
-	DeprecatedInFavorOf bool
 }
 
 type Definition struct {
 	// Name of the definition in the correct format
-	// e.g. path:to:mark
+	// e.g. +path:to:mark
 	Name string
 
+    // The output type to which the value
+    // of the marker will be mapped to
 	Output reflect.Type
 
+    // TargetType defines on which type of
+    // target it can be applied e.g. constants,
+    // functions, types, variables etc.
 	TargetType Target
 
+    // Help provides help information about 
+    // the marker
 	Help *DefinitionHelp
+
+	DeprecatedInFavorOf *string
 }
 
-func MakeDefinition(name string, targetType Target, output any) *Definition {
+func MakeDef(name string, targetType Target, output any) *Definition{
 	return &Definition{
 		Name:       name,
 		TargetType: targetType,

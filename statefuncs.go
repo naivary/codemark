@@ -12,6 +12,11 @@ func ignoreSpace(l *lexer) {
 	l.ignore()
 }
 
+func ignoreNewline(l *lexer) {
+	l.acceptFunc(isNewline)
+	l.ignore()
+}
+
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t'
 }
@@ -102,8 +107,6 @@ func lexAssignment(l *lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == '[':
 		return lexOpenSquareBracket
-	case r == '{':
-		return lexOpenCurlyBracket
 	case unicode.IsDigit(r):
 		return lexNumber
 		// a string is only recognised if a letter
@@ -117,6 +120,8 @@ func lexAssignment(l *lexer) stateFunc {
 }
 
 func lexBool(l *lexer) stateFunc {
+    assignToken := NewToken(TokenKindAssignment, "=")
+    l.emitToken(assignToken)
 	t := NewToken(TokenKindBool, "true")
 	l.emitToken(t)
 	return lexText
@@ -129,11 +134,11 @@ func lexString(l *lexer) stateFunc {
 }
 
 func lexNumber(l *lexer) stateFunc {
-	err := scanNumber(l)
+	kind, err := scanNumber(l)
 	if err != nil {
 		return l.errorf(err.Error())
 	}
-	l.emit(TokenKindNumber)
+	l.emit(kind)
 	r := l.peek()
 	if isNewline(r) {
 		l.next()
@@ -163,11 +168,11 @@ func lexOpenSquareBracket(l *lexer) stateFunc {
 }
 
 func lexNumberArrayValue(l *lexer) stateFunc {
-	err := scanNumber(l)
+	kind, err := scanNumber(l)
 	if err != nil {
 		return l.errorf(err.Error())
 	}
-	l.emit(TokenKindNumber)
+	l.emit(kind)
 	switch r := l.peek(); {
 	case r == ',':
 		return lexCommaSeperator
@@ -180,7 +185,7 @@ func lexNumberArrayValue(l *lexer) stateFunc {
 
 func lexCommaSeperator(l *lexer) stateFunc {
 	l.next()
-    l.ignore()
+	l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {
 	case unicode.IsDigit(r):
@@ -227,8 +232,4 @@ func lexCloseSquareBracket(l *lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindCloseSquareBracket)
 	return lexText
-}
-
-func lexOpenCurlyBracket(l *lexer) stateFunc {
-	return nil
 }
