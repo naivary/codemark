@@ -23,7 +23,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "complex",
-			input: "+jsonschema:validation:max=3+2i",
+			input: "+jsonschema:validation:max=0x23ef+2i",
 		},
 		{
 			name:  "catch error",
@@ -32,7 +32,9 @@ func TestParse(t *testing.T) {
 		{
 			name: "multi markers",
 			input: `+jsonschema:validation:max=3
-+jsonschema:validation:max=3`,
+
+
++jsonschema:validation:max=5`,
 		},
 	}
 

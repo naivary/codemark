@@ -78,7 +78,7 @@ func scanStringWithEscape(l *lexer, escape string, c string) error {
 		escape += "\\"
 	}
 	valid := func(r rune) bool {
-		return !isSpace(r) && r != eof && !isSpecialCharacter(escape, r)
+		return !isSpace(r) && r != eof && !isSpecialCharacter(escape, r) && !isNewline(r)
 	}
 	l.acceptFunc(valid)
 

@@ -128,7 +128,7 @@ func lexBool(l *lexer) stateFunc {
 }
 
 func lexString(l *lexer) stateFunc {
-	scanStringWithEscape(l, "", "")
+	scanString(l)
 	l.emit(TokenKindString)
 	return lexText
 }

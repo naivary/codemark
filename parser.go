@@ -95,9 +95,8 @@ func (p *parser) next() Token {
 }
 
 func parsePlus(p *parser, t Token) (parseFunc, bool) {
-    fmt.Println(t.Value)
 	if t.Kind == TokenKindEOF {
-		return parsePlus, _next
+		return nil, _keep
 	}
 	return parseIdent, _next
 }
@@ -180,5 +179,5 @@ func parseSlice(p *parser, t Token) (parseFunc, bool) {
 
 func parseEOF(p *parser, _ Token) (parseFunc, bool) {
 	p.emit()
-	return parsePlus, _next
+	return parsePlus, _keep
 }
