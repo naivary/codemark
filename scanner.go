@@ -6,8 +6,35 @@ import (
 	"strings"
 )
 
+func scanRealNumber(l *lexer) (TokenKind, error) {
+	kind := TokenKindInt
+	l.accept("+-")
+	digits := "0123456789_"
+	// Is it hex?
+	if l.accept("0") {
+		// Note: Leading 0 does not mean octal in floats.
+		if l.accept("xX") {
+			digits = "0123456789abcdefABCDEF_"
+		} else if l.accept("oO") {
+			digits = "01234567_"
+		} else if l.accept("bB") {
+			digits = "01_"
+		}
+	}
+	l.acceptRun(digits)
+	if l.accept(".") {
+		kind = TokenKindFloat
+		l.acceptRun(digits)
+	}
+	if len(digits) == 10+1 && l.accept("eE") {
+		l.accept("+-")
+		l.acceptRun("0123456789_")
+	}
+	return kind, nil
+}
+
 func scanNumber(l *lexer) (TokenKind, error) {
-    kind := TokenKindInt
+	kind := TokenKindInt
 	// Optional leading sign.
 	l.accept("+-")
 	digits := "0123456789_"
@@ -24,7 +51,7 @@ func scanNumber(l *lexer) (TokenKind, error) {
 	}
 	l.acceptRun(digits)
 	if l.accept(".") {
-        kind = TokenKindFloat
+		kind = TokenKindFloat
 		l.acceptRun(digits)
 	}
 	if len(digits) == 10+1 && l.accept("eE") {
@@ -33,8 +60,8 @@ func scanNumber(l *lexer) (TokenKind, error) {
 	}
 	// Is it imaginary?
 	if l.accept("i") {
-        kind = TokenKindComplex
-    }
+		kind = TokenKindComplex
+	}
 	r := l.peek()
 	// Next thing mustn't be alphanumeric.
 	if isAlphaNumeric(r) {

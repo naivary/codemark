@@ -98,6 +98,8 @@ func parseValue(p *parser, t Token) (parseFunc, Token) {
 		return parseString, t
 	case TokenKindInt:
 		return parseInt, t
+    case TokenKindComplex:
+        return parseComplex, t
 	case TokenKindOpenSquareBracket:
 		return parseSlice, t
 	case TokenKindBool:
@@ -133,6 +135,17 @@ func parseInt(p *parser, t Token) (parseFunc, Token) {
     }
     p.m.kind = reflect.Int64
     p.m.value = reflect.ValueOf(i)
+	return parseEOF, p.next()
+}
+
+func parseComplex(p *parser, t Token) (parseFunc, Token) {
+    c , err := strconv.ParseComplex(t.Value, 128)
+    if err != nil {
+        // error handling
+        return nil, t
+    }
+    p.m.kind = reflect.Complex128
+    p.m.value = reflect.ValueOf(c)
 	return parseEOF, p.next()
 }
 

@@ -21,6 +21,10 @@ func TestParse(t *testing.T) {
 			name:  "hex",
 			input: "+jsonschema:validation:max=0x23f3e",
 		},
+		{
+			name:  "complex",
+			input: "+jsonschema:validation:max=2i",
+		},
 	}
 
 	for _, tc := range tests {
@@ -28,7 +32,8 @@ func TestParse(t *testing.T) {
 			p := parse(tc.input)
 			p.run()
 			for m := range p.markers {
-				t.Log(m)
+                t.Log(m.Kind())
+				t.Log(m.Value())
 			}
 		})
 	}
