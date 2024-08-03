@@ -36,6 +36,10 @@ func TestParse(t *testing.T) {
 
 +jsonschema:validation:max=5`,
 		},
+		{
+			name:  "array",
+            input: `+jsonschema:validation:items=["lorem", "ipsum", "levy"]`,
+		},
 	}
 
 	for _, tc := range tests {

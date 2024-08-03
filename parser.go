@@ -28,7 +28,6 @@ type Marker interface {
 	// the marker is using
 	Kind() reflect.Kind
 
-	//
 	Value() reflect.Value
 }
 
@@ -119,7 +118,7 @@ func parseValue(p *parser, t Token) (parseFunc, bool) {
 	case TokenKindComplex:
 		return parseComplex, _keep
 	case TokenKindOpenSquareBracket:
-		return parseSlice, _keep
+		return parseSliceStart, _keep
 	case TokenKindBool:
 		return parseBool, _keep
 	default:
@@ -173,8 +172,32 @@ func parseComplex(p *parser, t Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseSlice(p *parser, t Token) (parseFunc, bool) {
-	return nil, _keep
+func parseSliceStart(p *parser, t Token) (parseFunc, bool) {
+	p.m.kind = reflect.Slice
+	rt := reflect.TypeOf([]any{})
+	p.m.value = reflect.MakeSlice(rt, 0, 1)
+	return parseSliceElem, _next
+}
+
+func parseSliceElem(p *parser, t Token) (parseFunc, bool) {
+	switch t.Kind {
+	case TokenKindString:
+		return parseSliceStringElem, _keep
+	default:
+		return parseSliceEnd, _keep
+	}
+}
+
+func parseSliceStringElem(p *parser, t Token) (parseFunc, bool) {
+	reflectValue := reflect.ValueOf(t.Value)
+	p.m.value = reflect.Append(p.m.value, reflectValue)
+	return parseSliceElem, _next
+}
+
+func parseSliceEnd(p *parser, _ Token) (parseFunc, bool) {
+    typ := p.m.value.Type().Elem()
+    fmt.Println(typ)
+	return parseEOF, _next
 }
 
 func parseEOF(p *parser, _ Token) (parseFunc, bool) {
