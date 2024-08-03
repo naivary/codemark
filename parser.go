@@ -1,13 +1,23 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
 )
 
-type parseFunc func(*parser, Token) (parseFunc, Token)
+const (
+	_next = true
+	_keep = false
+)
+
+// parseFunc is the function signature for parsing.
+// the bool return is deciding whether the next token
+// from the channel should be received or the last one
+// should be passed instead
+type parseFunc func(*parser, Token) (parseFunc, bool)
 
 type Marker interface {
 	// Ident is the identifier of
@@ -58,13 +68,21 @@ type parser struct {
 	m       *marker
 }
 
-func (p *parser) run() {
+func (p *parser) run() error {
 	p.l.run()
-	t := p.next()
+	next := false
+	token := p.next()
 	for state := p.state; state != nil; {
-		state, t = state(p, t)
+		if next {
+			token = p.next()
+		}
+		if token.Kind == TokenKindError {
+			return errors.New(token.Value)
+		}
+		state, next = state(p, token)
 	}
 	close(p.markers)
+	return nil
 }
 
 func (p *parser) emit() {
@@ -76,92 +94,91 @@ func (p *parser) next() Token {
 	return <-p.l.tokens
 }
 
-func parsePlus(p *parser, t Token) (parseFunc, Token) {
-	switch t.Kind {
-	case TokenKindEOF:
-		return nil, t
-	default:
-		return parseIdent, p.next()
+func parsePlus(p *parser, t Token) (parseFunc, bool) {
+    fmt.Println(t.Value)
+	if t.Kind == TokenKindEOF {
+		return parsePlus, _next
 	}
+	return parseIdent, _next
 }
 
-func parseIdent(p *parser, t Token) (parseFunc, Token) {
+func parseIdent(p *parser, t Token) (parseFunc, bool) {
 	p.m.ident = t.Value
-	return parseAssignment, p.next()
+	return parseAssignment, _next
 }
 
-func parseAssignment(p *parser, t Token) (parseFunc, Token) {
-	return parseValue, p.next()
+func parseAssignment(p *parser, t Token) (parseFunc, bool) {
+	return parseValue, _next
 }
 
-func parseValue(p *parser, t Token) (parseFunc, Token) {
+func parseValue(p *parser, t Token) (parseFunc, bool) {
 	switch t.Kind {
 	case TokenKindString:
-		return parseString, t
+		return parseString, _keep
 	case TokenKindInt:
-		return parseInt, t
+		return parseInt, _keep
 	case TokenKindComplex:
-		return parseComplex, t
+		return parseComplex, _keep
 	case TokenKindOpenSquareBracket:
-		return parseSlice, t
+		return parseSlice, _keep
 	case TokenKindBool:
-		return parseBool, t
+		return parseBool, _keep
 	default:
 		// Something went wrong while lexing
-		return nil, t
+		return nil, _keep
 	}
 }
 
-func parseBool(p *parser, t Token) (parseFunc, Token) {
+func parseBool(p *parser, t Token) (parseFunc, bool) {
 	p.m.kind = reflect.Bool
 	boolVal, err := strconv.ParseBool(t.Value)
 	if err != nil {
 		// error handling
-		return nil, t
+		return nil, _keep
 	}
 	p.m.value = reflect.ValueOf(boolVal)
-	return parseEOF, p.next()
+	return parseEOF, _next
 }
 
-func parseString(p *parser, t Token) (parseFunc, Token) {
+func parseString(p *parser, t Token) (parseFunc, bool) {
 	p.m.kind = reflect.String
 	p.m.value = reflect.ValueOf(t.Value)
-	return parseEOF, p.next()
+	return parseEOF, _next
 }
 
-func parseInt(p *parser, t Token) (parseFunc, Token) {
+func parseInt(p *parser, t Token) (parseFunc, bool) {
 	i, err := strconv.ParseInt(t.Value, 0, 64)
 	if err != nil {
 		// error handling
-		return nil, t
+		return nil, _keep
 	}
 	p.m.kind = reflect.Int64
 	p.m.value = reflect.ValueOf(i)
-	return parseEOF, p.next()
+	return parseEOF, _next
 }
 
-func parseComplex(p *parser, t Token) (parseFunc, Token) {
-    re, img, _ := strings.Cut(t.Value, "+")
-    i , err  := strconv.ParseInt(re, 0, 64)
-    if err != nil {
-        return nil, t
-    }
-    val := fmt.Sprintf("%d+%s", i, img)
+func parseComplex(p *parser, t Token) (parseFunc, bool) {
+	re, img, _ := strings.Cut(t.Value, "+")
+	i, err := strconv.ParseInt(re, 0, 64)
+	if err != nil {
+		return nil, _keep
+	}
+	val := fmt.Sprintf("%d+%s", i, img)
 	c, err := strconv.ParseComplex(val, 128)
 	if err != nil {
 		// error handling
-		return nil, t
+		return nil, _keep
 	}
 	p.m.kind = reflect.Complex128
 	p.m.value = reflect.ValueOf(c)
-	return parseEOF, p.next()
+	return parseEOF, _next
 }
 
-func parseSlice(p *parser, t Token) (parseFunc, Token) {
-	return nil, t
+func parseSlice(p *parser, t Token) (parseFunc, bool) {
+	return nil, _keep
 }
 
-func parseEOF(p *parser, _ Token) (parseFunc, Token) {
+func parseEOF(p *parser, _ Token) (parseFunc, bool) {
 	p.emit()
-	return parsePlus, p.next()
+	return parsePlus, _next
 }

@@ -23,16 +23,27 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "complex",
-			input: "+jsonschema:validation:max=0x2312+2i",
+			input: "+jsonschema:validation:max=3+2i",
+		},
+		{
+			name:  "catch error",
+			input: "+jsonschema:validation:max=",
+		},
+		{
+			name: "multi markers",
+			input: `+jsonschema:validation:max=3
++jsonschema:validation:max=3`,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := parse(tc.input)
-			p.run()
+			if err := p.run(); err != nil {
+				t.Fatal(err)
+			}
 			for m := range p.markers {
-                t.Log(m.Kind())
+				t.Log(m.Kind())
 				t.Log(m.Value())
 			}
 		})

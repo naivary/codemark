@@ -136,6 +136,11 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:max=3+2i`,
 			isValid: true,
 		},
+		{
+			name:    "unfinished assignment",
+			input:   `+jsonschema:validation:max=`,
+			isValid: false,
+		},
 
 	}
 
@@ -144,7 +149,7 @@ dasdasd asdasd as dasdasd ads adsd`,
 			l := Lex(tc.input)
 			l.run()
 			for token := range l.tokens {
-				t.Log(token)
+                t.Log(token)
 			}
 		})
 	}

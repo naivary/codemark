@@ -115,7 +115,7 @@ func lexAssignment(l *lexer) stateFunc {
 	case unicode.IsLetter(r):
 		return lexString
 	default:
-		return nil
+		return l.errorf("expecting value after assignment")
 	}
 }
 
