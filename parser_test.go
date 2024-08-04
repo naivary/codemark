@@ -40,6 +40,14 @@ func TestParse(t *testing.T) {
 			name:  "array",
             input: `+jsonschema:validation:items=["lorem", "ipsum", "levy"]`,
 		},
+		{
+			name:  "array escape and int",
+            input: `+jsonschema:validation:items=["lorem", "ips\"um", 3]`,
+		},
+		{
+			name:  "array escape and float",
+            input: `+jsonschema:validation:items=["lorem", "ips\"um", 3.3]`,
+		},
 	}
 
 	for _, tc := range tests {

@@ -13,6 +13,28 @@ const (
 	_keep = false
 )
 
+func parseFloat64(val string) (float64, error) {
+	return strconv.ParseFloat(val, 64)
+}
+
+func parseInt64(val string) (int64, error) {
+	return strconv.ParseInt(val, 0, 64)
+}
+
+func parseComplex128(v string) (complex128, error) {
+	re, img, _ := strings.Cut(v, "+")
+	i, err := strconv.ParseInt(re, 0, 64)
+	if err != nil {
+		return 0, err
+	}
+	val := fmt.Sprintf("%d+%s", i, img)
+	c, err := strconv.ParseComplex(val, 128)
+	if err != nil {
+		return 0, err
+	}
+	return c, nil
+}
+
 // parseFunc is the function signature for parsing.
 // the bool return is deciding whether the next token
 // from the channel should be received or the last one
@@ -117,10 +139,12 @@ func parseValue(p *parser, t Token) (parseFunc, bool) {
 		return parseInt, _keep
 	case TokenKindComplex:
 		return parseComplex, _keep
-	case TokenKindOpenSquareBracket:
-		return parseSliceStart, _keep
+	case TokenKindFloat:
+		return parseFloat, _keep
 	case TokenKindBool:
 		return parseBool, _keep
+	case TokenKindOpenSquareBracket:
+		return parseSliceStart, _keep
 	default:
 		// Something went wrong while lexing
 		return nil, _keep
@@ -145,7 +169,7 @@ func parseString(p *parser, t Token) (parseFunc, bool) {
 }
 
 func parseInt(p *parser, t Token) (parseFunc, bool) {
-	i, err := strconv.ParseInt(t.Value, 0, 64)
+	i, err := parseInt64(t.Value)
 	if err != nil {
 		// error handling
 		return nil, _keep
@@ -155,16 +179,19 @@ func parseInt(p *parser, t Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseComplex(p *parser, t Token) (parseFunc, bool) {
-	re, img, _ := strings.Cut(t.Value, "+")
-	i, err := strconv.ParseInt(re, 0, 64)
+func parseFloat(p *parser, t Token) (parseFunc, bool) {
+	f, err := parseFloat64(t.Value)
 	if err != nil {
 		return nil, _keep
 	}
-	val := fmt.Sprintf("%d+%s", i, img)
-	c, err := strconv.ParseComplex(val, 128)
+	p.m.kind = reflect.Float64
+	p.m.value = reflect.ValueOf(f)
+	return parseEOF, _next
+}
+
+func parseComplex(p *parser, t Token) (parseFunc, bool) {
+	c, err := parseComplex128(t.Value)
 	if err != nil {
-		// error handling
 		return nil, _keep
 	}
 	p.m.kind = reflect.Complex128
@@ -183,20 +210,54 @@ func parseSliceElem(p *parser, t Token) (parseFunc, bool) {
 	switch t.Kind {
 	case TokenKindString:
 		return parseSliceStringElem, _keep
+	case TokenKindInt:
+		return parseSliceIntElem, _keep
+	case TokenKindFloat:
+		return parseSliceFloatElem, _keep
+	case TokenKindComplex:
+		return parseSliceComplexElem, _keep
 	default:
 		return parseSliceEnd, _keep
 	}
 }
 
 func parseSliceStringElem(p *parser, t Token) (parseFunc, bool) {
-	reflectValue := reflect.ValueOf(t.Value)
-	p.m.value = reflect.Append(p.m.value, reflectValue)
+	val := reflect.ValueOf(t.Value)
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseSliceElem, _next
+}
+
+func parseSliceIntElem(p *parser, t Token) (parseFunc, bool) {
+	i, err := parseInt64(t.Value)
+	if err != nil {
+		return nil, _keep
+	}
+	val := reflect.ValueOf(i)
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseSliceElem, _next
+}
+
+func parseSliceFloatElem(p *parser, t Token) (parseFunc, bool) {
+	f, err := parseFloat64(t.Value)
+	if err != nil {
+		return nil, _keep
+	}
+	val := reflect.ValueOf(f)
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseSliceElem, _next
+}
+
+func parseSliceComplexElem(p *parser, t Token) (parseFunc, bool) {
+	c, err := parseComplex128(t.Value)
+	if err != nil {
+		return nil, _keep
+	}
+	val := reflect.ValueOf(c)
+	p.m.value = reflect.Append(p.m.value, val)
 	return parseSliceElem, _next
 }
 
 func parseSliceEnd(p *parser, _ Token) (parseFunc, bool) {
-    typ := p.m.value.Type().Elem()
-    fmt.Println(typ)
 	return parseEOF, _next
 }
 

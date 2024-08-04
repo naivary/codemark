@@ -141,7 +141,11 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:max=`,
 			isValid: false,
 		},
-
+		{
+			name:    "float",
+			input:   `+jsonschema:validation:max=3.5`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {
