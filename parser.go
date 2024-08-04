@@ -87,6 +87,7 @@ type parser struct {
 	state   parseFunc
 	markers chan Marker
 	m       *marker
+	err     error
 }
 
 func (p *parser) run() error {
@@ -103,7 +104,7 @@ func (p *parser) run() error {
 		state, next = state(p, token)
 	}
 	close(p.markers)
-	return nil
+	return p.err
 }
 
 func (p *parser) emit() {
@@ -113,6 +114,11 @@ func (p *parser) emit() {
 
 func (p *parser) next() Token {
 	return <-p.l.tokens
+}
+
+func (p *parser) errorf(format string, args ...any) parseFunc {
+	p.err = fmt.Errorf(format, args...)
+	return nil
 }
 
 func parsePlus(p *parser, t Token) (parseFunc, bool) {
@@ -146,8 +152,7 @@ func parseValue(p *parser, t Token) (parseFunc, bool) {
 	case TokenKindOpenSquareBracket:
 		return parseSliceStart, _keep
 	default:
-		// Something went wrong while lexing
-		return nil, _keep
+		return p.errorf("undefined kind for value `%s`", t), _keep
 	}
 }
 
@@ -155,8 +160,7 @@ func parseBool(p *parser, t Token) (parseFunc, bool) {
 	p.m.kind = reflect.Bool
 	boolVal, err := strconv.ParseBool(t.Value)
 	if err != nil {
-		// error handling
-		return nil, _keep
+        return p.errorf("couldn't parse boolean value: %s", t.Value), _keep
 	}
 	p.m.value = reflect.ValueOf(boolVal)
 	return parseEOF, _next
@@ -250,7 +254,7 @@ func parseSliceFloatElem(p *parser, t Token) (parseFunc, bool) {
 func parseSliceComplexElem(p *parser, t Token) (parseFunc, bool) {
 	c, err := parseComplex128(t.Value)
 	if err != nil {
-		return nil, _keep
+		return p.errorf("couldn't parse complex number: %s", t.Value), _keep
 	}
 	val := reflect.ValueOf(c)
 	p.m.value = reflect.Append(p.m.value, val)
