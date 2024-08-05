@@ -1,21 +1,39 @@
 package main
 
-import "reflect"
+import (
+	"fmt"
+	"go/ast"
+	"go/doc"
+	gparser "go/parser"
+	"go/token"
+)
 
-type MarkerValues map[string]reflect.Type
-
-type Collector interface {
-    Collect(files ...string) (MarkerValues, error)
+// Loader is responsible for loading the specified
+// files and their documentation
+type Loader interface {
+	Load(files ...string) (*doc.Package, error)
 }
 
-func NewCollector(reg Registry) Collector {
-    return &collector{}
+func NewLoader() Loader {
+	return &loader{}
 }
 
-var _ Collector = (*collector)(nil)
+var _ Loader = (*loader)(nil)
 
-type collector struct{}
+type loader struct{}
 
-func (c collector) Collect(files ...string) (MarkerValues, error) {
-    return nil, nil
+func (l *loader) Load(paths ...string) (*doc.Package, error) {
+	fset := token.NewFileSet()
+	files := make([]*ast.File, 0, len(paths))
+	for _, path := range paths {
+		file, err := gparser.ParseFile(fset, path, nil, gparser.ParseComments)
+		if err != nil {
+			return nil, err
+		}
+		files = append(files, file)
+        for _, decl := range file.Decls {
+            fmt.Println(decl)
+        }
+	}
+	return doc.NewFromFiles(fset, files, "codemark.com/loader")
 }

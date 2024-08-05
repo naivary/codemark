@@ -82,12 +82,19 @@ func parse(input string) *parser {
 	}
 }
 
+type parseFuncE func(*parser) parseFunc
+
 type parser struct {
 	l       *lexer
 	state   parseFunc
 	markers chan Marker
 	m       *marker
 	err     error
+	// receive is defining if the next token from the
+	// lexer should be fetched or the same should be
+	// kept for the next `parseFunc`
+	receive bool
+	t       Token
 }
 
 func (p *parser) run() error {
@@ -160,7 +167,7 @@ func parseBool(p *parser, t Token) (parseFunc, bool) {
 	p.m.kind = reflect.Bool
 	boolVal, err := strconv.ParseBool(t.Value)
 	if err != nil {
-        return p.errorf("couldn't parse boolean value: %s", t.Value), _keep
+		return p.errorf("couldn't parse boolean value: %s", t.Value), _keep
 	}
 	p.m.value = reflect.ValueOf(boolVal)
 	return parseEOF, _next
@@ -176,7 +183,7 @@ func parseInt(p *parser, t Token) (parseFunc, bool) {
 	i, err := parseInt64(t.Value)
 	if err != nil {
 		// error handling
-		return nil, _keep
+		return p.errorf(err.Error()), _keep
 	}
 	p.m.kind = reflect.Int64
 	p.m.value = reflect.ValueOf(i)
@@ -186,7 +193,7 @@ func parseInt(p *parser, t Token) (parseFunc, bool) {
 func parseFloat(p *parser, t Token) (parseFunc, bool) {
 	f, err := parseFloat64(t.Value)
 	if err != nil {
-		return nil, _keep
+		return p.errorf(err.Error()), _keep
 	}
 	p.m.kind = reflect.Float64
 	p.m.value = reflect.ValueOf(f)
@@ -196,7 +203,7 @@ func parseFloat(p *parser, t Token) (parseFunc, bool) {
 func parseComplex(p *parser, t Token) (parseFunc, bool) {
 	c, err := parseComplex128(t.Value)
 	if err != nil {
-		return nil, _keep
+		return p.errorf(err.Error()), _keep
 	}
 	p.m.kind = reflect.Complex128
 	p.m.value = reflect.ValueOf(c)
@@ -234,7 +241,7 @@ func parseSliceStringElem(p *parser, t Token) (parseFunc, bool) {
 func parseSliceIntElem(p *parser, t Token) (parseFunc, bool) {
 	i, err := parseInt64(t.Value)
 	if err != nil {
-		return nil, _keep
+		return p.errorf(err.Error()), _keep
 	}
 	val := reflect.ValueOf(i)
 	p.m.value = reflect.Append(p.m.value, val)
@@ -244,7 +251,7 @@ func parseSliceIntElem(p *parser, t Token) (parseFunc, bool) {
 func parseSliceFloatElem(p *parser, t Token) (parseFunc, bool) {
 	f, err := parseFloat64(t.Value)
 	if err != nil {
-		return nil, _keep
+		return p.errorf(err.Error()), _keep
 	}
 	val := reflect.ValueOf(f)
 	p.m.value = reflect.Append(p.m.value, val)

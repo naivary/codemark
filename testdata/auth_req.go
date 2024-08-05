@@ -26,6 +26,13 @@ type AuthRequest struct {
     Password string `json:"password,omitempty"`
 }
 
+// some kind of map
 var comp = map[complex128]string{
     2+3i: "something",
+}
+
+// NewAuthReq is creating a new
+// authentication request
+func NewAuthReq() AuthRequest {
+    return AuthRequest{}
 }
