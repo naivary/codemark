@@ -1,39 +1,105 @@
 package main
 
 import (
-	"fmt"
-	"go/ast"
-	"go/doc"
-	gparser "go/parser"
-	"go/token"
+	"go/types"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // Loader is responsible for loading the specified
 // files and their documentation
 type Loader interface {
-	Load(files ...string) (*doc.Package, error)
+	Load(files ...string) (map[string]*Info, error)
 }
 
-func NewLoader() Loader {
-	return &loader{}
+func NewLoader(cfg *packages.Config) Loader {
+	l := &loader{}
+	if cfg == nil {
+		l.cfg = l.defaultConfig()
+	}
+	return l
 }
 
 var _ Loader = (*loader)(nil)
 
-type loader struct{}
+type loader struct {
+	cfg *packages.Config
+}
 
-func (l *loader) Load(paths ...string) (*doc.Package, error) {
-	fset := token.NewFileSet()
-	files := make([]*ast.File, 0, len(paths))
-	for _, path := range paths {
-		file, err := gparser.ParseFile(fset, path, nil, gparser.ParseComments)
+// types und packages nutzen um die verschiedenen Expression reinzuladen
+// docs für die expressions laden
+// Marker für die Expression parsen und überprüfen ob die Marker auf diese
+// Expression sein dürfen
+// Info struct erstellen für die Expression e.g. FuncInfo oder ConstInfo etc.
+// Eine Struct mit allen Info als result wiedergeben
+func (l *loader) Load(paths ...string) (map[string]*Info, error) {
+	infos := make(map[string]*Info, len(paths))
+	pkgs, err := packages.Load(l.cfg, paths...)
+	if err != nil {
+		return nil, err
+	}
+	for _, pkg := range pkgs {
+		info := &Info{}
+		consts, err := l.loadConsts(pkg)
 		if err != nil {
 			return nil, err
 		}
-		files = append(files, file)
-        for _, decl := range file.Decls {
-            fmt.Println(decl)
-        }
+		info.Consts = consts
+		vars, err := l.loadVars(pkg)
+		if err != nil {
+			return nil, err
+		}
+		info.Vars = vars
+		infos[pkg.ID] = info
 	}
-	return doc.NewFromFiles(fset, files, "codemark.com/loader")
+	return infos, nil
+}
+
+func (l *loader) loadConsts(pkg *packages.Package) ([]ConstInfo, error) {
+	consts := make([]ConstInfo, 0, 0)
+	for idn, obj := range pkg.TypesInfo.Defs {
+		con, ok := obj.(*types.Const)
+		if !ok {
+			continue
+		}
+		info := ConstInfo{}
+		info.Name = con.Name()
+		info.Value = con.Val()
+		info.Type = con.Type()
+		info.Object = obj
+		info.Ident = idn
+		consts = append(consts, info)
+	}
+	return consts, nil
+}
+
+func (l *loader) loadVars(pkg *packages.Package) ([]VarInfo, error) {
+	vars := make([]VarInfo, 0, 0)
+	for _, obj := range pkg.TypesInfo.Defs {
+		v, ok := obj.(*types.Var)
+		if !ok {
+			continue
+		}
+		if !l.isTopLevelVar(v) {
+			continue
+		}
+		info := VarInfo{}
+		info.Name = v.Name()
+		info.Type = obj.Type()
+		vars = append(vars, info)
+	}
+	return vars, nil
+}
+
+func (l *loader) isTopLevelVar(v *types.Var) bool {
+	if v.IsField() {
+		return false
+	}
+	return true
+}
+
+func (l *loader) defaultConfig() *packages.Config {
+	return &packages.Config{
+		Mode: packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypes,
+	}
 }

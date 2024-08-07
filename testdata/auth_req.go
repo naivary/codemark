@@ -3,7 +3,13 @@ package testdata
 import "time"
 
 // name is very important
-const Name = "test-name"
+const ConstName = "test-name"
+
+const (
+    block = 3
+    of = '\n'
+    consts = 2+3i
+)
 
 // +jsonschema:validation=231
 var Now = time.Now()
@@ -24,6 +30,11 @@ type AuthRequest struct {
     // Password is the raw password of the user
     // +jsonschema:validation:items={something: 3}
     Password string `json:"password,omitempty"`
+}
+
+// some documentatin for send
+func (as AuthRequest) Send(name string) error {
+    return nil
 }
 
 // some kind of map
