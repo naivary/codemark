@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"go/ast"
 	"go/types"
 
+	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -80,7 +83,7 @@ func (l *loader) loadVars(pkg *packages.Package) ([]VarInfo, error) {
 		if !ok {
 			continue
 		}
-		if !l.isTopLevelVar(v) {
+		if !l.isTopLevelVar(pkg, v) {
 			continue
 		}
 		info := VarInfo{}
@@ -88,13 +91,30 @@ func (l *loader) loadVars(pkg *packages.Package) ([]VarInfo, error) {
 		info.Type = obj.Type()
 		vars = append(vars, info)
 	}
+    fmt.Println(vars)
 	return vars, nil
 }
 
-func (l *loader) isTopLevelVar(v *types.Var) bool {
+func (l *loader) isTopLevelVar(pkg *packages.Package, v *types.Var) bool {
 	if v.IsField() {
 		return false
 	}
+    // check if the variable is in a function declaration
+	for _, file := range pkg.Syntax {
+		pos := v.Pos()
+		if !(file.FileStart <= pos && pos < file.FileEnd) {
+			// not in this file
+			continue
+		}
+		path, _ := astutil.PathEnclosingInterval(file, pos, pos)
+		for _, n := range path {
+			switch n.(type) {
+			case *ast.FuncDecl:
+				return false
+			}
+		}
+	}
+
 	return true
 }
 
