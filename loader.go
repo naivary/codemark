@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 
 	"golang.org/x/tools/go/ast/astutil"
@@ -52,7 +53,13 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 		if err != nil {
 			return nil, err
 		}
+		types, err := l.loadTypes(pkg)
+		if err != nil {
+			return nil, err
+		}
+		info.Consts = consts
 		info.Vars = vars
+		info.Types = types
 		infos[pkg.ID] = info
 	}
 	return infos, nil
@@ -83,7 +90,7 @@ func (l *loader) loadVars(pkg *packages.Package) ([]VarInfo, error) {
 		if !ok {
 			continue
 		}
-		if !l.isTopLevelVar(pkg, v) {
+		if !isVar(pkg, v) {
 			continue
 		}
 		info := VarInfo{}
@@ -91,18 +98,80 @@ func (l *loader) loadVars(pkg *packages.Package) ([]VarInfo, error) {
 		info.Type = obj.Type()
 		vars = append(vars, info)
 	}
-    fmt.Println(vars)
 	return vars, nil
 }
 
-func (l *loader) isTopLevelVar(pkg *packages.Package, v *types.Var) bool {
+func (l *loader) loadTypes(pkg *packages.Package) ([]TypeInfo, error) {
+	typs := make([]TypeInfo, 0, 0)
+	for _, obj := range pkg.TypesInfo.Defs {
+		if obj == nil {
+			continue
+		}
+		v, ok := obj.(*types.TypeName)
+		if !ok {
+			continue
+		}
+		if v.IsAlias() {
+			continue
+		}
+		for _, file := range pkg.Syntax {
+			pos := v.Pos()
+			if !isInFile(file, pos) {
+				continue
+			}
+			path, _ := astutil.PathEnclosingInterval(file, pos, pos)
+			for _, n := range path {
+                _ = n
+			}
+		}
+	}
+	return typs, nil
+}
+
+func (l *loader) createTypeInfo(node ast.Node) *TypeInfo {
+	info := &TypeInfo{}
+	decl, ok := node.(*ast.GenDecl)
+	if !ok {
+		return nil
+	}
+	if decl.Tok != token.TYPE {
+		return nil
+	}
+	info.Doc = decl.Doc.Text()
+	info.GenDecl = decl
+	return info
+}
+
+func (l *loader) createFieldInfos(specs []ast.Spec) []FieldInfo {
+	for _, spec := range specs {
+		v, ok := spec.(*ast.TypeSpec)
+		if !ok {
+			continue
+		}
+		t, ok := v.Type.(*ast.StructType)
+		fmt.Println(t)
+	}
+	return nil
+}
+
+func (l *loader) defaultConfig() *packages.Config {
+	return &packages.Config{
+		Mode: packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypes,
+	}
+}
+
+func isInFile(file *ast.File, pos token.Pos) bool {
+	return file.FileStart <= pos && pos < file.FileEnd
+}
+
+func isVar(pkg *packages.Package, v *types.Var) bool {
 	if v.IsField() {
 		return false
 	}
-    // check if the variable is in a function declaration
+	// check if the variable is in a function declaration
 	for _, file := range pkg.Syntax {
 		pos := v.Pos()
-		if !(file.FileStart <= pos && pos < file.FileEnd) {
+		if !isInFile(file, pos) {
 			// not in this file
 			continue
 		}
@@ -116,10 +185,4 @@ func (l *loader) isTopLevelVar(pkg *packages.Package, v *types.Var) bool {
 	}
 
 	return true
-}
-
-func (l *loader) defaultConfig() *packages.Config {
-	return &packages.Config{
-		Mode: packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypes,
-	}
 }

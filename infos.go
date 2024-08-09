@@ -7,11 +7,11 @@ import (
 )
 
 type Info struct {
-	Methods []MethodInfo
-	Funcs   []FuncInfo
-	Consts  []ConstInfo
-	Vars    []VarInfo
-	Types   []TypeInfo
+	Methods []*MethodInfo
+	Funcs   []*FuncInfo
+	Consts  []*ConstInfo
+	Vars    []*VarInfo
+	Types   []*TypeInfo
 }
 
 type MethodInfo struct {
@@ -49,6 +49,12 @@ type TypeInfo struct {
 	// Fields of the Type if it is a struct. If it's
 	// not a struct it will be nil.
 	Fields []FieldInfo
+
+	GenDecl *ast.GenDecl
+
+	Type types.Type
+
+    Markers 
 }
 
 type FieldInfo struct {

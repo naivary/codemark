@@ -11,6 +11,14 @@ const (
     consts = 2+3i
 )
 
+// This is the size docs
+type Size int
+
+const (
+    SizeReququestMax = iota + 1
+    SizeReququestMin = iota + 1
+)
+
 // +jsonschema:validation=231
 var Now = time.Now()
 
@@ -20,7 +28,7 @@ type AuthRequest struct {
     // Size of the request
     //
     // +jsonschema:validation:maximum=3
-    Size int `json:"size,omitempty"`
+    Size Size `json:"size,omitempty"`
 
     // Email of the user 
     //
