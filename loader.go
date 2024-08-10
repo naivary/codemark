@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -127,9 +126,6 @@ func (l *loader) loadTypes(pkg *packages.Package) ([]*TypeInfo, error) {
 			}
 		}
 	}
-	for _, t := range typs {
-		fmt.Println(t)
-	}
 	return typs, nil
 }
 
@@ -156,7 +152,7 @@ func (l *loader) createFieldInfos(pkg *packages.Package, typeInfo *TypeInfo) {
 		}
 		s, ok := v.Type.(*ast.StructType)
 		if !ok {
-			typeInfo.IsBasic = true
+			l.basicTypeInfo(v.Type, typeInfo)
 			return
 		}
 		typeInfo.IsStruct = true
@@ -168,6 +164,12 @@ func (l *loader) createFieldInfos(pkg *packages.Package, typeInfo *TypeInfo) {
 		}
 		typeInfo.Fields = fieldInfos
 	}
+}
+
+func (l *loader) basicTypeInfo(expr ast.Expr, typeInfo *TypeInfo) {
+	idn := expr.(*ast.Ident)
+	typeInfo.IsBasic = true
+	typeInfo.Ident = idn
 }
 
 func (l *loader) defaultConfig() *packages.Config {

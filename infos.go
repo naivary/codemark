@@ -57,15 +57,17 @@ type TypeInfo struct {
 	IsAlias bool
 
     IsBasic bool
+
+    Ident *ast.Ident
 }
 
 func newTypeInfo(typeName *types.TypeName, decl *ast.GenDecl) *TypeInfo {
-    return &TypeInfo{
-        Name: typeName.Name(),
-        Type: typeName.Type(),
-        IsAlias: typeName.IsAlias(),
-        GenDecl: decl,
-    }
+	return &TypeInfo{
+		Name:    typeName.Name(),
+		Type:    typeName.Type(),
+		IsAlias: typeName.IsAlias(),
+		GenDecl: decl,
+	}
 }
 
 type FieldInfo struct {
