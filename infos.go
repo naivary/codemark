@@ -48,16 +48,73 @@ type TypeInfo struct {
 	IsStruct bool
 	// Fields of the Type if it is a struct. If it's
 	// not a struct it will be nil.
-	Fields []FieldInfo
+	Fields []*FieldInfo
 
 	GenDecl *ast.GenDecl
 
 	Type types.Type
 
-    Markers 
+	IsAlias bool
+
+    IsBasic bool
+}
+
+func newTypeInfo(typeName *types.TypeName, decl *ast.GenDecl) *TypeInfo {
+    return &TypeInfo{
+        Name: typeName.Name(),
+        Type: typeName.Type(),
+        IsAlias: typeName.IsAlias(),
+        GenDecl: decl,
+    }
 }
 
 type FieldInfo struct {
+	// Name of the field
 	Name string
-	Doc  string
+	// Doc string of the field
+	Doc string
+
+	IsEmbedded bool
+
+	Type types.Type
+
+	Expr ast.Expr
+
+	Tags *ast.BasicLit
+
+	Field *ast.Field
+}
+
+func newFieldInfo(field *ast.Field, typ types.Type) []*FieldInfo {
+	infos := make([]*FieldInfo, 0, 0)
+	if isEmbedded(field) {
+		info := newEmbeddedField(field, typ)
+		infos = append(infos, info)
+		return infos
+	}
+	for _, idn := range field.Names {
+		info := &FieldInfo{
+			Name:  idn.Name,
+			Doc:   field.Doc.Text(),
+			Field: field,
+			Tags:  field.Tag,
+			Type:  typ,
+			Expr:  field.Type,
+		}
+		infos = append(infos, info)
+	}
+	return infos
+}
+
+func newEmbeddedField(field *ast.Field, typ types.Type) *FieldInfo {
+	name := field.Type.(*ast.Ident).Name
+	return &FieldInfo{
+		Name:       name,
+		Doc:        field.Doc.Text(),
+		IsEmbedded: true,
+		Field:      field,
+		Tags:       field.Tag,
+		Expr:       field.Type,
+		Type:       typ,
+	}
 }
