@@ -56,9 +56,12 @@ type TypeInfo struct {
 
 	IsAlias bool
 
-    IsBasic bool
+	IsBasic bool
 
-    Ident *ast.Ident
+	Ident *ast.Ident
+
+    // TODO: Missing funcs yet
+	Funcs []*FuncInfo
 }
 
 func newTypeInfo(typeName *types.TypeName, decl *ast.GenDecl) *TypeInfo {

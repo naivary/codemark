@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -43,28 +44,59 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 	}
 	for _, pkg := range pkgs {
 		info := &Info{}
-		consts, err := l.loadConsts(pkg)
-		if err != nil {
-			return nil, err
-		}
-		info.Consts = consts
-		vars, err := l.loadVars(pkg)
-		if err != nil {
-			return nil, err
-		}
-		types, err := l.loadTypes(pkg)
-		if err != nil {
-			return nil, err
-		}
-		info.Consts = consts
-		info.Vars = vars
-		info.Types = types
+		info.Consts = l.loadConsts(pkg)
+		info.Vars = l.loadVars(pkg)
+		info.Types = l.loadTypes(pkg)
+		info.Funcs = l.loadFuncs(pkg)
 		infos[pkg.ID] = info
 	}
 	return infos, nil
 }
 
-func (l *loader) loadConsts(pkg *packages.Package) ([]*ConstInfo, error) {
+func getNode[T any](syntax []*ast.File, pos token.Pos) []T {
+	res := make([]T, 0, 0)
+	for _, file := range syntax {
+		if !isInFile(file, pos) {
+			continue
+		}
+		path, _ := astutil.PathEnclosingInterval(file, pos, pos)
+		for _, n := range path {
+			v, ok := n.(T)
+			if !ok {
+				continue
+			}
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
+func (l *loader) loadFuncs(pkg *packages.Package) []*FuncInfo {
+	infos := make([]*FuncInfo, 0, 0)
+	for _, obj := range pkg.TypesInfo.Defs {
+		fn, isFunc := obj.(*types.Func)
+		if !isFunc {
+			continue
+		}
+		decls := getNode[*ast.FuncDecl](pkg.Syntax, fn.Pos())
+		infos = append(infos, l.createFuncInfo(decls)...)
+	}
+	return infos
+}
+
+func (l *loader) createFuncInfo(decls []*ast.FuncDecl) []*FuncInfo {
+	funcInfos := make([]*FuncInfo, 0, len(decls))
+	for _, decl := range decls {
+		if isMethod(decl.Recv) {
+			continue
+		}
+		fmt.Println(decl.Name)
+		fmt.Println(decl.Doc.Text())
+	}
+	return funcInfos
+}
+
+func (l *loader) loadConsts(pkg *packages.Package) []*ConstInfo {
 	consts := make([]*ConstInfo, 0, 0)
 	for idn, obj := range pkg.TypesInfo.Defs {
 		con, ok := obj.(*types.Const)
@@ -79,10 +111,10 @@ func (l *loader) loadConsts(pkg *packages.Package) ([]*ConstInfo, error) {
 		info.Ident = idn
 		consts = append(consts, info)
 	}
-	return consts, nil
+	return consts
 }
 
-func (l *loader) loadVars(pkg *packages.Package) ([]*VarInfo, error) {
+func (l *loader) loadVars(pkg *packages.Package) []*VarInfo {
 	vars := make([]*VarInfo, 0, 0)
 	for _, obj := range pkg.TypesInfo.Defs {
 		v, ok := obj.(*types.Var)
@@ -97,10 +129,10 @@ func (l *loader) loadVars(pkg *packages.Package) ([]*VarInfo, error) {
 		info.Type = obj.Type()
 		vars = append(vars, info)
 	}
-	return vars, nil
+	return vars
 }
 
-func (l *loader) loadTypes(pkg *packages.Package) ([]*TypeInfo, error) {
+func (l *loader) loadTypes(pkg *packages.Package) []*TypeInfo {
 	typs := make([]*TypeInfo, 0, 0)
 	for _, obj := range pkg.TypesInfo.Defs {
 		if obj == nil {
@@ -126,7 +158,7 @@ func (l *loader) loadTypes(pkg *packages.Package) ([]*TypeInfo, error) {
 			}
 		}
 	}
-	return typs, nil
+	return typs
 }
 
 func (l *loader) createTypeInfo(node ast.Node, typeName *types.TypeName) *TypeInfo {
@@ -180,6 +212,13 @@ func (l *loader) defaultConfig() *packages.Config {
 
 func isEmbedded(field *ast.Field) bool {
 	return len(field.Names) == 0
+}
+
+func isMethod(list *ast.FieldList) bool {
+	if list == nil {
+		return false
+	}
+	return true
 }
 
 func isInFile(file *ast.File, pos token.Pos) bool {
