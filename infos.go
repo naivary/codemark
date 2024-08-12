@@ -7,36 +7,55 @@ import (
 )
 
 type Info struct {
-	Methods []*MethodInfo
-	Funcs   []*FuncInfo
-	Consts  []*ConstInfo
-	Vars    []*VarInfo
-	Types   []*TypeInfo
-}
-
-type MethodInfo struct {
-	Name string
-	Doc  string
+	Funcs  []*FuncInfo
+	Consts []*ConstInfo
+	Vars   []*VarInfo
+	Types  []*TypeInfo
 }
 
 type FuncInfo struct {
 	Name string
-	Doc  string
+
+	Doc string
+
+	Decl *ast.FuncDecl
+}
+
+func newFuncInfo(decl *ast.FuncDecl) *FuncInfo {
+	return &FuncInfo{
+		Name: decl.Name.Name,
+		Doc:  decl.Doc.Text(),
+		Decl: decl,
+	}
 }
 
 type ConstInfo struct {
-	Name   string
-	Doc    string
-	Value  constant.Value
-	Type   types.Type
-	Object types.Object
-	Ident  *ast.Ident
+	Name  string
+	Doc   string
+	Value constant.Value
+	Type  types.Type
+}
+
+func newConstInfo(con *types.Const) *ConstInfo {
+	info := &ConstInfo{
+		Name:  con.Name(),
+		Value: con.Val(),
+		Type:  con.Type(),
+	}
+	return info
 }
 
 type VarInfo struct {
 	Name string
 	Doc  string
 	Type types.Type
+}
+
+func newVarInfo(v *types.Var, obj types.Object) *VarInfo {
+	return &VarInfo{
+		Name: v.Name(),
+		Type: obj.Type(),
+	}
 }
 
 type TypeInfo struct {
@@ -60,7 +79,7 @@ type TypeInfo struct {
 
 	Ident *ast.Ident
 
-    // TODO: Missing funcs yet
+	// TODO: Missing funcs yet
 	Funcs []*FuncInfo
 }
 

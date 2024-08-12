@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
 
-	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -53,24 +51,6 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 	return infos, nil
 }
 
-func getNode[T any](syntax []*ast.File, pos token.Pos) []T {
-	res := make([]T, 0, 0)
-	for _, file := range syntax {
-		if !isInFile(file, pos) {
-			continue
-		}
-		path, _ := astutil.PathEnclosingInterval(file, pos, pos)
-		for _, n := range path {
-			v, ok := n.(T)
-			if !ok {
-				continue
-			}
-			res = append(res, v)
-		}
-	}
-	return res
-}
-
 func (l *loader) loadFuncs(pkg *packages.Package) []*FuncInfo {
 	infos := make([]*FuncInfo, 0, 0)
 	for _, obj := range pkg.TypesInfo.Defs {
@@ -78,7 +58,7 @@ func (l *loader) loadFuncs(pkg *packages.Package) []*FuncInfo {
 		if !isFunc {
 			continue
 		}
-		decls := getNode[*ast.FuncDecl](pkg.Syntax, fn.Pos())
+		decls := toNode[*ast.FuncDecl](pkg.Syntax, fn.Pos())
 		infos = append(infos, l.createFuncInfo(decls)...)
 	}
 	return infos
@@ -90,26 +70,19 @@ func (l *loader) createFuncInfo(decls []*ast.FuncDecl) []*FuncInfo {
 		if isMethod(decl.Recv) {
 			continue
 		}
-		fmt.Println(decl.Name)
-		fmt.Println(decl.Doc.Text())
+		funcInfos = append(funcInfos, newFuncInfo(decl))
 	}
 	return funcInfos
 }
 
 func (l *loader) loadConsts(pkg *packages.Package) []*ConstInfo {
 	consts := make([]*ConstInfo, 0, 0)
-	for idn, obj := range pkg.TypesInfo.Defs {
+	for _, obj := range pkg.TypesInfo.Defs {
 		con, ok := obj.(*types.Const)
 		if !ok {
 			continue
 		}
-		info := &ConstInfo{}
-		info.Name = con.Name()
-		info.Value = con.Val()
-		info.Type = con.Type()
-		info.Object = obj
-		info.Ident = idn
-		consts = append(consts, info)
+		consts = append(consts, newConstInfo(con))
 	}
 	return consts
 }
@@ -124,10 +97,7 @@ func (l *loader) loadVars(pkg *packages.Package) []*VarInfo {
 		if !isVar(pkg, v) {
 			continue
 		}
-		info := &VarInfo{}
-		info.Name = v.Name()
-		info.Type = obj.Type()
-		vars = append(vars, info)
+		vars = append(vars, newVarInfo(v, obj))
 	}
 	return vars
 }
@@ -142,30 +112,20 @@ func (l *loader) loadTypes(pkg *packages.Package) []*TypeInfo {
 		if !ok {
 			continue
 		}
-		for _, file := range pkg.Syntax {
-			pos := typeName.Pos()
-			if !isInFile(file, pos) {
+		genDecls := toNode[*ast.GenDecl](pkg.Syntax, typeName.Pos())
+		for _, genDecl := range genDecls {
+			typeInfo := l.createTypeInfo(genDecl, typeName)
+			if typeInfo == nil {
 				continue
 			}
-			path, _ := astutil.PathEnclosingInterval(file, pos, pos)
-			for _, n := range path {
-				typeInfo := l.createTypeInfo(n, typeName)
-				if typeInfo == nil {
-					continue
-				}
-				l.createFieldInfos(pkg, typeInfo)
-				typs = append(typs, typeInfo)
-			}
+			l.createFieldInfos(pkg, typeInfo)
+			typs = append(typs, typeInfo)
 		}
 	}
 	return typs
 }
 
-func (l *loader) createTypeInfo(node ast.Node, typeName *types.TypeName) *TypeInfo {
-	decl, ok := node.(*ast.GenDecl)
-	if !ok {
-		return nil
-	}
+func (l *loader) createTypeInfo(decl *ast.GenDecl, typeName *types.TypeName) *TypeInfo {
 	if decl.Tok != token.TYPE {
 		return nil
 	}
@@ -208,41 +168,4 @@ func (l *loader) defaultConfig() *packages.Config {
 	return &packages.Config{
 		Mode: packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypes,
 	}
-}
-
-func isEmbedded(field *ast.Field) bool {
-	return len(field.Names) == 0
-}
-
-func isMethod(list *ast.FieldList) bool {
-	if list == nil {
-		return false
-	}
-	return true
-}
-
-func isInFile(file *ast.File, pos token.Pos) bool {
-	return file.FileStart <= pos && pos < file.FileEnd
-}
-
-func isVar(pkg *packages.Package, v *types.Var) bool {
-	if v.IsField() {
-		return false
-	}
-	// check if the variable is in a function declaration
-	for _, file := range pkg.Syntax {
-		pos := v.Pos()
-		if !isInFile(file, pos) {
-			// not in this file
-			continue
-		}
-		path, _ := astutil.PathEnclosingInterval(file, pos, pos)
-		for _, n := range path {
-			switch n.(type) {
-			case *ast.FuncDecl:
-				return false
-			}
-		}
-	}
-	return true
 }
