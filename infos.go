@@ -80,7 +80,7 @@ type TypeInfo struct {
 	Ident *ast.Ident
 
 	// TODO: Missing funcs yet
-	Funcs []*FuncInfo
+	Methods []*FuncInfo
 }
 
 func newTypeInfo(typeName *types.TypeName, decl *ast.GenDecl) *TypeInfo {

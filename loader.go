@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/token"
 	"go/types"
@@ -48,6 +49,9 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 		info.Funcs = l.loadFuncs(pkg)
 		infos[pkg.ID] = info
 	}
+	for _, info := range infos {
+		fmt.Println(info.Types[0].Methods)
+	}
 	return infos, nil
 }
 
@@ -67,7 +71,7 @@ func (l *loader) loadFuncs(pkg *packages.Package) []*FuncInfo {
 func (l *loader) createFuncInfo(decls []*ast.FuncDecl) []*FuncInfo {
 	funcInfos := make([]*FuncInfo, 0, len(decls))
 	for _, decl := range decls {
-		if isMethod(decl.Recv) {
+		if isMethod(decl) {
 			continue
 		}
 		funcInfos = append(funcInfos, newFuncInfo(decl))
@@ -119,6 +123,7 @@ func (l *loader) loadTypes(pkg *packages.Package) []*TypeInfo {
 				continue
 			}
 			l.createFieldInfos(pkg, typeInfo)
+			l.createMethodInfos(pkg, typeInfo)
 			typs = append(typs, typeInfo)
 		}
 	}
@@ -130,6 +135,25 @@ func (l *loader) createTypeInfo(decl *ast.GenDecl, typeName *types.TypeName) *Ty
 		return nil
 	}
 	return newTypeInfo(typeName, decl)
+}
+
+func (l *loader) createMethodInfos(pkg *packages.Package, typeInfo *TypeInfo) {
+	infos := make([]*FuncInfo, 0, 0)
+	for _, obj := range pkg.TypesInfo.Defs {
+		fn, isFunc := obj.(*types.Func)
+		if !isFunc {
+			continue
+		}
+		decls := toNode[*ast.FuncDecl](pkg.Syntax, fn.Pos())
+		for _, decl := range decls {
+			if !isMethod(decl) {
+				continue
+			}
+            fmt.Println(decl.Recv.List[0])
+			infos = append(infos, l.createFuncInfo(decls)...)
+		}
+	}
+	typeInfo.Methods = infos
 }
 
 func (l *loader) createFieldInfos(pkg *packages.Package, typeInfo *TypeInfo) {

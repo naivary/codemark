@@ -13,8 +13,8 @@ func isEmbedded(field *ast.Field) bool {
 	return len(field.Names) == 0
 }
 
-func isMethod(list *ast.FieldList) bool {
-	if list == nil {
+func isMethod(decl *ast.FuncDecl) bool {
+	if decl.Recv == nil {
 		return false
 	}
 	return true
