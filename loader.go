@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"go/ast"
-	"go/token"
-	"go/types"
+	"errors"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -41,155 +38,14 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, pkg := range pkgs {
-		info := &Info{}
-		info.Consts = l.loadConsts(pkg)
-		info.Vars = l.loadVars(pkg)
-		info.Types = l.loadTypes(pkg)
-		info.Funcs = l.loadFuncs(pkg)
-		infos[pkg.ID] = info
-	}
-	for _, info := range infos {
-		fmt.Println(info.Types[0].Methods)
+	if len(pkgs) == 0 {
+		return nil, errors.New("empty packages")
 	}
 	return infos, nil
 }
 
-func (l *loader) loadFuncs(pkg *packages.Package) []*FuncInfo {
-	infos := make([]*FuncInfo, 0, 0)
-	for _, obj := range pkg.TypesInfo.Defs {
-		fn, isFunc := obj.(*types.Func)
-		if !isFunc {
-			continue
-		}
-		decls := toNode[*ast.FuncDecl](pkg.Syntax, fn.Pos())
-		infos = append(infos, l.createFuncInfo(decls)...)
-	}
-	return infos
-}
-
-func (l *loader) createFuncInfo(decls []*ast.FuncDecl) []*FuncInfo {
-	funcInfos := make([]*FuncInfo, 0, len(decls))
-	for _, decl := range decls {
-		if isMethod(decl) {
-			continue
-		}
-		funcInfos = append(funcInfos, newFuncInfo(decl))
-	}
-	return funcInfos
-}
-
-func (l *loader) loadConsts(pkg *packages.Package) []*ConstInfo {
-	consts := make([]*ConstInfo, 0, 0)
-	for _, obj := range pkg.TypesInfo.Defs {
-		con, ok := obj.(*types.Const)
-		if !ok {
-			continue
-		}
-		consts = append(consts, newConstInfo(con))
-	}
-	return consts
-}
-
-func (l *loader) loadVars(pkg *packages.Package) []*VarInfo {
-	vars := make([]*VarInfo, 0, 0)
-	for _, obj := range pkg.TypesInfo.Defs {
-		v, ok := obj.(*types.Var)
-		if !ok {
-			continue
-		}
-		if !isVar(pkg, v) {
-			continue
-		}
-		vars = append(vars, newVarInfo(v, obj))
-	}
-	return vars
-}
-
-func (l *loader) loadTypes(pkg *packages.Package) []*TypeInfo {
-	typs := make([]*TypeInfo, 0, 0)
-	for _, obj := range pkg.TypesInfo.Defs {
-		if obj == nil {
-			continue
-		}
-		typeName, ok := obj.(*types.TypeName)
-		if !ok {
-			continue
-		}
-		genDecls := toNode[*ast.GenDecl](pkg.Syntax, typeName.Pos())
-		for _, genDecl := range genDecls {
-			typeInfo := l.createTypeInfo(genDecl, typeName)
-			if typeInfo == nil {
-				continue
-			}
-			l.createFieldInfos(pkg, typeInfo)
-			l.createMethodInfos(pkg, typeInfo)
-			typs = append(typs, typeInfo)
-		}
-	}
-	return typs
-}
-
-func (l *loader) createTypeInfo(decl *ast.GenDecl, typeName *types.TypeName) *TypeInfo {
-	if decl.Tok != token.TYPE {
-		return nil
-	}
-	return newTypeInfo(typeName, decl)
-}
-
-func (l *loader) createMethodInfos(pkg *packages.Package, typeInfo *TypeInfo) {
-	infos := make([]*FuncInfo, 0, 0)
-	for _, obj := range pkg.TypesInfo.Defs {
-		fn, isFunc := obj.(*types.Func)
-		if !isFunc {
-			continue
-		}
-		decls := toNode[*ast.FuncDecl](pkg.Syntax, fn.Pos())
-		for _, decl := range decls {
-			if !isMethod(decl) {
-				continue
-			}
-            fmt.Println(decl.Recv.List[0])
-			infos = append(infos, l.createFuncInfo(decls)...)
-		}
-	}
-	typeInfo.Methods = infos
-}
-
-func (l *loader) createFieldInfos(pkg *packages.Package, typeInfo *TypeInfo) {
-	for _, spec := range typeInfo.GenDecl.Specs {
-		v, ok := spec.(*ast.TypeSpec)
-		if !ok {
-			continue
-		}
-		typeInfo.Name = v.Name.Name
-		if typeInfo.IsAlias {
-			return
-		}
-		s, ok := v.Type.(*ast.StructType)
-		if !ok {
-			l.basicTypeInfo(v.Type, typeInfo)
-			return
-		}
-		typeInfo.IsStruct = true
-		fieldInfos := make([]*FieldInfo, 0, 0)
-		for _, field := range s.Fields.List {
-			typ := pkg.TypesInfo.TypeOf(field.Type)
-			info := newFieldInfo(field, typ)
-			fieldInfos = append(fieldInfos, info...)
-		}
-		typeInfo.Fields = fieldInfos
-	}
-}
-
-func (l *loader) basicTypeInfo(expr ast.Expr, typeInfo *TypeInfo) {
-	idn := expr.(*ast.Ident)
-	typeInfo.IsBasic = true
-	typeInfo.Ident = idn
-}
-
 func (l *loader) defaultConfig() *packages.Config {
 	return &packages.Config{
-		Mode: packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypes,
+		Mode: packages.NeedSyntax | packages.NeedTypesInfo,
 	}
 }

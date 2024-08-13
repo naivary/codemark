@@ -1,4 +1,4 @@
-package main
+package parser
 
 import (
 	"errors"
@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/naivary/codemark/lexer"
 )
 
 const (
@@ -39,43 +41,11 @@ func parseComplex128(v string) (complex128, error) {
 // the bool return is deciding whether the next token
 // from the channel should be received or the last one
 // should be passed instead
-type parseFunc func(*parser, Token) (parseFunc, bool)
-
-type Marker interface {
-	// Ident is the identifier of
-	// the marker without the `+`
-	Ident() string
-
-	// Kind is the reflect.Kind
-	// the marker is using
-	Kind() reflect.Kind
-
-	Value() reflect.Value
-}
-
-var _ Marker = (*marker)(nil)
-
-type marker struct {
-	ident string
-	kind  reflect.Kind
-	value reflect.Value
-}
-
-func (m *marker) Ident() string {
-	return m.ident
-}
-
-func (m *marker) Kind() reflect.Kind {
-	return m.kind
-}
-
-func (m *marker) Value() reflect.Value {
-	return m.value
-}
+type parseFunc func(*parser, lexer.Token) (parseFunc, bool)
 
 func parse(input string) *parser {
 	return &parser{
-		l:       Lex(input),
+		l:       lexer.Lex(input),
 		state:   parsePlus,
 		markers: make(chan Marker, 2),
 		m:       &marker{},
@@ -85,7 +55,7 @@ func parse(input string) *parser {
 type parseFuncE func(*parser) parseFunc
 
 type parser struct {
-	l       *lexer
+	l       *lexer.Lexer
 	state   parseFunc
 	markers chan Marker
 	m       *marker
@@ -94,18 +64,18 @@ type parser struct {
 	// lexer should be fetched or the same should be
 	// kept for the next `parseFunc`
 	receive bool
-	t       Token
+	t       lexer.Token
 }
 
 func (p *parser) run() error {
-	p.l.run()
+	p.l.Run()
 	next := false
-	token := p.next()
+	token := p.l.NextToken()
 	for state := p.state; state != nil; {
 		if next {
-			token = p.next()
+			token = p.l.NextToken()
 		}
-		if token.Kind == TokenKindError {
+		if token.Kind == lexer.TokenKindError {
 			return errors.New(token.Value)
 		}
 		state, next = state(p, token)
@@ -119,51 +89,47 @@ func (p *parser) emit() {
 	p.m = &marker{}
 }
 
-func (p *parser) next() Token {
-	return <-p.l.tokens
-}
-
 func (p *parser) errorf(format string, args ...any) parseFunc {
 	p.err = fmt.Errorf(format, args...)
 	return nil
 }
 
-func parsePlus(p *parser, t Token) (parseFunc, bool) {
-	if t.Kind == TokenKindEOF {
+func parsePlus(p *parser, t lexer.Token) (parseFunc, bool) {
+	if t.Kind == lexer.TokenKindEOF {
 		return nil, _keep
 	}
 	return parseIdent, _next
 }
 
-func parseIdent(p *parser, t Token) (parseFunc, bool) {
+func parseIdent(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.ident = t.Value
 	return parseAssignment, _next
 }
 
-func parseAssignment(p *parser, t Token) (parseFunc, bool) {
+func parseAssignment(p *parser, t lexer.Token) (parseFunc, bool) {
 	return parseValue, _next
 }
 
-func parseValue(p *parser, t Token) (parseFunc, bool) {
+func parseValue(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
-	case TokenKindString:
+	case lexer.TokenKindString:
 		return parseString, _keep
-	case TokenKindInt:
+	case lexer.TokenKindInt:
 		return parseInt, _keep
-	case TokenKindComplex:
+	case lexer.TokenKindComplex:
 		return parseComplex, _keep
-	case TokenKindFloat:
+	case lexer.TokenKindFloat:
 		return parseFloat, _keep
-	case TokenKindBool:
+	case lexer.TokenKindBool:
 		return parseBool, _keep
-	case TokenKindOpenSquareBracket:
+	case lexer.TokenKindOpenSquareBracket:
 		return parseSliceStart, _keep
 	default:
 		return p.errorf("undefined kind for value `%s`", t), _keep
 	}
 }
 
-func parseBool(p *parser, t Token) (parseFunc, bool) {
+func parseBool(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.kind = reflect.Bool
 	boolVal, err := strconv.ParseBool(t.Value)
 	if err != nil {
@@ -173,13 +139,13 @@ func parseBool(p *parser, t Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseString(p *parser, t Token) (parseFunc, bool) {
+func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.kind = reflect.String
 	p.m.value = reflect.ValueOf(t.Value)
 	return parseEOF, _next
 }
 
-func parseInt(p *parser, t Token) (parseFunc, bool) {
+func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 	i, err := parseInt64(t.Value)
 	if err != nil {
 		// error handling
@@ -190,7 +156,7 @@ func parseInt(p *parser, t Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseFloat(p *parser, t Token) (parseFunc, bool) {
+func parseFloat(p *parser, t lexer.Token) (parseFunc, bool) {
 	f, err := parseFloat64(t.Value)
 	if err != nil {
 		return p.errorf(err.Error()), _keep
@@ -200,7 +166,7 @@ func parseFloat(p *parser, t Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseComplex(p *parser, t Token) (parseFunc, bool) {
+func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	c, err := parseComplex128(t.Value)
 	if err != nil {
 		return p.errorf(err.Error()), _keep
@@ -210,35 +176,35 @@ func parseComplex(p *parser, t Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseSliceStart(p *parser, t Token) (parseFunc, bool) {
+func parseSliceStart(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.kind = reflect.Slice
 	rt := reflect.TypeOf([]any{})
 	p.m.value = reflect.MakeSlice(rt, 0, 1)
 	return parseSliceElem, _next
 }
 
-func parseSliceElem(p *parser, t Token) (parseFunc, bool) {
+func parseSliceElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
-	case TokenKindString:
+	case lexer.TokenKindString:
 		return parseSliceStringElem, _keep
-	case TokenKindInt:
+	case lexer.TokenKindInt:
 		return parseSliceIntElem, _keep
-	case TokenKindFloat:
+	case lexer.TokenKindFloat:
 		return parseSliceFloatElem, _keep
-	case TokenKindComplex:
+	case lexer.TokenKindComplex:
 		return parseSliceComplexElem, _keep
 	default:
 		return parseSliceEnd, _keep
 	}
 }
 
-func parseSliceStringElem(p *parser, t Token) (parseFunc, bool) {
+func parseSliceStringElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	val := reflect.ValueOf(t.Value)
 	p.m.value = reflect.Append(p.m.value, val)
 	return parseSliceElem, _next
 }
 
-func parseSliceIntElem(p *parser, t Token) (parseFunc, bool) {
+func parseSliceIntElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	i, err := parseInt64(t.Value)
 	if err != nil {
 		return p.errorf(err.Error()), _keep
@@ -248,7 +214,7 @@ func parseSliceIntElem(p *parser, t Token) (parseFunc, bool) {
 	return parseSliceElem, _next
 }
 
-func parseSliceFloatElem(p *parser, t Token) (parseFunc, bool) {
+func parseSliceFloatElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	f, err := parseFloat64(t.Value)
 	if err != nil {
 		return p.errorf(err.Error()), _keep
@@ -258,7 +224,7 @@ func parseSliceFloatElem(p *parser, t Token) (parseFunc, bool) {
 	return parseSliceElem, _next
 }
 
-func parseSliceComplexElem(p *parser, t Token) (parseFunc, bool) {
+func parseSliceComplexElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	c, err := parseComplex128(t.Value)
 	if err != nil {
 		return p.errorf("couldn't parse complex number: %s", t.Value), _keep
@@ -268,11 +234,11 @@ func parseSliceComplexElem(p *parser, t Token) (parseFunc, bool) {
 	return parseSliceElem, _next
 }
 
-func parseSliceEnd(p *parser, _ Token) (parseFunc, bool) {
+func parseSliceEnd(p *parser, _ lexer.Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 
-func parseEOF(p *parser, _ Token) (parseFunc, bool) {
+func parseEOF(p *parser, _ lexer.Token) (parseFunc, bool) {
 	p.emit()
 	return parsePlus, _keep
 }

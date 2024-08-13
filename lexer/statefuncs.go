@@ -1,4 +1,4 @@
-package main
+package lexer
 
 import (
 	"strings"
@@ -7,12 +7,12 @@ import (
 
 type validFunc func(rune) bool
 
-func ignoreSpace(l *lexer) {
+func ignoreSpace(l *Lexer) {
 	l.acceptFunc(isSpace)
 	l.ignore()
 }
 
-func ignoreNewline(l *lexer) {
+func ignoreNewline(l *Lexer) {
 	l.acceptFunc(isNewline)
 	l.ignore()
 }
@@ -39,9 +39,9 @@ func isAlphaNumeric(r rune) bool {
 	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
-type stateFunc func(*lexer) stateFunc
+type stateFunc func(*Lexer) stateFunc
 
-func lexText(l *lexer) stateFunc {
+func lexText(l *Lexer) stateFunc {
 	// check for the position 0
 	if hasPlusPrefix(l.input, l.pos) {
 		return lexPlus
@@ -64,7 +64,7 @@ func lexText(l *lexer) stateFunc {
 	return nil
 }
 
-func lexPlus(l *lexer) stateFunc {
+func lexPlus(l *Lexer) stateFunc {
 	l.next()
 	switch r := l.peek(); {
 	case !isAlphaLower(r):
@@ -74,7 +74,7 @@ func lexPlus(l *lexer) stateFunc {
 	return lexIdent
 }
 
-func lexIdent(l *lexer) stateFunc {
+func lexIdent(l *Lexer) stateFunc {
 	valid := func(r rune) bool {
 		return (unicode.IsLetter(r) && unicode.IsLower(r)) || r == colon
 	}
@@ -100,7 +100,7 @@ func lexIdent(l *lexer) stateFunc {
 	}
 }
 
-func lexAssignment(l *lexer) stateFunc {
+func lexAssignment(l *Lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindAssignment)
 	// figure out which is next
@@ -119,7 +119,7 @@ func lexAssignment(l *lexer) stateFunc {
 	}
 }
 
-func lexBool(l *lexer) stateFunc {
+func lexBool(l *Lexer) stateFunc {
 	assignToken := NewToken(TokenKindAssignment, "=")
 	l.emitToken(assignToken)
 	t := NewToken(TokenKindBool, "true")
@@ -127,13 +127,13 @@ func lexBool(l *lexer) stateFunc {
 	return lexText
 }
 
-func lexString(l *lexer) stateFunc {
+func lexString(l *Lexer) stateFunc {
 	scanString(l)
 	l.emit(TokenKindString)
 	return lexText
 }
 
-func lexNumber(l *lexer) stateFunc {
+func lexNumber(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
 		return l.errorf(err.Error())
@@ -148,7 +148,7 @@ func lexNumber(l *lexer) stateFunc {
 	return lexText
 }
 
-func lexOpenSquareBracket(l *lexer) stateFunc {
+func lexOpenSquareBracket(l *Lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindOpenSquareBracket)
 	switch r := l.peek(); {
@@ -167,7 +167,7 @@ func lexOpenSquareBracket(l *lexer) stateFunc {
 	}
 }
 
-func lexNumberArrayValue(l *lexer) stateFunc {
+func lexNumberArrayValue(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
 		return l.errorf(err.Error())
@@ -183,7 +183,7 @@ func lexNumberArrayValue(l *lexer) stateFunc {
 	}
 }
 
-func lexCommaSeperator(l *lexer) stateFunc {
+func lexCommaSeperator(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	ignoreSpace(l)
@@ -199,7 +199,7 @@ func lexCommaSeperator(l *lexer) stateFunc {
 	}
 }
 
-func lexStartDoubleQuotationMark(l *lexer) stateFunc {
+func lexStartDoubleQuotationMark(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	err := scanStringWithEscape(l, `"`, ",]")
@@ -215,7 +215,7 @@ func lexStartDoubleQuotationMark(l *lexer) stateFunc {
 	}
 }
 
-func lexEndDoubleQuotationMark(l *lexer) stateFunc {
+func lexEndDoubleQuotationMark(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	switch r := l.peek(); {
@@ -228,7 +228,7 @@ func lexEndDoubleQuotationMark(l *lexer) stateFunc {
 	}
 }
 
-func lexCloseSquareBracket(l *lexer) stateFunc {
+func lexCloseSquareBracket(l *Lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindCloseSquareBracket)
 	return lexText

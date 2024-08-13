@@ -1,4 +1,4 @@
-package main
+package lexer
 
 import (
 	"fmt"
@@ -13,9 +13,8 @@ const (
 	newline = '\n'
 )
 
-
-func Lex(input string) *lexer {
-	return &lexer{
+func Lex(input string) *Lexer {
+	return &Lexer{
 		input:  strings.TrimSpace(input),
 		tokens: make(chan Token, 100),
 		state:  lexText,
@@ -23,7 +22,7 @@ func Lex(input string) *lexer {
 	}
 }
 
-type lexer struct {
+type Lexer struct {
 	// the string being scanned
 	input string
 	// start position of this item
@@ -44,7 +43,7 @@ type lexer struct {
 	token Token
 }
 
-func (l *lexer) errorf(format string, args ...any) stateFunc {
+func (l *Lexer) errorf(format string, args ...any) stateFunc {
 	l.tokens <- NewToken(TokenKindError, fmt.Sprintf(format, args...))
 	l.start = 0
 	l.pos = 0
@@ -53,7 +52,18 @@ func (l *lexer) errorf(format string, args ...any) stateFunc {
 
 }
 
-func (l *lexer) next() rune {
+func (l *Lexer) NextToken() Token {
+	for {
+		select {
+		case token := <-l.tokens:
+			return token
+		default:
+			l.state = l.state(l)
+		}
+	}
+}
+
+func (l *Lexer) next() rune {
 	var r rune
 	if l.pos >= len(l.input) {
 		l.width = 0
@@ -64,32 +74,32 @@ func (l *lexer) next() rune {
 	return r
 }
 
-func (l *lexer) run() {
+func (l *Lexer) Run() {
 	for state := l.state; state != nil; {
 		state = state(l)
 	}
 	close(l.tokens)
 }
 
-func (l *lexer) emit(kind TokenKind) {
+func (l *Lexer) emit(kind TokenKind) {
 	l.tokens <- NewToken(kind, l.currentValue())
 	l.start = l.pos
 }
 
-func (l *lexer) emitToken(t Token) {
+func (l *Lexer) emitToken(t Token) {
 	l.tokens <- t
 	l.start = l.pos
 }
 
-func (l *lexer) ignore() {
+func (l *Lexer) ignore() {
 	l.start = l.pos
 }
 
-func (l *lexer) backup() {
+func (l *Lexer) backup() {
 	l.pos -= l.width
 }
 
-func (l *lexer) peek() rune {
+func (l *Lexer) peek() rune {
 	r := l.next()
 	l.backup()
 	return r
@@ -97,7 +107,7 @@ func (l *lexer) peek() rune {
 
 // accept is accepting the next rune
 // if it's from the `valid` set.
-func (l *lexer) accept(valid string) bool {
+func (l *Lexer) accept(valid string) bool {
 	if strings.IndexRune(valid, l.next()) >= 0 {
 		return true
 	}
@@ -105,18 +115,18 @@ func (l *lexer) accept(valid string) bool {
 	return false
 }
 
-func (l *lexer) acceptRun(valid string) {
+func (l *Lexer) acceptRun(valid string) {
 	for strings.IndexRune(valid, l.next()) >= 0 {
 	}
 	l.backup()
 }
 
-func (l *lexer) acceptFunc(fn validFunc) {
+func (l *Lexer) acceptFunc(fn validFunc) {
 	for fn(l.next()) {
 	}
 	l.backup()
 }
 
-func (l *lexer) currentValue() string {
+func (l *Lexer) currentValue() string {
 	return l.input[l.start:l.pos]
 }

@@ -1,4 +1,4 @@
-package main
+package lexer
 
 import (
 	"errors"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func scanRealNumber(l *lexer) (TokenKind, error) {
+func scanRealNumber(l *Lexer) (TokenKind, error) {
 	kind := TokenKindInt
 	l.accept("+-")
 	digits := "0123456789_"
@@ -33,7 +33,7 @@ func scanRealNumber(l *lexer) (TokenKind, error) {
 	return kind, nil
 }
 
-func scanNumber(l *lexer) (TokenKind, error) {
+func scanNumber(l *Lexer) (TokenKind, error) {
 	var err error
 	kind := TokenKindInt
 	kind, err = scanRealNumber(l)
@@ -41,9 +41,9 @@ func scanNumber(l *lexer) (TokenKind, error) {
 		return TokenKindError, err
 	}
 	if l.accept("i") {
-        if l.accept("+-") {
-            return TokenKindError, errors.New("real part of a complex number has to be defined before the imaginary part e.g. `3+2i` not `2i+3`")
-        }
+		if l.accept("+-") {
+			return TokenKindError, errors.New("real part of a complex number has to be defined before the imaginary part e.g. `3+2i` not `2i+3`")
+		}
 		kind = TokenKindComplex
 	}
 	r := l.peek()
@@ -52,13 +52,13 @@ func scanNumber(l *lexer) (TokenKind, error) {
 		l.next()
 		return TokenKindError, errors.New("bad syntax for number")
 	}
-    if l.accept("+-") {
-        _, err = scanRealNumber(l)
-        if !l.accept("i") {
-            return TokenKindError, errors.New("missing imaginary symbol `i`")
-        }
-        kind = TokenKindComplex
-    }
+	if l.accept("+-") {
+		_, err = scanRealNumber(l)
+		if !l.accept("i") {
+			return TokenKindError, errors.New("missing imaginary symbol `i`")
+		}
+		kind = TokenKindComplex
+	}
 	return kind, err
 }
 
@@ -70,7 +70,7 @@ func isSpecialCharacter(escape string, r rune) bool {
 // a character defined by `escape` so it is still a valid unescaped symbol.
 // For example +path:to:marker=["item\"s"]. The last `"` don't have to be
 // escaped because its the end of the string followed by a `]`.
-func scanStringWithEscape(l *lexer, escape string, c string) error {
+func scanStringWithEscape(l *Lexer, escape string, c string) error {
 	// if no escape characters are provided
 	// none will be escaped
 	if escape != "" && !strings.Contains(escape, "\\") {
@@ -101,12 +101,12 @@ func scanStringWithEscape(l *lexer, escape string, c string) error {
 	return fmt.Errorf("special character `%s` is not escaped", string(r))
 }
 
-func isCorrectUnescaped(l *lexer, c string) bool {
+func isCorrectUnescaped(l *Lexer, c string) bool {
 	r := l.peek()
 	return strings.Contains(c, string(r))
 }
 
-func escapeChar(l *lexer, escape string, c string) error {
+func escapeChar(l *Lexer, escape string, c string) error {
 	if isSpecialCharacter(escape, l.peek()) {
 		l.next()
 		return scanStringWithEscape(l, escape, c)
@@ -114,7 +114,7 @@ func escapeChar(l *lexer, escape string, c string) error {
 	return errors.New("unexpected `\\` in string literal. Has to be escaped using `\\`")
 }
 
-func scanString(l *lexer) {
+func scanString(l *Lexer) {
 	valid := func(r rune) bool {
 		return !isSpace(r) && r != eof && !isNewline(r)
 	}

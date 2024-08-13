@@ -1,4 +1,4 @@
-package main
+package lexer
 
 import (
 	"testing"
@@ -151,9 +151,9 @@ dasdasd asdasd as dasdasd ads adsd`,
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			l := Lex(tc.input)
-			l.run()
+			l.Run()
 			for token := range l.tokens {
-                t.Log(token)
+				t.Log(token)
 			}
 		})
 	}
