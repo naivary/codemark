@@ -13,3 +13,7 @@ func convertSpecs[T any](specs []ast.Spec) []T {
 	}
 	return converted
 }
+
+func isEmbedded(field *ast.Field) bool {
+	return len(field.Names) == 0
+}

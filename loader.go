@@ -16,7 +16,7 @@ type Loader interface {
 
 func NewLoader(cfg *packages.Config) Loader {
 	l := &loader{
-		methods: make(map[string][]*MethodInfo),
+		info: NewInfo(),
 	}
 	if cfg == nil {
 		l.cfg = l.defaultConfig()
@@ -30,28 +30,13 @@ func NewLoader(cfg *packages.Config) Loader {
 var _ Loader = (*loader)(nil)
 
 type loader struct {
-	cfg *packages.Config
-
-	consts     []*ConstInfo
-	vars       []*VarInfo
-	aliases    []*AliasInfo
-	structs    []*StructInfo
-	basicTypes []*BasicTypeInfo
-	ifaces     []*InterfaceInfo
-	funcs      []*FuncInfo
-	// indexed by receiver type
-	methods map[string][]*MethodInfo
+	cfg  *packages.Config
+	info *Info
 }
 
-// types und packages nutzen um die verschiedenen Expression reinzuladen
-// docs für die expressions laden
-// Marker für die Expression parsen und überprüfen ob die Marker auf diese
-// Expression sein dürfen
-// Info struct erstellen für die Expression e.g. FuncInfo oder ConstInfo etc.
-// Eine Struct mit allen Info als result wiedergeben
-func (l *loader) Load(paths ...string) (map[string]*Info, error) {
-	infos := make(map[string]*Info, len(paths))
-	pkgs, err := packages.Load(l.cfg, paths...)
+func (l *loader) Load(patterns ...string) (map[string]*Info, error) {
+	infos := make(map[string]*Info, len(patterns))
+	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
 	}
@@ -59,17 +44,23 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 		return nil, errors.New("empty packages")
 	}
 	for _, pkg := range pkgs {
+		if len(pkg.Errors) > 0 {
+			return nil, pkg.Errors[0]
+		}
 		for _, file := range pkg.Syntax {
-			l.fileToInfo(pkg, file)
+			if err := l.fileToInfo(pkg, file); err != nil {
+				return nil, err
+			}
+			infos[pkg.ID] = l.info
+			l.info = NewInfo()
 		}
 	}
 	return infos, nil
 }
 
-func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) (*Info, error) {
-	info := &Info{}
+func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
 	if file.Decls == nil {
-		return nil, errors.New("no top-level declarations found")
+		return errors.New("no top-level declarations found")
 	}
 	types := make([]*ast.GenDecl, 0, 0)
 	for _, decl := range file.Decls {
@@ -94,25 +85,23 @@ func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) (*Info, error
 	for _, typ := range types {
 		l.typeDecl(pkg, typ)
 	}
-	return info, nil
+	return nil
 }
 
 func (l *loader) constDecl(pkg *packages.Package, decl *ast.GenDecl) {
 	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		infos := NewConstInfo(spec, pkg)
-		l.consts = append(l.consts, infos...)
+		l.info.Consts = append(l.info.Consts, infos...)
 	}
 }
 
 func (l *loader) varDecl(pkg *packages.Package, decl *ast.GenDecl) {
 	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
-	varInfos := make([]*VarInfo, 0, len(specs))
 	for _, spec := range specs {
 		infos := NewVarInfo(spec, pkg)
-		varInfos = append(varInfos, infos...)
+		l.info.Vars = append(l.info.Vars, infos...)
 	}
-	l.vars = varInfos
 }
 
 func (l *loader) importDecl(decl *ast.GenDecl) {}
@@ -129,13 +118,13 @@ func (l *loader) methodDecl(decl *ast.FuncDecl) {
 	ident, isIdent := typ.(*ast.Ident)
 	if isIdent {
 		info := NewMethodInfo(decl, ident, nil)
-		l.methods[ident.Name] = append(l.methods[ident.Name], info)
+		l.info.Methods[ident.Name] = append(l.info.Methods[ident.Name], info)
 		return
 	}
 	pointer := typ.(*ast.StarExpr)
 	ptrIdent := pointer.X.(*ast.Ident)
 	info := NewMethodInfo(decl, ptrIdent, pointer)
-	l.methods[ptrIdent.Name] = append(l.methods[ptrIdent.Name], info)
+	l.info.Methods[ptrIdent.Name] = append(l.info.Methods[ptrIdent.Name], info)
 }
 
 func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
@@ -145,30 +134,30 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 		alias, isAlias := typ.(*types.Alias)
 		if isAlias {
 			info := NewAliasInfo(typeSpec, alias, decl)
-			l.aliases = append(l.aliases, info)
+			l.info.Aliases = append(l.info.Aliases, info)
 			continue
 		}
 
 		named := typ.(*types.Named).Underlying()
-		/*
-			strc, isStruct := named.(*types.Struct)
-			if isStruct {
-				structType := typeSpec.Type.(*ast.StructType)
-				continue
-			}
-		*/
+		strc, isStruct := named.(*types.Struct)
+		if isStruct {
+			info := NewStructInfo(typeSpec, strc, decl, pkg)
+			info.Methods = l.info.Methods[typeSpec.Name.Name]
+			l.info.Structs = append(l.info.Structs, info)
+			continue
+		}
 		iface, isIface := named.(*types.Interface)
 		if isIface {
 			info := NewInterfaceInfo(typeSpec, iface, decl)
-			l.ifaces = append(l.ifaces, info)
+			l.info.Interfaces = append(l.info.Interfaces, info)
 			continue
 		}
 
 		basic, isBasic := named.(*types.Basic)
 		if isBasic {
 			info := NewBasicTypeInfo(typeSpec, basic, decl, nil)
-			info.Methods = l.methods[typeSpec.Name.Name]
-			l.basicTypes = append(l.basicTypes, info)
+			info.Methods = l.info.Methods[typeSpec.Name.Name]
+			l.info.BasicTypes = append(l.info.BasicTypes, info)
 			continue
 		}
 
@@ -176,8 +165,8 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 		if isPtr {
 			basic := ptr.Elem().(*types.Basic)
 			info := NewBasicTypeInfo(typeSpec, basic, decl, ptr)
-			info.Methods = l.methods[typeSpec.Name.Name]
-			l.basicTypes = append(l.basicTypes, info)
+			info.Methods = l.info.Methods[typeSpec.Name.Name]
+			l.info.BasicTypes = append(l.info.BasicTypes, info)
 		}
 	}
 }

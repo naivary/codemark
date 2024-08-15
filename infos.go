@@ -9,12 +9,19 @@ import (
 
 type Info struct {
 	Funcs      []*FuncInfo
+	Methods    map[string][]*MethodInfo
 	Consts     []*ConstInfo
 	Vars       []*VarInfo
 	Structs    []*StructInfo
 	BasicTypes []*BasicTypeInfo
 	Interfaces []*InterfaceInfo
 	Aliases    []*AliasInfo
+}
+
+func NewInfo() *Info {
+	return &Info{
+		Methods: make(map[string][]*MethodInfo),
+	}
 }
 
 type ConstInfo struct {
@@ -103,20 +110,13 @@ type AliasInfo struct {
 	Decl *ast.GenDecl
 }
 
-type StructInfo struct {
-	// Name of the Type.
-	Name string
-	// Doc string of the type without the markers.
-	Doc string
-	// Fields of the Type if it is a struct. If it's
-	// not a struct it will be nil.
-	Fields []*FieldInfo
-
-	Type *types.Struct
-
-	Decl *ast.GenDecl
-
-	Methods []*FuncInfo
+func NewAliasInfo(spec *ast.TypeSpec, alias *types.Alias, decl *ast.GenDecl) *AliasInfo {
+	return &AliasInfo{
+		Name: spec.Name.Name,
+		Rhs:  alias.Rhs(),
+		Type: alias,
+		Decl: decl,
+	}
 }
 
 type InterfaceInfo struct {
@@ -126,15 +126,6 @@ type InterfaceInfo struct {
 	Decl          *ast.GenDecl
 	Type          *types.Interface
 	InterfaceType *ast.InterfaceType
-}
-
-func NewAliasInfo(spec *ast.TypeSpec, alias *types.Alias, decl *ast.GenDecl) *AliasInfo {
-	return &AliasInfo{
-		Name: spec.Name.Name,
-		Rhs:  alias.Rhs(),
-		Type: alias,
-		Decl: decl,
-	}
 }
 
 func NewInterfaceInfo(typeSpec *ast.TypeSpec, iface *types.Interface, decl *ast.GenDecl) *InterfaceInfo {
@@ -182,8 +173,36 @@ func NewBasicTypeInfo(typeSpec *ast.TypeSpec, basic *types.Basic, decl *ast.GenD
 	return info
 }
 
-func NewStructInfo() *StructInfo {
-	info := &StructInfo{}
+type StructInfo struct {
+	// Name of the Type.
+	Name string
+	// Doc string of the type without the markers.
+	Doc string
+	// Fields of the Type if it is a struct. If it's
+	// not a struct it will be nil.
+	Fields []*FieldInfo
+
+	Type *types.Struct
+
+	Decl *ast.GenDecl
+
+	Methods []*MethodInfo
+
+	Raw *ast.StructType
+}
+
+func NewStructInfo(typeSpec *ast.TypeSpec, strc *types.Struct, decl *ast.GenDecl, pkg *packages.Package) *StructInfo {
+	structType := typeSpec.Type.(*ast.StructType)
+	info := &StructInfo{
+		Name: typeSpec.Name.Name,
+		Type: strc,
+		Decl: decl,
+		Raw:  structType,
+	}
+	for _, field := range structType.Fields.List {
+		fieldInfos := NewFieldInfo(field, pkg)
+		info.Fields = append(info.Fields, fieldInfos...)
+	}
 	return info
 }
 
@@ -193,13 +212,56 @@ type FieldInfo struct {
 	// Doc string of the field
 	Doc string
 
-	IsEmbedded bool
+	Raw *ast.Field
 
 	Type types.Type
 
-	Expr ast.Expr
+	Obj types.Object
 
-	Tags *ast.BasicLit
+	Var *types.Var
 
-	Field *ast.Field
+	StarExpr *ast.StarExpr
+}
+
+func (f FieldInfo) IsEmbedded() bool {
+	return f.Var.Embedded()
+}
+
+func NewFieldInfo(field *ast.Field, pkg *packages.Package) []*FieldInfo {
+	infos := make([]*FieldInfo, 0, len(field.Names))
+	if isEmbedded(field) {
+		infos = append(infos, newEmbeddedFieldInfo(field, pkg))
+		return infos
+	}
+	for _, ident := range field.Names {
+		typ := pkg.TypesInfo.TypeOf(field.Type)
+		obj := pkg.TypesInfo.ObjectOf(ident)
+		info := &FieldInfo{
+			Name: ident.Name,
+			Type: typ,
+			Raw:  field,
+			Var:  obj.(*types.Var),
+			Obj:  obj,
+		}
+		infos = append(infos, info)
+	}
+	return infos
+}
+
+func newEmbeddedFieldInfo(field *ast.Field, pkg *packages.Package) *FieldInfo {
+	var ptr *ast.StarExpr
+	ident, isIdent := field.Type.(*ast.Ident)
+	if !isIdent {
+		ptr = field.Type.(*ast.StarExpr)
+		ident = ptr.X.(*ast.Ident)
+	}
+	obj := pkg.TypesInfo.ObjectOf(ident)
+	return &FieldInfo{
+		Name:     ident.Name,
+		Raw:      field,
+		Type:     pkg.TypesInfo.TypeOf(field.Type),
+		Obj:      obj,
+		Var:      obj.(*types.Var),
+		StarExpr: ptr,
+	}
 }

@@ -13,7 +13,6 @@ import (
 type PointerBasic *int
 
 type (
-	in  int
 	out string
 	als = string
 	ptr = *struct{}
@@ -95,10 +94,14 @@ func (AuthRequest) Back(name string) error {
 	return nil
 }
 
-type AuthAuthRequest struct {
+type AuthEmbedded struct {
 	AuthRequest
 
 	Rule string
+}
+
+type AuthEmbeddedPtr struct {
+	*AuthRequest
 }
 
 // some kind of map
@@ -111,8 +114,5 @@ var StringMy = fmt.Sprintf("somethign")
 // NewAuthReq is creating a new
 // authentication request
 func NewAuthReq() AuthRequest {
-	myFunc := func(s string) bool {
-		return true
-	}auth
 	return AuthRequest{}
 }

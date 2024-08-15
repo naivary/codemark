@@ -11,17 +11,22 @@ func TestLoader(t *testing.T) {
 	}{
 		{
 			name:  "simple file",
-			paths: []string{"testdata/auth_req.go"},
+			paths: []string{"testdata/auth_req.go", "testdata/consts.go"},
+		},
+		{
+			name:  "sub directory",
+			paths: []string{"testdata/pkg1/consts.go"},
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			l := NewLoader(nil)
-			_, err := l.Load(tc.paths...)
+			info, err := l.Load(tc.paths...)
 			if err != nil {
 				t.Fatal(err.Error())
 			}
+            t.Log(info)
 		})
 	}
 }
