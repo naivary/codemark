@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"go/types"
 
 	"golang.org/x/tools/go/packages"
@@ -13,9 +15,14 @@ type Loader interface {
 }
 
 func NewLoader(cfg *packages.Config) Loader {
-	l := &loader{}
+	l := &loader{
+		methods: make(map[string][]*MethodInfo),
+	}
 	if cfg == nil {
 		l.cfg = l.defaultConfig()
+	}
+	l.cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+		return parser.ParseFile(fset, filename, src, parser.ParseComments)
 	}
 	return l
 }
@@ -25,13 +32,15 @@ var _ Loader = (*loader)(nil)
 type loader struct {
 	cfg *packages.Config
 
-	vars           []*types.Var
-	fields         []*types.Var
-	aliases        []*types.Alias
-	structs        []*types.Struct
-	basicTypeNames []*types.TypeName
-	funcs          []*types.Func
-	methods        []*types.Func
+	consts     []*ConstInfo
+	vars       []*VarInfo
+	aliases    []*AliasInfo
+	structs    []*StructInfo
+	basicTypes []*BasicTypeInfo
+	ifaces     []*InterfaceInfo
+	funcs      []*FuncInfo
+	// indexed by receiver type
+	methods map[string][]*MethodInfo
 }
 
 // types und packages nutzen um die verschiedenen Expression reinzuladen
@@ -50,40 +59,126 @@ func (l *loader) Load(paths ...string) (map[string]*Info, error) {
 		return nil, errors.New("empty packages")
 	}
 	for _, pkg := range pkgs {
-		l.loadTypes(pkg)
+		for _, file := range pkg.Syntax {
+			l.fileToInfo(pkg, file)
+		}
 	}
 	return infos, nil
 }
 
-func (l *loader) loadTypes(pkg *packages.Package) {
-	for _, obj := range pkg.TypesInfo.Defs {
-		typ, isType := obj.(*types.TypeName)
-		// for now ignore aliases
-		if !isType || typ.IsAlias() {
+func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) (*Info, error) {
+	info := &Info{}
+	if file.Decls == nil {
+		return nil, errors.New("no top-level declarations found")
+	}
+	types := make([]*ast.GenDecl, 0, 0)
+	for _, decl := range file.Decls {
+		// FuncDecl -> Method or Func
+		funcDecl, isFuncDecl := decl.(*ast.FuncDecl)
+		if isFuncDecl {
+			l.funcDecl(funcDecl)
 			continue
 		}
-		named, isNamed := typ.Type().(*types.Named)
-		if !isNamed {
-			continue
+		genDecl := decl.(*ast.GenDecl)
+		switch genDecl.Tok {
+		case token.CONST:
+			l.constDecl(pkg, genDecl)
+		case token.VAR:
+			l.varDecl(pkg, genDecl)
+		case token.IMPORT:
+			l.importDecl(genDecl)
+		case token.TYPE:
+			types = append(types, genDecl)
 		}
-		basic, isBasic := named.Underlying().(*types.Basic)
-		if isBasic {
-			fmt.Println(basic)
-		}
-		struc, isStruct := named.Underlying().(*types.Struct)
-        if isStruct {
-            fmt.Println(struc)
-        }
+	}
+	for _, typ := range types {
+		l.typeDecl(pkg, typ)
+	}
+	return info, nil
+}
+
+func (l *loader) constDecl(pkg *packages.Package, decl *ast.GenDecl) {
+	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
+	for _, spec := range specs {
+		infos := NewConstInfo(spec, pkg)
+		l.consts = append(l.consts, infos...)
 	}
 }
 
-func (l *loader) loadVars(pkg *packages.Package) {
-	for _, obj := range pkg.TypesInfo.Defs {
-		v, isVar := obj.(*types.Var)
-		if !isVar {
+func (l *loader) varDecl(pkg *packages.Package, decl *ast.GenDecl) {
+	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
+	varInfos := make([]*VarInfo, 0, len(specs))
+	for _, spec := range specs {
+		infos := NewVarInfo(spec, pkg)
+		varInfos = append(varInfos, infos...)
+	}
+	l.vars = varInfos
+}
+
+func (l *loader) importDecl(decl *ast.GenDecl) {}
+
+func (l *loader) funcDecl(decl *ast.FuncDecl) {
+	if decl.Recv != nil {
+		l.methodDecl(decl)
+		return
+	}
+}
+
+func (l *loader) methodDecl(decl *ast.FuncDecl) {
+	typ := decl.Recv.List[0].Type
+	ident, isIdent := typ.(*ast.Ident)
+	if isIdent {
+		info := NewMethodInfo(decl, ident, nil)
+		l.methods[ident.Name] = append(l.methods[ident.Name], info)
+		return
+	}
+	pointer := typ.(*ast.StarExpr)
+	ptrIdent := pointer.X.(*ast.Ident)
+	info := NewMethodInfo(decl, ptrIdent, pointer)
+	l.methods[ptrIdent.Name] = append(l.methods[ptrIdent.Name], info)
+}
+
+func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
+	typeSpecs := convertSpecs[*ast.TypeSpec](decl.Specs)
+	for _, typeSpec := range typeSpecs {
+		typ := pkg.TypesInfo.TypeOf(typeSpec.Name)
+		alias, isAlias := typ.(*types.Alias)
+		if isAlias {
+			info := NewAliasInfo(typeSpec, alias, decl)
+			l.aliases = append(l.aliases, info)
 			continue
 		}
-		fmt.Println(v)
+
+		named := typ.(*types.Named).Underlying()
+		/*
+			strc, isStruct := named.(*types.Struct)
+			if isStruct {
+				structType := typeSpec.Type.(*ast.StructType)
+				continue
+			}
+		*/
+		iface, isIface := named.(*types.Interface)
+		if isIface {
+			info := NewInterfaceInfo(typeSpec, iface, decl)
+			l.ifaces = append(l.ifaces, info)
+			continue
+		}
+
+		basic, isBasic := named.(*types.Basic)
+		if isBasic {
+			info := NewBasicTypeInfo(typeSpec, basic, decl, nil)
+			info.Methods = l.methods[typeSpec.Name.Name]
+			l.basicTypes = append(l.basicTypes, info)
+			continue
+		}
+
+		ptr, isPtr := named.(*types.Pointer)
+		if isPtr {
+			basic := ptr.Elem().(*types.Basic)
+			info := NewBasicTypeInfo(typeSpec, basic, decl, ptr)
+			info.Methods = l.methods[typeSpec.Name.Name]
+			l.basicTypes = append(l.basicTypes, info)
+		}
 	}
 }
 

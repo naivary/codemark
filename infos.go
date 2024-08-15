@@ -2,94 +2,189 @@ package main
 
 import (
 	"go/ast"
-	"go/constant"
 	"go/types"
+
+	"golang.org/x/tools/go/packages"
 )
 
 type Info struct {
-	Funcs  []*FuncInfo
-	Consts []*ConstInfo
-	Vars   []*VarInfo
-	Types  []*TypeInfo
+	Funcs      []*FuncInfo
+	Consts     []*ConstInfo
+	Vars       []*VarInfo
+	Structs    []*StructInfo
+	BasicTypes []*BasicTypeInfo
+	Interfaces []*InterfaceInfo
+	Aliases    []*AliasInfo
+}
+
+type ConstInfo struct {
+	// Name of the constant
+	Name string
+	// Documentation without the marker
+	Doc   string
+	Value ast.Expr
+	Obj   types.Object
+}
+
+func NewConstInfo(spec *ast.ValueSpec, pkg *packages.Package) []*ConstInfo {
+	infos := make([]*ConstInfo, 0, len(spec.Names))
+	for i, ident := range spec.Names {
+		value := spec.Values[i]
+		obj := pkg.TypesInfo.Defs[ident]
+		info := &ConstInfo{
+			Name:  ident.Name,
+			Value: value,
+			Obj:   obj,
+		}
+		infos = append(infos, info)
+	}
+	return infos
+}
+
+type VarInfo struct {
+	Name  string
+	Doc   string
+	Obj   types.Object
+	Value ast.Expr
+}
+
+func NewVarInfo(spec *ast.ValueSpec, pkg *packages.Package) []*VarInfo {
+	infos := make([]*VarInfo, 0, len(spec.Names))
+	for i, ident := range spec.Names {
+		value := spec.Values[i]
+		obj := pkg.TypesInfo.Defs[ident]
+		info := &VarInfo{
+			Name:  ident.Name,
+			Value: value,
+			Obj:   obj,
+		}
+		infos = append(infos, info)
+	}
+	return infos
 }
 
 type FuncInfo struct {
 	Name string
-
-	Doc string
-
+	Doc  string
 	Decl *ast.FuncDecl
 }
 
-func newFuncInfo(decl *ast.FuncDecl) *FuncInfo {
+func NewFuncInfo(decl *ast.FuncDecl) *FuncInfo {
 	return &FuncInfo{
 		Name: decl.Name.Name,
-		Doc:  decl.Doc.Text(),
 		Decl: decl,
 	}
 }
 
-type ConstInfo struct {
-	Name  string
-	Doc   string
-	Value constant.Value
-	Type  types.Type
+type MethodInfo struct {
+	Name            string
+	Doc             string
+	Decl            *ast.FuncDecl
+	ValueReceiver   *ast.Ident
+	PointerReceiver *ast.StarExpr
+	Expr            ast.Expr
 }
 
-func newConstInfo(con *types.Const) *ConstInfo {
-	info := &ConstInfo{
-		Name:  con.Name(),
-		Value: con.Val(),
-		Type:  con.Type(),
+func NewMethodInfo(decl *ast.FuncDecl, valueRec *ast.Ident, ptrRec *ast.StarExpr) *MethodInfo {
+	return &MethodInfo{
+		Name:            decl.Name.Name,
+		Decl:            decl,
+		ValueReceiver:   valueRec,
+		PointerReceiver: ptrRec,
+		Expr:            decl.Recv.List[0].Type,
 	}
-	return info
 }
 
-type VarInfo struct {
+type AliasInfo struct {
 	Name string
 	Doc  string
-	Type types.Type
+	Type *types.Alias
+	Rhs  types.Type
+	Decl *ast.GenDecl
 }
 
-func newVarInfo(v *types.Var, obj types.Object) *VarInfo {
-	return &VarInfo{
-		Name: v.Name(),
-		Type: obj.Type(),
-	}
-}
-
-type TypeInfo struct {
+type StructInfo struct {
 	// Name of the Type.
 	Name string
 	// Doc string of the type without the markers.
 	Doc string
-	// IsStruct indicates if the type is a struct.
-	IsStruct bool
 	// Fields of the Type if it is a struct. If it's
 	// not a struct it will be nil.
 	Fields []*FieldInfo
 
-	GenDecl *ast.GenDecl
+	Type *types.Struct
 
-	Type types.Type
+	Decl *ast.GenDecl
 
-	IsAlias bool
-
-	IsBasic bool
-
-	Ident *ast.Ident
-
-	// TODO: Missing funcs yet
 	Methods []*FuncInfo
 }
 
-func newTypeInfo(typeName *types.TypeName, decl *ast.GenDecl) *TypeInfo {
-	return &TypeInfo{
-		Name:    typeName.Name(),
-		Type:    typeName.Type(),
-		IsAlias: typeName.IsAlias(),
-		GenDecl: decl,
+type InterfaceInfo struct {
+	Name          string
+	Doc           string
+	Methods       []*FuncInfo
+	Decl          *ast.GenDecl
+	Type          *types.Interface
+	InterfaceType *ast.InterfaceType
+}
+
+func NewAliasInfo(spec *ast.TypeSpec, alias *types.Alias, decl *ast.GenDecl) *AliasInfo {
+	return &AliasInfo{
+		Name: spec.Name.Name,
+		Rhs:  alias.Rhs(),
+		Type: alias,
+		Decl: decl,
 	}
+}
+
+func NewInterfaceInfo(typeSpec *ast.TypeSpec, iface *types.Interface, decl *ast.GenDecl) *InterfaceInfo {
+	ifaceType := typeSpec.Type.(*ast.InterfaceType)
+	info := &InterfaceInfo{
+		Name:          typeSpec.Name.Name,
+		Decl:          decl,
+		Type:          iface,
+		InterfaceType: ifaceType,
+		Methods:       make([]*FuncInfo, 0, len(ifaceType.Methods.List)),
+	}
+	for _, meth := range ifaceType.Methods.List {
+		funcDecl := &ast.FuncDecl{
+			Doc:  meth.Doc,
+			Type: meth.Type.(*ast.FuncType),
+			Name: meth.Names[0],
+			Body: &ast.BlockStmt{},
+			Recv: nil,
+		}
+		funcInfo := &FuncInfo{
+			Name: meth.Names[0].Name,
+			Decl: funcDecl,
+		}
+		info.Methods = append(info.Methods, funcInfo)
+	}
+	return info
+}
+
+type BasicTypeInfo struct {
+	Name    string
+	Doc     string
+	Type    *types.Basic
+	Pointer *types.Pointer
+	Decl    *ast.GenDecl
+	Methods []*MethodInfo
+}
+
+func NewBasicTypeInfo(typeSpec *ast.TypeSpec, basic *types.Basic, decl *ast.GenDecl, ptr *types.Pointer) *BasicTypeInfo {
+	info := &BasicTypeInfo{
+		Name:    typeSpec.Name.Name,
+		Type:    basic,
+		Decl:    decl,
+		Pointer: ptr,
+	}
+	return info
+}
+
+func NewStructInfo() *StructInfo {
+	info := &StructInfo{}
+	return info
 }
 
 type FieldInfo struct {
@@ -107,38 +202,4 @@ type FieldInfo struct {
 	Tags *ast.BasicLit
 
 	Field *ast.Field
-}
-
-func newFieldInfo(field *ast.Field, typ types.Type) []*FieldInfo {
-	infos := make([]*FieldInfo, 0, 0)
-	if isEmbedded(field) {
-		info := newEmbeddedField(field, typ)
-		infos = append(infos, info)
-		return infos
-	}
-	for _, idn := range field.Names {
-		info := &FieldInfo{
-			Name:  idn.Name,
-			Doc:   field.Doc.Text(),
-			Field: field,
-			Tags:  field.Tag,
-			Type:  typ,
-			Expr:  field.Type,
-		}
-		infos = append(infos, info)
-	}
-	return infos
-}
-
-func newEmbeddedField(field *ast.Field, typ types.Type) *FieldInfo {
-	name := field.Type.(*ast.Ident).Name
-	return &FieldInfo{
-		Name:       name,
-		Doc:        field.Doc.Text(),
-		IsEmbedded: true,
-		Field:      field,
-		Tags:       field.Tag,
-		Expr:       field.Type,
-		Type:       typ,
-	}
 }
