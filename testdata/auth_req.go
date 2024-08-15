@@ -8,6 +8,7 @@ import (
 
 	// this is the time docs
 	"time"
+    p "go/parser"
 )
 
 type PointerBasic *int
@@ -53,6 +54,8 @@ type Size int
 func (s Size) Max() int {
 	return 812031283
 }
+
+var Comment = p.ParseComments
 
 func (s *Size) Ptr() {}
 

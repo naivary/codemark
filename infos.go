@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go/ast"
 	"go/types"
 
@@ -8,20 +9,55 @@ import (
 )
 
 type Info struct {
-	Funcs      []*FuncInfo
-	Methods    map[string][]*MethodInfo
 	Consts     []*ConstInfo
 	Vars       []*VarInfo
-	Structs    []*StructInfo
+	Funcs      []*FuncInfo
+	Methods    map[string][]*MethodInfo
 	BasicTypes []*BasicTypeInfo
+	Structs    []*StructInfo
 	Interfaces []*InterfaceInfo
 	Aliases    []*AliasInfo
+	Imports    []*ImportStmtInfo
 }
 
 func NewInfo() *Info {
 	return &Info{
 		Methods: make(map[string][]*MethodInfo),
 	}
+}
+
+type ImportInfo struct {
+	Name string
+	Doc  string
+	Spec *ast.ImportSpec
+}
+
+func NewImportInfo(spec *ast.ImportSpec) *ImportInfo {
+	name := spec.Name.String()
+	if name == "" {
+		name = spec.Path.Value
+	}
+	return &ImportInfo{
+		Name: name,
+		Spec: spec,
+	}
+}
+
+type ImportStmtInfo struct {
+	Name    string
+	Doc     string
+	Decl    *ast.GenDecl
+	Imports []*ImportInfo
+}
+
+func NewImportStmtInfo(decl *ast.GenDecl) *ImportStmtInfo {
+	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
+	info := &ImportStmtInfo{}
+	for _, spec := range specs {
+        fmt.Println(spec.Doc.Text())
+		info.Imports = append(info.Imports, NewImportInfo(spec))
+	}
+	return info
 }
 
 type ConstInfo struct {

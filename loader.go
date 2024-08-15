@@ -104,13 +104,16 @@ func (l *loader) varDecl(pkg *packages.Package, decl *ast.GenDecl) {
 	}
 }
 
-func (l *loader) importDecl(decl *ast.GenDecl) {}
+func (l *loader) importDecl(decl *ast.GenDecl) {
+	l.info.Imports = append(l.info.Imports, NewImportStmtInfo(decl))
+}
 
 func (l *loader) funcDecl(decl *ast.FuncDecl) {
 	if decl.Recv != nil {
 		l.methodDecl(decl)
 		return
 	}
+	l.info.Funcs = append(l.info.Funcs, NewFuncInfo(decl))
 }
 
 func (l *loader) methodDecl(decl *ast.FuncDecl) {
