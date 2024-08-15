@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
 
@@ -54,7 +53,6 @@ func NewImportStmtInfo(decl *ast.GenDecl) *ImportStmtInfo {
 	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
 	info := &ImportStmtInfo{}
 	for _, spec := range specs {
-        fmt.Println(spec.Doc.Text())
 		info.Imports = append(info.Imports, NewImportInfo(spec))
 	}
 	return info
