@@ -64,19 +64,23 @@ func valueOf[T any](v T, isPointer bool) reflect.Value {
 	return reflect.ValueOf(v)
 }
 
+func ptrGuard(def *Definition) (reflect.Kind, bool) {
+	kind := def.Output.Kind()
+	isPointer := false
+	if kind == reflect.Ptr {
+		isPointer = true
+		kind = def.Output.Elem().Kind()
+	}
+	return kind, isPointer
+}
+
 func convertString(marker parser.Marker, def *Definition) (any, error) {
 	const runee = reflect.Int32
 	const bytee = reflect.Uint8
 
-	kind := def.Output.Kind()
 	value := reflect.New(def.Output).Elem()
 	markerValue := marker.Value().String()
-	isPointer := false
-	if kind == reflect.Ptr {
-		// get the kind of the pointer
-		isPointer = true
-		kind = def.Output.Elem().Kind()
-	}
+	kind, isPointer := ptrGuard(def)
 	if kind == reflect.String {
 		v := valueOf(markerValue, isPointer).Convert(def.Output)
 		value.Set(v)
@@ -111,5 +115,9 @@ func convertString(marker parser.Marker, def *Definition) (any, error) {
 }
 
 func convertBool(marker parser.Marker, def *Definition) (any, error) {
-	return marker.Value().Convert(def.Output).Interface(), nil
+	value := reflect.New(def.Output).Elem()
+	_, isPointer := ptrGuard(def)
+	v := valueOf(marker.Value().Bool(), isPointer).Convert(def.Output)
+	value.Set(v)
+	return value.Interface(), nil
 }
