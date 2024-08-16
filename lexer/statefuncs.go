@@ -112,8 +112,8 @@ func lexAssignment(l *Lexer) stateFunc {
 		// a string is only recognised if a letter
 		// follows the assignment symbol. Can change it
 		// if an `"` token is introduced
-	case unicode.IsLetter(r):
-		return lexString
+	case r == '"':
+		return lexStartDoubleQuotationMarkString
 	default:
 		return l.errorf("expecting value after assignment")
 	}
@@ -157,7 +157,7 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	case unicode.IsDigit(r):
 		return lexNumberArrayValue
 	case r == '"':
-		return lexStartDoubleQuotationMark
+		return lexStartDoubleQuotationMarkStringArray
 	case isSpace(r):
 		return l.errorf("no space allowed of the opening bracket of array")
 	case r == ',':
@@ -191,7 +191,7 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 	case unicode.IsDigit(r):
 		return lexNumberArrayValue
 	case r == '"':
-		return lexStartDoubleQuotationMark
+		return lexStartDoubleQuotationMarkStringArray
 	case r == ']':
 		return l.errorf("remove the comma before the closing bracket of the array")
 	default:
@@ -199,7 +199,29 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 	}
 }
 
-func lexStartDoubleQuotationMark(l *Lexer) stateFunc {
+func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
+	l.next()
+	l.ignore()
+	err := scanStringWithEscape(l, `"`, "")
+	if err != nil {
+		return l.errorf(err.Error())
+	}
+	l.emit(TokenKindString)
+	switch r := l.peek(); {
+	case r == '"':
+		return lexEndDoubleQuotationMarkString
+	default:
+		return l.errorf("expected `\"` got `%s`", string(r))
+	}
+}
+
+func lexEndDoubleQuotationMarkString(l *Lexer) stateFunc {
+	l.next()
+	l.ignore()
+	return lexText
+}
+
+func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	err := scanStringWithEscape(l, `"`, ",]")
@@ -209,13 +231,13 @@ func lexStartDoubleQuotationMark(l *Lexer) stateFunc {
 	l.emit(TokenKindString)
 	switch r := l.peek(); {
 	case r == '"':
-		return lexEndDoubleQuotationMark
+		return lexEndDoubleQuotationMarkStringArray
 	default:
 		return l.errorf("expected `\"` got `%s`", string(r))
 	}
 }
 
-func lexEndDoubleQuotationMark(l *Lexer) stateFunc {
+func lexEndDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	switch r := l.peek(); {

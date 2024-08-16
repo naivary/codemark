@@ -28,7 +28,7 @@ func TestLexer_Lex(t *testing.T) {
 		},
 		{
 			name:    "string input",
-			input:   "+jsonschema:validation:format=email",
+			input:   `+jsonschema:validation:format="email"`,
 			isValid: true,
 		},
 		{

@@ -78,7 +78,7 @@ func scanStringWithEscape(l *Lexer, escape string, c string) error {
 		escape += "\\"
 	}
 	valid := func(r rune) bool {
-		return !isSpace(r) && r != eof && !isSpecialCharacter(escape, r) && !isNewline(r)
+		return r != eof && !isSpecialCharacter(escape, r) && !isNewline(r)
 	}
 	l.acceptFunc(valid)
 
@@ -93,8 +93,12 @@ func scanStringWithEscape(l *Lexer, escape string, c string) error {
 		return escapeChar(l, escape, c)
 	}
 	l.next()
+	// have to keep the width because the next character may be a eof which
+	// results in the width lost.
+	width := l.width
 	isCorrect := isCorrectUnescaped(l, c)
 	if isCorrect {
+		l.width = width
 		l.backup()
 		return nil
 	}
@@ -103,6 +107,9 @@ func scanStringWithEscape(l *Lexer, escape string, c string) error {
 
 func isCorrectUnescaped(l *Lexer, c string) bool {
 	r := l.peek()
+	if c == "" && (r == eof || isSpace(r)) {
+		return true
+	}
 	return strings.Contains(c, string(r))
 }
 
