@@ -14,6 +14,14 @@ type Marker interface {
 	Value() reflect.Value
 }
 
+func NewMarker(ident string, kind reflect.Kind, value reflect.Value) Marker {
+	return &marker{
+		ident: ident,
+		kind:  kind,
+		value: value,
+	}
+}
+
 var _ Marker = (*marker)(nil)
 
 type marker struct {

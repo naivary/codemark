@@ -52,8 +52,6 @@ func parse(input string) *parser {
 	}
 }
 
-type parseFuncE func(*parser) parseFunc
-
 type parser struct {
 	l       *lexer.Lexer
 	state   parseFunc

@@ -14,9 +14,10 @@ type Loader interface {
 	Load(files ...string) (map[string]*Info, error)
 }
 
-func NewLoader(cfg *packages.Config) Loader {
+func NewLoader(conv Converter, cfg *packages.Config) Loader {
 	l := &loader{
 		info: NewInfo(),
+		conv: conv,
 	}
 	if cfg == nil {
 		l.cfg = l.defaultConfig()
@@ -31,6 +32,7 @@ var _ Loader = (*loader)(nil)
 
 type loader struct {
 	cfg  *packages.Config
+	conv Converter
 	info *Info
 }
 

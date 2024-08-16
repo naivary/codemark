@@ -7,6 +7,8 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+type MarkerValues map[string]any
+
 type Info struct {
 	Consts     []*ConstInfo
 	Vars       []*VarInfo
@@ -74,6 +76,7 @@ func NewConstInfo(spec *ast.ValueSpec, pkg *packages.Package) []*ConstInfo {
 		obj := pkg.TypesInfo.Defs[ident]
 		info := &ConstInfo{
 			Name:  ident.Name,
+			Doc:   spec.Doc.Text(),
 			Value: value,
 			Obj:   obj,
 		}

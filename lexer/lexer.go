@@ -22,6 +22,9 @@ func Lex(input string) *Lexer {
 	}
 }
 
+// TODO: strings should always start wiht " and end with "
+// TODO: make the non boolean assignment optional e.g +path:to:marker is always
+// true but it should be possiblle to do +path:to:marker=true
 type Lexer struct {
 	// the string being scanned
 	input string
@@ -35,10 +38,8 @@ type Lexer struct {
 	state stateFunc
 	// channel of scanned tokens
 	tokens chan Token
-
 	// needed sign to satrt the action
 	plus string
-
 	// token to return to the parser
 	token Token
 }
