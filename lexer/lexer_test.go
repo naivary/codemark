@@ -146,6 +146,21 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:max=3.5`,
 			isValid: true,
 		},
+		{
+			name:    "bool with assignment",
+			input:   `+jsonschema:validation:max=true`,
+			isValid: true,
+		},
+		{
+			name:    "bool with assignment false",
+			input:   `+jsonschema:validation:max=false`,
+			isValid: true,
+		},
+		{
+			name:    "bool with assignment false with spaces and number after",
+			input:   `+jsonschema:validation:max=false      3`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {

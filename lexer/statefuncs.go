@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 )
@@ -94,7 +95,7 @@ func lexIdent(l *Lexer) stateFunc {
 	case '=':
 		return lexAssignment
 	case eof:
-		return lexBool
+		return lexBoolWithoutAssignment
 	default:
 		return l.errorf("unexpected token")
 	}
@@ -114,12 +115,14 @@ func lexAssignment(l *Lexer) stateFunc {
 		// if an `"` token is introduced
 	case r == '"':
 		return lexStartDoubleQuotationMarkString
+	case r == 't' || r == 'f':
+		return lexBool
 	default:
 		return l.errorf("expecting value after assignment")
 	}
 }
 
-func lexBool(l *Lexer) stateFunc {
+func lexBoolWithoutAssignment(l *Lexer) stateFunc {
 	assignToken := NewToken(TokenKindAssignment, "=")
 	l.emitToken(assignToken)
 	t := NewToken(TokenKindBool, "true")
@@ -127,10 +130,29 @@ func lexBool(l *Lexer) stateFunc {
 	return lexText
 }
 
-func lexString(l *Lexer) stateFunc {
-	scanString(l)
-	l.emit(TokenKindString)
-	return lexText
+func lexBool(l *Lexer) stateFunc {
+	spelling := "true"
+	if r := l.peek(); r == 'f' {
+		spelling = "false"
+	}
+	for i := 0; i < len(spelling); i++ {
+		r := l.peek()
+		if r == rune(spelling[i]) {
+			l.next()
+			continue
+		}
+		return l.errorf("`%s` is not spelled correctly", spelling)
+	}
+    fmt.Println(l.pos)
+    l.acceptFunc(isSpace)
+    fmt.Println(l.pos)
+    r := l.peek()
+	if r == eof {
+		l.emit(TokenKindBool)
+		return lexText
+	}
+	return l.errorf("did not expect anything after `%s`", spelling)
+
 }
 
 func lexNumber(l *Lexer) stateFunc {
