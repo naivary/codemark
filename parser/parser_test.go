@@ -48,6 +48,10 @@ func TestParse(t *testing.T) {
 			name:  "array escape and float",
 			input: `+jsonschema:validation:items=["lorem", "ips\"um", 3.3]`,
 		},
+        {
+            name: "bool new syntax",
+            input: `+jsonschema:validation:required=false`,
+        },
 	}
 
 	for _, tc := range tests {

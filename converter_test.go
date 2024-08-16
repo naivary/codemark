@@ -1,13 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
 	"github.com/naivary/codemark/parser"
 )
 
+func ptr[T any](t T) *T {
+	return &t
+}
+
 type str string
+type strPtr *string
+
 type i int
 type i8 int8
 type i16 int16
@@ -21,7 +28,7 @@ type byteSlice []byte
 type runeSlice []rune
 
 type boolean bool
-type ptrBoolean bool
+type boolPtr bool
 
 func TestConverter_Convert(t *testing.T) {
 	tests := []struct {
@@ -32,14 +39,16 @@ func TestConverter_Convert(t *testing.T) {
 		{
 			name: "string marker",
 			markers: []parser.Marker{
-				parser.NewMarker("jsonschema:validation:name", reflect.String, reflect.ValueOf("name")),
+				parser.NewMarker("jsonschema:validation:string", reflect.String, reflect.ValueOf("string")),
+				parser.NewMarker("jsonschema:validation:stringptr", reflect.String, reflect.ValueOf(ptr("stringptr"))),
 				parser.NewMarker("jsonschema:validation:byte", reflect.String, reflect.ValueOf("b")),
 				parser.NewMarker("jsonschema:validation:rune", reflect.String, reflect.ValueOf("r")),
 				parser.NewMarker("jsonschema:validation:runeslice", reflect.String, reflect.ValueOf("rrrrrr")),
 				parser.NewMarker("jsonschema:validation:byteslice", reflect.String, reflect.ValueOf("bbbbbb")),
 			},
 			defs: []*Definition{
-				MakeDef("jsonschema:validation:name", TargetConst, reflect.TypeOf(str(""))),
+				MakeDef("jsonschema:validation:string", TargetConst, reflect.TypeOf(str(""))),
+				MakeDef("jsonschema:validation:stringptr", TargetConst, reflect.TypeOf(strPtr(ptr("")))),
 				MakeDef("jsonschema:validation:byte", TargetConst, reflect.TypeOf(b(0))),
 				MakeDef("jsonschema:validation:rune", TargetConst, reflect.TypeOf(r(0))),
 				MakeDef("jsonschema:validation:byteslice", TargetConst, reflect.TypeOf(byteSlice([]byte{}))),
@@ -54,7 +63,7 @@ func TestConverter_Convert(t *testing.T) {
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:required", TargetConst, reflect.TypeOf(boolean(false))),
-				MakeDef("jsonschema:validation:requiredptr", TargetConst, reflect.TypeOf(ptrBoolean(false))),
+				MakeDef("jsonschema:validation:requiredptr", TargetConst, reflect.TypeOf(boolPtr(false))),
 			},
 		},
 	}
@@ -76,7 +85,7 @@ func TestConverter_Convert(t *testing.T) {
 				if err != nil {
 					t.Error(err)
 				}
-				t.Log(v)
+				fmt.Println(reflect.TypeOf(v))
 			}
 
 		})

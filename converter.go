@@ -9,7 +9,7 @@ import (
 )
 
 type Converter interface {
-	Convert(marker parser.Marker) (reflect.Value, error)
+	Convert(marker parser.Marker) (any, error)
 }
 
 func NewConverter(reg Registry) (Converter, error) {
@@ -28,19 +28,11 @@ type converter struct {
 	reg Registry
 }
 
-func (c *converter) Convert(marker parser.Marker) (reflect.Value, error) {
-	var empty reflect.Value
-	// get definition from registry (done)
-	// check which type the marker is and which type the definition output is
-	//
-	// if it's the same e.g. string and string then conert using
-	// reflect.Value.Convert.
-	//
-	// if its not equal do a manual conversion by determining the kind
+func (c *converter) Convert(marker parser.Marker) (any, error) {
 	name := marker.Ident()
 	def := c.reg.Get(name)
 	if def == nil {
-		return empty, fmt.Errorf("marker `%s` is not defined in the registry", name)
+		return nil, fmt.Errorf("marker `%s` is not defined in the registry", name)
 	}
 	switch marker.Kind() {
 	// everything an be converted to any and the pointer of the type
@@ -58,52 +50,66 @@ func (c *converter) Convert(marker parser.Marker) (reflect.Value, error) {
 		return convertString(marker, def)
 		// only convertable to string, []rune and []byte and if one letter rune
 		// and byte too
+	default:
+		return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
 	}
 
 	return reflect.Value{}, nil
 }
 
-func convertString(marker parser.Marker, def *Definition) (reflect.Value, error) {
-	var empty reflect.Value
+func valueOf[T any](v T, isPointer bool) reflect.Value {
+	if isPointer {
+		return reflect.ValueOf(&v)
+	}
+	return reflect.ValueOf(v)
+}
+
+func convertString(marker parser.Marker, def *Definition) (any, error) {
 	const runee = reflect.Int32
 	const bytee = reflect.Uint8
 
 	kind := def.Output.Kind()
-	markerValue := marker.Value().String()
 	value := reflect.New(def.Output).Elem()
+	markerValue := marker.Value().String()
+	isPointer := false
+	if kind == reflect.Ptr {
+		// get the kind of the pointer
+		isPointer = true
+		kind = def.Output.Elem().Kind()
+	}
 	if kind == reflect.String {
-		value.SetString(markerValue)
-		return value, nil
+		v := valueOf(markerValue, isPointer).Convert(def.Output)
+		value.Set(v)
+		return value.Interface(), nil
 	}
 	if kind == bytee && len(markerValue) == 1 {
 		b := byte(markerValue[0])
-		v := reflect.ValueOf(b).Convert(def.Output)
+		v := valueOf(b, isPointer).Convert(def.Output)
 		value.Set(v)
-		return value, nil
+		return value.Interface(), nil
 	}
 	if kind == runee && len(markerValue) == 1 {
 		r := rune(markerValue[0])
-		v := reflect.ValueOf(r).Convert(def.Output)
+		v := valueOf(r, isPointer).Convert(def.Output)
 		value.Set(v)
-		return value, nil
+		return value.Interface(), nil
 	}
 
 	// check if its a []byte or []rune slice
 	elemKind := def.Output.Elem().Kind()
 	if kind == reflect.Slice && elemKind == bytee {
 		bytes := []byte(markerValue)
-		value.SetBytes(bytes)
-		return value, nil
+		value.Set(valueOf(bytes, isPointer))
+		return value.Interface(), nil
 	}
 	if kind == reflect.Slice && elemKind == runee {
 		runes := []rune(markerValue)
-		v := reflect.ValueOf(runes)
-		value.Set(v)
-		return value, nil
+		value.Set(valueOf(runes, isPointer))
+		return value.Interface(), nil
 	}
-	return empty, fmt.Errorf("cannot convert marker of kind `%v` to definition of kind `%v`", marker.Kind(), kind)
+	return nil, fmt.Errorf("cannot convert marker of kind `%v` to definition of kind `%v`", marker.Kind(), kind)
 }
 
-func convertBool(marker parser.Marker, def *Definition) (reflect.Value, error) {
-	return marker.Value().Convert(def.Output), nil
+func convertBool(marker parser.Marker, def *Definition) (any, error) {
+	return marker.Value().Convert(def.Output).Interface(), nil
 }

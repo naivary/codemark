@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -143,10 +142,8 @@ func lexBool(l *Lexer) stateFunc {
 		}
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
-    fmt.Println(l.pos)
-    l.acceptFunc(isSpace)
-    fmt.Println(l.pos)
-    r := l.peek()
+	l.acceptFunc(isSpace)
+	r := l.peek()
 	if r == eof {
 		l.emit(TokenKindBool)
 		return lexText

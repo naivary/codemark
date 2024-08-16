@@ -21,12 +21,12 @@ func TestLoader(t *testing.T) {
 
 	for _, tc := range tests {
 		reg := NewRegistry()
-		mapper, err := NewMapper(reg)
+		conv, err := NewConverter(reg)
         if err != nil {
             t.Error(err)
         }
 		t.Run(tc.name, func(t *testing.T) {
-			l := NewLoader(mapper, nil)
+			l := NewLoader(conv, nil)
 			info, err := l.Load(tc.paths...)
 			if err != nil {
 				t.Fatal(err.Error())
