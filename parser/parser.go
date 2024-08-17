@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/lexer"
+	"github.com/naivary/codemark/marker"
 )
 
 const (
@@ -47,16 +48,16 @@ func parse(input string) *parser {
 	return &parser{
 		l:       lexer.Lex(input),
 		state:   parsePlus,
-		markers: make(chan Marker, 2),
-		m:       &marker{},
+		markers: make(chan marker.Marker, 2),
+		m:       &marker.Default{},
 	}
 }
 
 type parser struct {
 	l       *lexer.Lexer
 	state   parseFunc
-	markers chan Marker
-	m       *marker
+	markers chan marker.Marker
+	m       *marker.Default
 	err     error
 	// receive is defining if the next token from the
 	// lexer should be fetched or the same should be
@@ -84,7 +85,7 @@ func (p *parser) run() error {
 
 func (p *parser) emit() {
 	p.markers <- p.m
-	p.m = &marker{}
+	p.m = &marker.Default{}
 }
 
 func (p *parser) errorf(format string, args ...any) parseFunc {
@@ -100,7 +101,7 @@ func parsePlus(p *parser, t lexer.Token) (parseFunc, bool) {
 }
 
 func parseIdent(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.ident = t.Value
+	p.m.Idn = t.Value
 	return parseAssignment, _next
 }
 
@@ -128,18 +129,18 @@ func parseValue(p *parser, t lexer.Token) (parseFunc, bool) {
 }
 
 func parseBool(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = reflect.Bool
+	p.m.K = reflect.Bool
 	boolVal, err := strconv.ParseBool(t.Value)
 	if err != nil {
 		return p.errorf("couldn't parse boolean value: %s", t.Value), _keep
 	}
-	p.m.value = reflect.ValueOf(boolVal)
+	p.m.Val = reflect.ValueOf(boolVal)
 	return parseEOF, _next
 }
 
 func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = reflect.String
-	p.m.value = reflect.ValueOf(t.Value)
+	p.m.K = reflect.String
+	p.m.Val = reflect.ValueOf(t.Value)
 	return parseEOF, _next
 }
 
@@ -149,8 +150,8 @@ func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 		// error handling
 		return p.errorf(err.Error()), _keep
 	}
-	p.m.kind = reflect.Int64
-	p.m.value = reflect.ValueOf(i)
+	p.m.K = reflect.Int64
+	p.m.Val = reflect.ValueOf(i)
 	return parseEOF, _next
 }
 
@@ -159,8 +160,8 @@ func parseFloat(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf(err.Error()), _keep
 	}
-	p.m.kind = reflect.Float64
-	p.m.value = reflect.ValueOf(f)
+	p.m.K = reflect.Float64
+	p.m.Val = reflect.ValueOf(f)
 	return parseEOF, _next
 }
 
@@ -169,15 +170,15 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf(err.Error()), _keep
 	}
-	p.m.kind = reflect.Complex128
-	p.m.value = reflect.ValueOf(c)
+	p.m.K = reflect.Complex128
+	p.m.Val = reflect.ValueOf(c)
 	return parseEOF, _next
 }
 
 func parseSliceStart(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = reflect.Slice
+	p.m.K = reflect.Slice
 	rt := reflect.TypeOf([]any{})
-	p.m.value = reflect.MakeSlice(rt, 0, 1)
+	p.m.Val = reflect.MakeSlice(rt, 0, 1)
 	return parseSliceElem, _next
 }
 
@@ -198,7 +199,7 @@ func parseSliceElem(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseSliceStringElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	val := reflect.ValueOf(t.Value)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Val = reflect.Append(p.m.Val, val)
 	return parseSliceElem, _next
 }
 
@@ -208,7 +209,7 @@ func parseSliceIntElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return p.errorf(err.Error()), _keep
 	}
 	val := reflect.ValueOf(i)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Val = reflect.Append(p.m.Val, val)
 	return parseSliceElem, _next
 }
 
@@ -218,7 +219,7 @@ func parseSliceFloatElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return p.errorf(err.Error()), _keep
 	}
 	val := reflect.ValueOf(f)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Val = reflect.Append(p.m.Val, val)
 	return parseSliceElem, _next
 }
 
@@ -228,7 +229,7 @@ func parseSliceComplexElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return p.errorf("couldn't parse complex number: %s", t.Value), _keep
 	}
 	val := reflect.ValueOf(c)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Val = reflect.Append(p.m.Val, val)
 	return parseSliceElem, _next
 }
 

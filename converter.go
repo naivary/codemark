@@ -5,31 +5,14 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/marker"
 )
-
-func valueOf[T any](v T, isPointer bool) reflect.Value {
-	if isPointer {
-		return reflect.ValueOf(&v)
-	}
-	return reflect.ValueOf(v)
-}
-
-func ptrGuard(def *Definition) (reflect.Kind, bool) {
-	kind := def.Output.Kind()
-	isPointer := false
-	if kind == reflect.Ptr {
-		isPointer = true
-		kind = def.Output.Elem().Kind()
-	}
-	return kind, isPointer
-}
 
 type Converter interface {
 	// Convert is converting the given marker to the associated
 	// `Definition.Output` type iff the target is correct and the conversion is
 	// possible.
-	Convert(marker parser.Marker, target Target) (any, error)
+	Convert(marker marker.Marker, target Target) (any, error)
 }
 
 func NewConverter(reg Registry) (Converter, error) {
@@ -48,7 +31,7 @@ type converter struct {
 	reg Registry
 }
 
-func (c *converter) Convert(marker parser.Marker, target Target) (any, error) {
+func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	name := marker.Ident()
 	def := c.reg.Get(name)
 	if def == nil {
@@ -78,7 +61,7 @@ func (c *converter) Convert(marker parser.Marker, target Target) (any, error) {
 	return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
 }
 
-func convertInt(marker parser.Marker, def *Definition) (any, error) {
+func convertInt(marker marker.Marker, def *Definition) (any, error) {
 	value := reflect.New(def.Output).Elem()
 	kind, isPointer := ptrGuard(def)
 	if kind == reflect.Int {
@@ -90,7 +73,7 @@ func convertInt(marker parser.Marker, def *Definition) (any, error) {
 	return nil, fmt.Errorf("cannot convert marker of kind `%v` to definition of kind `%v`", marker.Kind(), kind)
 }
 
-func convertString(marker parser.Marker, def *Definition) (any, error) {
+func convertString(marker marker.Marker, def *Definition) (any, error) {
 	const runee = reflect.Int32
 	const bytee = reflect.Uint8
 
@@ -130,7 +113,7 @@ func convertString(marker parser.Marker, def *Definition) (any, error) {
 	return nil, fmt.Errorf("cannot convert marker of kind `%v` to definition of kind `%v`", marker.Kind(), kind)
 }
 
-func convertBool(marker parser.Marker, def *Definition) (any, error) {
+func convertBool(marker marker.Marker, def *Definition) (any, error) {
 	value := reflect.New(def.Output).Elem()
 	_, isPointer := ptrGuard(def)
 	v := valueOf(marker.Value().Bool(), isPointer).Convert(def.Output)

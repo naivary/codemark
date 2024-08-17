@@ -148,8 +148,7 @@ func lexBool(l *Lexer) stateFunc {
 		l.emit(TokenKindBool)
 		return lexText
 	}
-	return l.errorf("did not expect anything after `%s`", spelling)
-
+	return l.errorf("did not expect anything after `%s`. Found `%s`", spelling, string(r))
 }
 
 func lexNumber(l *Lexer) stateFunc {

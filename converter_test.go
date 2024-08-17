@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/marker"
 )
 
 func ptr[T any](t T) *T {
@@ -43,17 +43,17 @@ type boolPtr *bool
 func TestConverter_Convert(t *testing.T) {
 	tests := []struct {
 		name    string
-		markers []parser.Marker
+		markers []marker.Marker
 		defs    []*Definition
 	}{
 		{
 			name: "string marker",
-			markers: []parser.Marker{
-				parser.NewMarker("jsonschema:validation:string", reflect.String, reflect.ValueOf("string")),
-				parser.NewMarker("jsonschema:validation:byte", reflect.String, reflect.ValueOf("b")),
-				parser.NewMarker("jsonschema:validation:rune", reflect.String, reflect.ValueOf("r")),
-				parser.NewMarker("jsonschema:validation:runeslice", reflect.String, reflect.ValueOf("rrrrrr")),
-				parser.NewMarker("jsonschema:validation:byteslice", reflect.String, reflect.ValueOf("bbbbbb")),
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:string", reflect.String, reflect.ValueOf("string")),
+				marker.NewDefault("jsonschema:validation:byte", reflect.String, reflect.ValueOf("b")),
+				marker.NewDefault("jsonschema:validation:rune", reflect.String, reflect.ValueOf("r")),
+				marker.NewDefault("jsonschema:validation:runeslice", reflect.String, reflect.ValueOf("rrrrrr")),
+				marker.NewDefault("jsonschema:validation:byteslice", reflect.String, reflect.ValueOf("bbbbbb")),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:string", TargetConst, reflect.TypeOf(str(""))),
@@ -65,9 +65,9 @@ func TestConverter_Convert(t *testing.T) {
 		},
 		{
 			name: "boolean marker",
-			markers: []parser.Marker{
-				parser.NewMarker("jsonschema:validation:required", reflect.Bool, reflect.ValueOf(true)),
-				parser.NewMarker("jsonschema:validation:requiredptr", reflect.Bool, reflect.ValueOf(true)),
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:required", reflect.Bool, reflect.ValueOf(true)),
+				marker.NewDefault("jsonschema:validation:requiredptr", reflect.Bool, reflect.ValueOf(true)),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:required", TargetConst, reflect.TypeOf(boolean(false))),
@@ -76,10 +76,10 @@ func TestConverter_Convert(t *testing.T) {
 		},
 		{
 			name: "string marker pointers",
-			markers: []parser.Marker{
-				parser.NewMarker("jsonschema:validation:stringptr", reflect.String, reflect.ValueOf("stringptr")),
-				parser.NewMarker("jsonschema:validation:byteptr", reflect.String, reflect.ValueOf("b")),
-				parser.NewMarker("jsonschema:validation:runeptr", reflect.String, reflect.ValueOf("r")),
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:stringptr", reflect.String, reflect.ValueOf("stringptr")),
+				marker.NewDefault("jsonschema:validation:byteptr", reflect.String, reflect.ValueOf("b")),
+				marker.NewDefault("jsonschema:validation:runeptr", reflect.String, reflect.ValueOf("r")),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:stringptr", TargetConst, reflect.TypeOf(strPtr(ptr("")))),
@@ -89,9 +89,9 @@ func TestConverter_Convert(t *testing.T) {
 		},
 		{
 			name: "integer marker",
-			markers: []parser.Marker{
-				parser.NewMarker("jsonschema:validation:i", reflect.Int64, reflect.ValueOf(30)),
-				parser.NewMarker("jsonschema:validation:i8", reflect.Int64, reflect.ValueOf(2)),
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:i", reflect.Int64, reflect.ValueOf(30)),
+				marker.NewDefault("jsonschema:validation:i8", reflect.Int64, reflect.ValueOf(2)),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:i", TargetConst, reflect.TypeOf(i(0))),
