@@ -34,6 +34,9 @@ func (c *converter) Convert(marker parser.Marker, target Target) (any, error) {
 	if def == nil {
 		return nil, fmt.Errorf("marker `%s` is not defined in the registry", name)
 	}
+	if target != def.TargetType {
+		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", name, def.TargetType, target)
+	}
 	switch marker.Kind() {
 	// everything an be converted to any and the pointer of the type
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
