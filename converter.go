@@ -42,13 +42,13 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	}
 	switch marker.Kind() {
 	// everything an be converted to any and the pointer of the type
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+	case reflect.Int64:
 		// can only be converted to float, string and int types and if it is
 		// int32 to rune
 		return convertInt(marker, def)
-	case reflect.Float64, reflect.Float32:
+	case reflect.Float64:
 		// can only be conveted to  float types
-	case reflect.Complex64, reflect.Complex128:
+	case reflect.Complex128:
 		// can only be converted to complext types
 	case reflect.Bool:
 		// only convertable to bool types
@@ -62,9 +62,11 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 }
 
 func convertInt(marker marker.Marker, def *Definition) (any, error) {
+    // TODO: have to handle u int too
 	value := reflect.New(def.Output).Elem()
 	kind, isPointer := ptrGuard(def)
-	if kind == reflect.Int {
+	i := marker.Value().Int()
+	if kind == reflect.Int && isWithinLimit(i, reflect.Int) {
 		i := int(marker.Value().Int())
 		v := valueOf(i, isPointer).Convert(def.Output)
 		value.Set(v)

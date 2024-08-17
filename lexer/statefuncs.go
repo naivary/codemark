@@ -116,6 +116,8 @@ func lexAssignment(l *Lexer) stateFunc {
 		return lexStartDoubleQuotationMarkString
 	case r == 't' || r == 'f':
 		return lexBool
+    case r == '-' || r == '+':
+        return lexNumber
 	default:
 		return l.errorf("expecting value after assignment")
 	}

@@ -161,6 +161,12 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:max=false      3`,
 			isValid: true,
 		},
+		{
+			name:    "negative integer",
+			input:   `+jsonschema:validation:max=-3`,
+			isValid: true,
+		},
+
 	}
 
 	for _, tc := range tests {
