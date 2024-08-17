@@ -8,7 +8,27 @@ import (
 	"github.com/naivary/codemark/parser"
 )
 
+func valueOf[T any](v T, isPointer bool) reflect.Value {
+	if isPointer {
+		return reflect.ValueOf(&v)
+	}
+	return reflect.ValueOf(v)
+}
+
+func ptrGuard(def *Definition) (reflect.Kind, bool) {
+	kind := def.Output.Kind()
+	isPointer := false
+	if kind == reflect.Ptr {
+		isPointer = true
+		kind = def.Output.Elem().Kind()
+	}
+	return kind, isPointer
+}
+
 type Converter interface {
+	// Convert is converting the given marker to the associated
+	// `Definition.Output` type iff the target is correct and the conversion is
+	// possible.
 	Convert(marker parser.Marker, target Target) (any, error)
 }
 
@@ -42,6 +62,7 @@ func (c *converter) Convert(marker parser.Marker, target Target) (any, error) {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		// can only be converted to float, string and int types and if it is
 		// int32 to rune
+		return convertInt(marker, def)
 	case reflect.Float64, reflect.Float32:
 		// can only be conveted to  float types
 	case reflect.Complex64, reflect.Complex128:
@@ -53,28 +74,20 @@ func (c *converter) Convert(marker parser.Marker, target Target) (any, error) {
 		return convertString(marker, def)
 		// only convertable to string, []rune and []byte and if one letter rune
 		// and byte too
-	default:
-		return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
 	}
-
-	return reflect.Value{}, nil
+	return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
 }
 
-func valueOf[T any](v T, isPointer bool) reflect.Value {
-	if isPointer {
-		return reflect.ValueOf(&v)
+func convertInt(marker parser.Marker, def *Definition) (any, error) {
+	value := reflect.New(def.Output).Elem()
+	kind, isPointer := ptrGuard(def)
+	if kind == reflect.Int {
+		i := int(marker.Value().Int())
+		v := valueOf(i, isPointer).Convert(def.Output)
+		value.Set(v)
+		return value.Interface(), nil
 	}
-	return reflect.ValueOf(v)
-}
-
-func ptrGuard(def *Definition) (reflect.Kind, bool) {
-	kind := def.Output.Kind()
-	isPointer := false
-	if kind == reflect.Ptr {
-		isPointer = true
-		kind = def.Output.Elem().Kind()
-	}
-	return kind, isPointer
+	return nil, fmt.Errorf("cannot convert marker of kind `%v` to definition of kind `%v`", marker.Kind(), kind)
 }
 
 func convertString(marker parser.Marker, def *Definition) (any, error) {

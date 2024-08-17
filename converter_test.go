@@ -20,6 +20,12 @@ type i16 int16
 type i32 int32
 type i64 int64
 
+type iPtr *int
+type i8Ptr *int8
+type i16Ptr *int16
+type i32Ptr *int32
+type i64Ptr *int64
+
 type b byte
 type bytePtr *byte
 type r rune
@@ -79,6 +85,17 @@ func TestConverter_Convert(t *testing.T) {
 				MakeDef("jsonschema:validation:stringptr", TargetConst, reflect.TypeOf(strPtr(ptr("")))),
 				MakeDef("jsonschema:validation:byteptr", TargetConst, reflect.TypeOf(bytePtr(ptr[byte](0)))),
 				MakeDef("jsonschema:validation:runeptr", TargetConst, reflect.TypeOf(runePtr(ptr[rune](0)))),
+			},
+		},
+		{
+			name: "integer marker",
+			markers: []parser.Marker{
+				parser.NewMarker("jsonschema:validation:i", reflect.Int64, reflect.ValueOf(30)),
+				parser.NewMarker("jsonschema:validation:i8", reflect.Int64, reflect.ValueOf(2)),
+			},
+			defs: []*Definition{
+				MakeDef("jsonschema:validation:i", TargetConst, reflect.TypeOf(i(0))),
+				MakeDef("jsonschema:validation:i8", TargetConst, reflect.TypeOf(i8(0))),
 			},
 		},
 	}
