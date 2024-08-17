@@ -73,10 +73,12 @@ func TestConverter_Convert(t *testing.T) {
 			markers: []parser.Marker{
 				parser.NewMarker("jsonschema:validation:stringptr", reflect.String, reflect.ValueOf("stringptr")),
 				parser.NewMarker("jsonschema:validation:byteptr", reflect.String, reflect.ValueOf("b")),
+				parser.NewMarker("jsonschema:validation:runeptr", reflect.String, reflect.ValueOf("r")),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:stringptr", TargetConst, reflect.TypeOf(strPtr(ptr("")))),
 				MakeDef("jsonschema:validation:byteptr", TargetConst, reflect.TypeOf(bytePtr(ptr[byte](0)))),
+				MakeDef("jsonschema:validation:runeptr", TargetConst, reflect.TypeOf(runePtr(ptr[rune](0)))),
 			},
 		},
 	}
@@ -94,11 +96,11 @@ func TestConverter_Convert(t *testing.T) {
 				t.Error(err)
 			}
 			for _, marker := range tc.markers {
-				_, err := conv.Convert(marker)
+				v, err := conv.Convert(marker, TargetConst)
 				if err != nil {
 					t.Error(err)
 				}
-
+				t.Log(v)
 			}
 
 		})

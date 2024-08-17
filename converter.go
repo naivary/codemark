@@ -9,7 +9,7 @@ import (
 )
 
 type Converter interface {
-	Convert(marker parser.Marker) (any, error)
+	Convert(marker parser.Marker, target Target) (any, error)
 }
 
 func NewConverter(reg Registry) (Converter, error) {
@@ -28,7 +28,7 @@ type converter struct {
 	reg Registry
 }
 
-func (c *converter) Convert(marker parser.Marker) (any, error) {
+func (c *converter) Convert(marker parser.Marker, target Target) (any, error) {
 	name := marker.Ident()
 	def := c.reg.Get(name)
 	if def == nil {
