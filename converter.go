@@ -169,6 +169,9 @@ func convertNumber(marker marker.Marker, def *Definition) (any, error) {
 		value.Set(v)
 		return value.Interface(), nil
 	}
+    if kind == reflect.Float32 || kind == reflect.Float64{
+        // conversion to float
+    }
 	if isUint(kind) {
 		return convertUint(marker, def)
 	}
