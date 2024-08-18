@@ -5,6 +5,60 @@ import (
 	"reflect"
 )
 
+const (
+	_rune = reflect.Int32
+	_byte = reflect.Uint8
+)
+
+func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
+	for _, kind := range kinds {
+		if kind == k {
+			return true
+		}
+	}
+	return false
+}
+
+func isIntConvPossible(def *Definition) bool {
+	return anyOf(def.kind,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32, // +rune
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8, // +byte
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+		reflect.Float32,
+		reflect.Float64,
+	)
+}
+
+func isFloatConvPossible(def *Definition) bool {
+	return anyOf(def.kind, reflect.Float32, reflect.Float64)
+}
+
+func isComplexConvPossible(def *Definition) bool {
+	return anyOf(def.kind, reflect.Complex64, reflect.Complex128)
+}
+
+func isBoolConvPossible(def *Definition) bool {
+	return def.kind == reflect.Bool
+}
+
+func isStringConvPossible(def *Definition) bool {
+	if anyOf(def.kind, reflect.String, reflect.Uint8, reflect.Int32) {
+		return true
+	}
+	if def.kind != reflect.Slice {
+		return false
+	}
+	sliceKind := def.output.Elem().Kind()
+	return anyOf(sliceKind, _byte, _rune)
+}
+
 func valueOf[T any](v T, isPointer bool) reflect.Value {
 	if isPointer {
 		return reflect.ValueOf(&v)
@@ -13,11 +67,11 @@ func valueOf[T any](v T, isPointer bool) reflect.Value {
 }
 
 func resolvePtr(def *Definition) (reflect.Kind, bool) {
-	kind := def.Output.Kind()
+	kind := def.output.Kind()
 	isPointer := false
 	if kind == reflect.Ptr {
 		isPointer = true
-		kind = def.Output.Elem().Kind()
+		kind = def.output.Elem().Kind()
 	}
 	return kind, isPointer
 }
