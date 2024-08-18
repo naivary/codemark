@@ -147,7 +147,6 @@ func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
 func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 	i, err := parseInt64(t.Value)
 	if err != nil {
-		// error handling
 		return p.errorf(err.Error()), _keep
 	}
 	p.m.K = reflect.Int64
