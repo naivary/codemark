@@ -56,6 +56,17 @@ func isUintInLimit(i uint64, limit reflect.Kind) bool {
 	}
 }
 
+func isFloatInLimit(f float64, limit reflect.Kind) bool {
+	switch limit {
+	case reflect.Float32:
+		return f <= math.MaxFloat32 && f >= -math.SmallestNonzeroFloat32
+	case reflect.Float64:
+		return f <= math.MaxFloat64 && f >= -math.SmallestNonzeroFloat64
+    default:
+        return false
+	}
+}
+
 func isUint(k reflect.Kind) bool {
 	switch k {
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:

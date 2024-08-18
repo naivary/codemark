@@ -14,6 +14,9 @@ func ptr[T any](t T) *T {
 type str string
 type strPtr *string
 
+type f32 float32
+type f64 float64
+
 type i int
 type i8 int8
 type i16 int16
@@ -108,6 +111,18 @@ func TestConverter_Convert(t *testing.T) {
 				MakeDef("jsonschema:validation:i16", TargetConst, reflect.TypeOf(i16(0))),
 				MakeDef("jsonschema:validation:i32", TargetConst, reflect.TypeOf(i32(0))),
 				MakeDef("jsonschema:validation:i64", TargetConst, reflect.TypeOf(i64(0))),
+			},
+		},
+		{
+			name: "float marker",
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:f32", reflect.Float64, reflect.ValueOf(30.32)),
+				marker.NewDefault("jsonschema:validation:f64", reflect.Float64, reflect.ValueOf(2.213)),
+				marker.NewDefault("jsonschema:validation:f32", reflect.Float64, reflect.ValueOf(-30.32)),
+			},
+			defs: []*Definition{
+				MakeDef("jsonschema:validation:f32", TargetConst, reflect.TypeOf(f32(0.0))),
+				MakeDef("jsonschema:validation:f64", TargetConst, reflect.TypeOf(f64(0.0))),
 			},
 		},
 	}

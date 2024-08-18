@@ -127,7 +127,20 @@ func convertInt(marker marker.Marker, def *Definition) (any, error) {
 }
 
 func convertFloat(marker marker.Marker, def *Definition) (any, error) {
-	return nil, nil
+	kind, isPointer := ptrGuard(def)
+	f := marker.Value().Float()
+	value := reflect.New(def.Output).Elem()
+	if kind != reflect.Float32 && kind != reflect.Float64 {
+		return nil, fmt.Errorf("cannot convert `%f` to `%v`. Conversion from float to integer will not be handled", f, def.Output)
+	}
+	if kind == reflect.Float32 && isFloatInLimit(f, reflect.Float32) {
+		v := valueOf(float32(f), isPointer).Convert(def.Output)
+		value.Set(v)
+		return value.Interface(), nil
+	}
+	v := valueOf(f, isPointer).Convert(def.Output)
+	value.Set(v)
+	return value.Interface(), nil
 }
 
 func convertNumber(marker marker.Marker, def *Definition) (any, error) {
