@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"reflect"
 	"testing"
 
@@ -107,6 +108,8 @@ func TestConverter_Convert(t *testing.T) {
 				marker.NewDefault("jsonschema:validation:i16", reflect.Int64, reflect.ValueOf(32767)),
 				marker.NewDefault("jsonschema:validation:i32", reflect.Int64, reflect.ValueOf(213712389)),
 				marker.NewDefault("jsonschema:validation:i64", reflect.Int64, reflect.ValueOf(1237812378192378)),
+				marker.NewDefault("jsonschema:validation:string", reflect.Int64, reflect.ValueOf(12345)),
+				marker.NewDefault("jsonschema:validation:rune", reflect.Int64, reflect.ValueOf(math.MaxInt32 + 1)),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:i", TargetConst, reflect.TypeOf(i(0))),
@@ -114,6 +117,8 @@ func TestConverter_Convert(t *testing.T) {
 				MakeDef("jsonschema:validation:i16", TargetConst, reflect.TypeOf(i16(0))),
 				MakeDef("jsonschema:validation:i32", TargetConst, reflect.TypeOf(i32(0))),
 				MakeDef("jsonschema:validation:i64", TargetConst, reflect.TypeOf(i64(0))),
+				MakeDef("jsonschema:validation:string", TargetConst, reflect.TypeOf(str(""))),
+				MakeDef("jsonschema:validation:rune", TargetConst, reflect.TypeOf(r(0))),
 			},
 		},
 		{

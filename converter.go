@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 
 	"github.com/naivary/codemark/marker"
 )
@@ -43,8 +44,6 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	switch marker.Kind() {
 	//TODO: everything an be converted to any and the pointer of the type
 	case reflect.Int64:
-		// TODO: can only be converted to float, string and int types and if it is
-		// int32 to rune
 		return convertNumber(marker, def)
 	case reflect.Float64:
 		return convertFloat(marker, def)
@@ -157,10 +156,18 @@ func convertFloat(marker marker.Marker, def *Definition) (any, error) {
 }
 
 func convertNumber(marker marker.Marker, def *Definition) (any, error) {
-	kind, _ := ptrGuard(def)
+	kind, isPointer := ptrGuard(def)
 	i := marker.Value().Int()
+
 	if i < 0 && isUint(kind) {
 		return nil, fmt.Errorf("impossible uint conversion of `%d` to `%v`", i, def.Output)
+	}
+	if kind == reflect.String {
+		value := reflect.New(def.Output).Elem()
+		s := strconv.FormatInt(i, 10)
+		v := valueOf(s, isPointer).Convert(def.Output)
+		value.Set(v)
+		return value.Interface(), nil
 	}
 	if isUint(kind) {
 		return convertUint(marker, def)
@@ -214,4 +221,8 @@ func convertBool(marker marker.Marker, def *Definition) (any, error) {
 	v := valueOf(marker.Value().Bool(), isPointer).Convert(def.Output)
 	value.Set(v)
 	return value.Interface(), nil
+}
+
+func convertAny(marker marker.Marker, def *Definition) (any, error) {
+	return nil, nil
 }
