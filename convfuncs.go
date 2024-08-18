@@ -1,130 +1,107 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 )
 
 func convComplex(c complex128, def *Definition) (any, error) {
-	value := reflect.New(def.output).Elem()
-	kind, isPointer := def.kind, def.isPointer
-	if kind != reflect.Complex64 && kind != reflect.Complex128 {
-		return nil, fmt.Errorf("conversion of `%f+%fi` is not possible to a non complex type `%v`", real(c), imag(c), def.output)
+	kind := def.kind
+	if !isComplexInLimit(c, kind) {
+		return nil, errors.New("does not fit")
 	}
-	if kind == reflect.Complex64 && isComplexInLimit(c, reflect.Complex64) {
-		v := valueOf(complex64(c), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Complex64 {
+		return newComplexType[complex64](c, def), nil
 	}
-	v := valueOf(c, isPointer).Convert(def.output)
-	value.Set(v)
-	return value.Interface(), nil
+	return newComplexType[complex128](c, def), nil
 }
 
 func convInt(i int64, def *Definition) (any, error) {
-	value := reflect.New(def.output).Elem()
-	kind, isPointer := def.kind, def.isPointer
-	if kind == reflect.Int8 && isIntInLimit(i, reflect.Int8) {
-		v := valueOf(int8(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	kind := def.kind
+	if !isIntInLimit(i, kind) {
+		return nil, errors.New("is not fitting into the limit")
 	}
-	if kind == reflect.Int16 && isIntInLimit(i, reflect.Int16) {
-		v := valueOf(int16(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Int8 {
+		return newNumberType[int8, int64](i, def), nil
 	}
-	if kind == reflect.Int32 && isIntInLimit(i, reflect.Int32) {
-		v := valueOf(int32(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Int16 {
+		return newNumberType[int16, int64](i, def), nil
 	}
-	if kind == reflect.Int64 && isIntInLimit(i, reflect.Int64) {
-		v := valueOf(i, isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Int32 {
+		return newNumberType[int32, int64](i, def), nil
 	}
-	v := valueOf(int(i), isPointer).Convert(def.output)
-	value.Set(v)
-	return value.Interface(), nil
+	if kind == reflect.Int64 {
+		return newNumberType[int64, int64](i, def), nil
+	}
+	return newNumberType[int, int64](i, def), nil
 }
 
 func convUint(i uint64, def *Definition) (any, error) {
-	value := reflect.New(def.output).Elem()
-	kind, isPointer := def.kind, def.isPointer
-	if kind == reflect.Uint8 && isUintInLimit(i, reflect.Uint8) {
-		v := valueOf(uint8(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	kind := def.kind
+	if !isUintInLimit(i, kind) {
+		return nil, errors.New("integer is not fitting into it")
 	}
-	if kind == reflect.Uint16 && isUintInLimit(i, reflect.Uint16) {
-		v := valueOf(uint16(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Uint8 {
+		return newNumberType[uint8, uint64](i, def), nil
 	}
-	if kind == reflect.Uint32 && isUintInLimit(i, reflect.Uint32) {
-		v := valueOf(uint32(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Uint16 {
+		return newNumberType[uint16, uint64](i, def), nil
 	}
-	if kind == reflect.Uint64 && isUintInLimit(i, reflect.Uint64) {
-		v := valueOf(i, isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Uint32 {
+		return newNumberType[uint32, uint64](i, def), nil
 	}
-	if kind == reflect.Uint && isUintInLimit(i, reflect.Uint) {
-		v := valueOf(uint(i), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == reflect.Uint64 {
+		return newNumberType[uint64, uint64](i, def), nil
 	}
-	return nil, fmt.Errorf("cannot convert `%d` to `%v`", i, def.output)
+	return newNumberType[uint, uint64](i, def), nil
 }
 
 func convFloat(f float64, def *Definition) (any, error) {
-	value := reflect.New(def.output).Elem()
-	kind, isPointer := def.kind, def.isPointer
-	if kind == reflect.Float32 && isFloatInLimit(f, reflect.Float32) {
-		v := valueOf(float32(f), isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	kind := def.kind
+	if !isFloatInLimit(f, kind) {
+		return nil, errors.New("does not fit in")
 	}
-	v := valueOf(f, isPointer).Convert(def.output)
-	value.Set(v)
-	return value.Interface(), nil
+	if kind == reflect.Float32 {
+		return newNumberType[float32, float64](f, def), nil
+	}
+	return newNumberType[float64, float64](f, def), nil
 }
 
 func convString(s string, def *Definition) (any, error) {
-	const runee = reflect.Int32
-	const bytee = reflect.Uint8
-	kind, isPointer := def.kind, def.isPointer
-
-	value := reflect.New(def.output).Elem()
+	kind := def.kind
 	if kind == reflect.String {
-		v := valueOf(s, isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+		return newType(s, def), nil
 	}
-	if kind == bytee && len(s) == 1 {
-		b := byte(s[0])
-		v := valueOf(b, isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == _byte && len(s) == 1 {
+		return convByte(s[0], def)
 	}
-	if kind == runee && len(s) == 1 {
-		r := rune(s[0])
-		v := valueOf(r, isPointer).Convert(def.output)
-		value.Set(v)
-		return value.Interface(), nil
+	if kind == _rune && len(s) == 1 {
+		return convRune(rune(s[0]), def)
 	}
-
+	if kind == reflect.Slice && !anyOf(def.sliceKind, _rune, _byte) {
+		return nil, fmt.Errorf("cannot convert it")
+	}
 	// check if its a []byte or []rune slice
-	elemKind := def.output.Elem().Kind()
-	if kind == reflect.Slice && elemKind == bytee {
+	if kind == reflect.Slice && def.sliceKind == _byte {
 		bytes := []byte(s)
-		value.Set(valueOf(bytes, isPointer))
-		return value.Interface(), nil
+		return convSliceOfBytes(bytes, def)
 	}
-	runes := []rune(s)
-	value.Set(valueOf(runes, isPointer))
-	return value.Interface(), nil
+	return convSliceOfRunes([]rune(s), def)
+}
+
+func convByte(b byte, def *Definition) (any, error) {
+	return newType(b, def), nil
+}
+
+func convRune(r rune, def *Definition) (any, error) {
+	return newType(r, def), nil
+}
+
+func convSliceOfBytes(bytes []byte, def *Definition) (any, error) {
+	return newType(bytes, def), nil
+}
+
+func convSliceOfRunes(runes []rune, def *Definition) (any, error) {
+	return newType(runes, def), nil
 }

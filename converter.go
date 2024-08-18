@@ -77,13 +77,10 @@ func convertNumber(marker marker.Marker, def *Definition) (any, error) {
 	if i < 0 && isUint(def.kind) {
 		return nil, fmt.Errorf("impossible uint conversion of `%d` to `%v`", i, def.output)
 	}
-	if isUint(def.kind) && isUintInLimit(uint64(i), def.kind) {
+	if isUint(def.kind) {
 		return convUint(uint64(i), def)
 	}
-	if isIntInLimit(i, def.kind) {
-		return convInt(i, def)
-	}
-	return nil, errImpossibleConv(marker, def)
+	return convInt(i, def)
 }
 
 func convertString(m marker.Marker, def *Definition) (any, error) {

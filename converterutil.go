@@ -3,6 +3,8 @@ package main
 import (
 	"math"
 	"reflect"
+
+	"golang.org/x/exp/constraints"
 )
 
 const (
@@ -141,4 +143,26 @@ func isUint(k reflect.Kind) bool {
 	default:
 		return false
 	}
+}
+
+func newComplexType[T complex128 | complex64](val complex128, def *Definition) any {
+	value := reflect.New(def.output).Elem()
+	v := valueOf(T(val), def.isPointer).Convert(def.output)
+	value.Set(v)
+	return value.Interface()
+}
+
+func newNumberType[T constraints.Integer | constraints.Float | constraints.Unsigned, V uint64 | int64 | float64](val V, def *Definition) any {
+	value := reflect.New(def.output).Elem()
+	v := valueOf(T(val), def.isPointer).Convert(def.output)
+	value.Set(v)
+	return value.Interface()
+}
+
+func newType[T any](val T, def *Definition) any {
+	value := reflect.New(def.output).Elem()
+	v := valueOf[T](val, def.isPointer).Convert(def.output)
+	value.Set(v)
+	return value.Interface()
+
 }
