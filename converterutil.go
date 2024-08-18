@@ -12,7 +12,7 @@ func valueOf[T any](v T, isPointer bool) reflect.Value {
 	return reflect.ValueOf(v)
 }
 
-func ptrGuard(def *Definition) (reflect.Kind, bool) {
+func resolvePtr(def *Definition) (reflect.Kind, bool) {
 	kind := def.Output.Kind()
 	isPointer := false
 	if kind == reflect.Ptr {

@@ -1,6 +1,4 @@
 # codemark
 
-Every code marker has to be deifned at the beginning of a line  to be lexed
-correctly
+better error handling needed
 
-Escaping characters must be implemented yet
