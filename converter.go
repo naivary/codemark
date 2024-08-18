@@ -4,10 +4,51 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"slices"
 	"strconv"
 
 	"github.com/naivary/codemark/marker"
 )
+
+var intTo = []reflect.Kind{
+	reflect.Int,
+	reflect.Int8,
+	reflect.Int16,
+	reflect.Int32, // +rune
+	reflect.Int64,
+	reflect.Uint,
+	reflect.Uint8, // +byte
+	reflect.Uint16,
+	reflect.Uint32,
+	reflect.Uint64,
+	reflect.Float32,
+	reflect.Float64,
+}
+
+var floatTo = []reflect.Kind{
+	reflect.Float32,
+	reflect.Float64,
+}
+
+var complexTo = []reflect.Kind{
+	reflect.Complex64,
+	reflect.Complex128,
+}
+
+var stringTo = []reflect.Kind{
+	reflect.String,
+	reflect.Uint8, // can convert a string to a byte iff length is one
+	reflect.Int32, // can convert a string to a byte iff length is one
+	reflect.Slice, // e.g. []byte and []rune
+}
+
+var boolTo = []reflect.Kind{
+	reflect.Bool,
+}
+
+func isConvPossible(possibilities []reflect.Kind, k reflect.Kind) bool {
+	return slices.Contains(possibilities, k)
+}
 
 type Converter interface {
 	// Convert is converting the given marker to the associated
@@ -169,9 +210,9 @@ func convertNumber(marker marker.Marker, def *Definition) (any, error) {
 		value.Set(v)
 		return value.Interface(), nil
 	}
-    if kind == reflect.Float32 || kind == reflect.Float64{
-        // conversion to float
-    }
+	if kind == reflect.Float32 || kind == reflect.Float64 {
+		// conversion to float
+	}
 	if isUint(kind) {
 		return convertUint(marker, def)
 	}
@@ -224,8 +265,4 @@ func convertBool(marker marker.Marker, def *Definition) (any, error) {
 	v := valueOf(marker.Value().Bool(), isPointer).Convert(def.Output)
 	value.Set(v)
 	return value.Interface(), nil
-}
-
-func convertAny(marker marker.Marker, def *Definition) (any, error) {
-	return nil, nil
 }
