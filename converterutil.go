@@ -59,11 +59,24 @@ func isUintInLimit(i uint64, limit reflect.Kind) bool {
 func isFloatInLimit(f float64, limit reflect.Kind) bool {
 	switch limit {
 	case reflect.Float32:
-		return f <= math.MaxFloat32 && f >= -math.SmallestNonzeroFloat32
+		return f <= math.MaxFloat32 && f >= -math.MaxFloat32
 	case reflect.Float64:
-		return f <= math.MaxFloat64 && f >= -math.SmallestNonzeroFloat64
-    default:
-        return false
+		return f <= math.MaxFloat64 && f >= -math.MaxFloat64
+	default:
+		return false
+	}
+}
+
+func isComplexInLimit(c complex128, limit reflect.Kind) bool {
+	r := real(c)
+	img := imag(c)
+	switch limit {
+	case reflect.Complex64:
+		return isFloatInLimit(r, reflect.Float32) && isFloatInLimit(img, reflect.Float32)
+	case reflect.Complex128:
+		return isFloatInLimit(r, reflect.Float64) && isFloatInLimit(img, reflect.Float64)
+	default:
+		return false
 	}
 }
 

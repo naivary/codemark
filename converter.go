@@ -41,25 +41,38 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", name, def.TargetType, target)
 	}
 	switch marker.Kind() {
-	// everything an be converted to any and the pointer of the type
+	//TODO: everything an be converted to any and the pointer of the type
 	case reflect.Int64:
-		// can only be converted to float, string and int types and if it is
+		// TODO: can only be converted to float, string and int types and if it is
 		// int32 to rune
 		return convertNumber(marker, def)
 	case reflect.Float64:
-		// can only be conveted to  float types
 		return convertFloat(marker, def)
 	case reflect.Complex128:
-		// can only be converted to complext types
+		return convertComplex(marker, def)
 	case reflect.Bool:
-		// only convertable to bool types
 		return convertBool(marker, def)
 	case reflect.String:
 		return convertString(marker, def)
-		// only convertable to string, []rune and []byte and if one letter rune
-		// and byte too
 	}
 	return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
+}
+
+func convertComplex(marker marker.Marker, def *Definition) (any, error) {
+	c := marker.Value().Complex()
+	kind, isPointer := ptrGuard(def)
+	value := reflect.New(def.Output).Elem()
+	if kind != reflect.Complex64 && kind != reflect.Complex128 {
+		return nil, fmt.Errorf("conversion of `%f+%fi` is not possible to a non complex type `%v`", real(c), imag(c), def.Output)
+	}
+	if kind == reflect.Complex64 && isComplexInLimit(c, reflect.Complex64) {
+		v := valueOf(complex64(c), isPointer).Convert(def.Output)
+		value.Set(v)
+		return value.Interface(), nil
+	}
+	v := valueOf(c, isPointer).Convert(def.Output)
+	value.Set(v)
+	return value.Interface(), nil
 }
 
 func convertUint(marker marker.Marker, def *Definition) (any, error) {

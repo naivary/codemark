@@ -14,6 +14,9 @@ func ptr[T any](t T) *T {
 type str string
 type strPtr *string
 
+type c64 complex64
+type c128 complex128
+
 type f32 float32
 type f64 float64
 
@@ -123,6 +126,17 @@ func TestConverter_Convert(t *testing.T) {
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:f32", TargetConst, reflect.TypeOf(f32(0.0))),
 				MakeDef("jsonschema:validation:f64", TargetConst, reflect.TypeOf(f64(0.0))),
+			},
+		},
+		{
+			name: "complex marker",
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:c64", reflect.Complex128, reflect.ValueOf(3+2i)),
+				marker.NewDefault("jsonschema:validation:c128", reflect.Complex128, reflect.ValueOf(3+3i)),
+			},
+			defs: []*Definition{
+				MakeDef("jsonschema:validation:c64", TargetConst, reflect.TypeOf(c64(1+1i))),
+				MakeDef("jsonschema:validation:c128", TargetConst, reflect.TypeOf(c128(1+1i))),
 			},
 		},
 	}
