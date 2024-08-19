@@ -191,9 +191,17 @@ func parseSliceElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return parseSliceFloatElem, _keep
 	case lexer.TokenKindComplex:
 		return parseSliceComplexElem, _keep
+	case lexer.TokenKindBool:
+		return parseSliceBoolElem, _keep
 	default:
 		return parseSliceEnd, _keep
 	}
+}
+
+func parseSliceBoolElem(p *parser, t lexer.Token) (parseFunc, bool) {
+	val := reflect.ValueOf(t.Value)
+	p.m.Val = reflect.Append(p.m.Val, val)
+	return parseSliceElem, _next
 }
 
 func parseSliceStringElem(p *parser, t lexer.Token) (parseFunc, bool) {

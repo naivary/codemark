@@ -166,7 +166,21 @@ dasdasd asdasd as dasdasd ads adsd`,
 			input:   `+jsonschema:validation:max=-3`,
 			isValid: true,
 		},
-
+		{
+			name:    "array with boolean",
+			input:   `+jsonschema:validation:max=["name", true]`,
+			isValid: true,
+		},
+		{
+			name:    "array start with bool",
+			input:   `+jsonschema:validation:max=[true, true]`,
+			isValid: true,
+		},
+		{
+			name:    "array with all possible types",
+			input:   `+jsonschema:validation:max=[true, false, "some-string", 2, 0x24, 3.21, 3+2i, -2]`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {

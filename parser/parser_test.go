@@ -52,6 +52,11 @@ func TestParse(t *testing.T) {
             name: "bool new syntax",
             input: `+jsonschema:validation:required=false`,
         },
+	{
+			name:  "array with bool",
+			input: `+jsonschema:validation:items=["lorem", "ips\"um", true]`,
+		},
+
 	}
 
 	for _, tc := range tests {

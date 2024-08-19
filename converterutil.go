@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"math"
 	"reflect"
 
@@ -160,4 +162,24 @@ func newType[T any](val T, def *Definition) any {
 	value.Set(v)
 	return value.Interface()
 
+}
+
+func newSliceType[T any](slice reflect.Value, def *Definition) (any, error) {
+	length := slice.Len()
+	val := make([]T, 0, length)
+	for i := 0; i < length; i++ {
+		elem := slice.Index(i).Elem()
+		kind := elem.Kind()
+		if kind != def.sliceKind {
+			return nil, errors.New("not convetable because elemtns are not the same as the slicekind")
+		}
+        fmt.Println(kind)
+        fmt.Println(elem.Int())
+		v, isT := elem.Interface().(T)
+		if !isT {
+			return nil, errors.New("its not the same type")
+		}
+		val = append(val, v)
+	}
+	return newType(val, def), nil
 }

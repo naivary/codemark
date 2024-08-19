@@ -116,8 +116,8 @@ func lexAssignment(l *Lexer) stateFunc {
 		return lexStartDoubleQuotationMarkString
 	case r == 't' || r == 'f':
 		return lexBool
-    case r == '-' || r == '+':
-        return lexNumber
+	case r == '-' || r == '+':
+		return lexNumber
 	default:
 		return l.errorf("expecting value after assignment")
 	}
@@ -174,16 +174,42 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == ']':
 		return lexCloseSquareBracket
-	case unicode.IsDigit(r):
+	case unicode.IsDigit(r) || r == '-' || r == '+':
 		return lexNumberArrayValue
 	case r == '"':
 		return lexStartDoubleQuotationMarkStringArray
+	case r == 't' || r == 'f':
+		return lexBoolArrayValue
 	case isSpace(r):
 		return l.errorf("no space allowed of the opening bracket of array")
 	case r == ',':
 		return l.errorf("expected value in array not seperator")
 	default:
 		return l.errorf("expected closing bracket. Be sure that there is no whitespace between the last element and `]`")
+	}
+}
+
+func lexBoolArrayValue(l *Lexer) stateFunc {
+	spelling := "true"
+	if r := l.peek(); r == 'f' {
+		spelling = "false"
+	}
+	for i := 0; i < len(spelling); i++ {
+		r := l.peek()
+		if r == rune(spelling[i]) {
+			l.next()
+			continue
+		}
+		return l.errorf("`%s` is not spelled correctly", spelling)
+	}
+	l.emit(TokenKindBool)
+	switch r := l.peek(); {
+	case r == ',':
+		return lexCommaSeperator
+	case r == ']':
+		return lexCloseSquareBracket
+	default:
+		return l.errorf("expected next array value or closing bracket")
 	}
 }
 
@@ -208,12 +234,14 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 	l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {
-	case unicode.IsDigit(r):
+	case unicode.IsDigit(r) || r == '-' || r == '+':
 		return lexNumberArrayValue
 	case r == '"':
 		return lexStartDoubleQuotationMarkStringArray
 	case r == ']':
 		return l.errorf("remove the comma before the closing bracket of the array")
+	case r == 't' || r == 'f':
+		return lexBoolArrayValue
 	default:
 		return l.errorf("expected next value in array after comma")
 	}
