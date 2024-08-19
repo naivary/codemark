@@ -41,7 +41,6 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", name, def.target, target)
 	}
 	switch marker.Kind() {
-	//TODO: everything an be converted to any and the pointer of the type
 	case reflect.Int64:
 		return convertNumber(marker, def)
 	case reflect.Float64:
