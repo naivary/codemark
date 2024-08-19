@@ -42,9 +42,9 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	}
 	switch marker.Kind() {
 	case reflect.Int64:
-		return convertNumber(marker, def)
+		return convertInteger(marker, def)
 	case reflect.Float64:
-		return convertFloat(marker, def)
+		return convertDecimal(marker, def)
 	case reflect.Complex128:
 		return convertComplex(marker, def)
 	case reflect.Bool:
@@ -52,94 +52,129 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	case reflect.String:
 		return convertString(marker, def)
 	case reflect.Slice:
-		return convertSlice(marker, def)
 	}
 	return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
 }
 
-func convertComplex(marker marker.Marker, def *Definition) (any, error) {
-	c := marker.Value().Complex()
-	if !isComplexConvPossible(def) {
-		return nil, errImpossibleConv(marker, def)
-	}
-	return convComplex(c, def)
-}
-
-func convertFloat(marker marker.Marker, def *Definition) (any, error) {
-	f := marker.Value().Float()
-	if !anyOf(def.kind, reflect.Float32, reflect.Float64) {
-		return nil, fmt.Errorf("cannot convert `%f` to `%v`. Conversion from float to integer will not be handled", f, def.output)
-	}
-	return convFloat(f, def)
-}
-
-func convertNumber(marker marker.Marker, def *Definition) (any, error) {
-	i := marker.Value().Int()
-	if i < 0 && isUint(def.kind) {
-		return nil, fmt.Errorf("impossible uint conversion of `%d` to `%v`", i, def.output)
-	}
-	if isUint(def.kind) {
-		return convUint(uint64(i), def)
-	}
-	return convInt(i, def)
-}
-
 func convertString(m marker.Marker, def *Definition) (any, error) {
 	if !isStringConvPossible(def) {
-		return nil, errImpossibleConv(m, def)
+		return nil, errors.New("string conversion not possible")
 	}
 	s := m.Value().String()
-	return convString(s, def)
-}
-
-func convertBool(marker marker.Marker, def *Definition) (any, error) {
-	value := reflect.New(def.output).Elem()
-	v := valueOf(marker.Value().Bool(), def.isPointer).Convert(def.output)
-	value.Set(v)
+	value, err := convString(s, def)
+	if err != nil {
+		return nil, err
+	}
 	return value.Interface(), nil
 }
 
-func convertSlice(m marker.Marker, def *Definition) (any, error) {
-	slice := m.Value()
-	if def.kind != reflect.Slice {
-		return nil, errors.New("cannot convert slice to a non-slice kind")
+func convString(s string, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	if def.kind == reflect.String {
+		return newValue(s, def)
 	}
-    // TODO: has to do the same conversion rules for these as for the single
-    // elements
-	switch def.sliceKind {
-	case reflect.Interface:
-		return newSliceType[any](slice, def)
-	case reflect.String:
-		return newSliceType[string](slice, def)
-	case reflect.Int:
-		return newSliceType[int](slice, def)
-	case reflect.Int8:
-		return newSliceType[int8](slice, def)
-	case reflect.Int16:
-		return newSliceType[int16](slice, def)
-	case reflect.Int32:
-		return newSliceType[int32](slice, def)
-	case reflect.Int64:
-		return newSliceType[int64](slice, def)
-	case reflect.Uint:
-		return newSliceType[uint](slice, def)
-	case reflect.Uint8:
-		return newSliceType[uint8](slice, def)
-	case reflect.Uint16:
-		return newSliceType[uint16](slice, def)
-	case reflect.Uint32:
-		return newSliceType[uint32](slice, def)
-	case reflect.Uint64:
-		return newSliceType[uint64](slice, def)
-	case reflect.Float32:
-		return newSliceType[float32](slice, def)
-	case reflect.Float64:
-		return newSliceType[float64](slice, def)
-	case reflect.Complex64:
-		return newSliceType[complex64](slice, def)
-	case reflect.Complex128:
-		return newSliceType[complex128](slice, def)
-	default:
-		return nil, errors.New("cannot convert it")
+	if def.kind == _byte && len(s) == 1 {
+		b := byte(s[0])
+		return newValue(b, def)
 	}
+
+	if def.kind == _rune && len(s) == 1 {
+		r := rune(s[0])
+		return newValue(r, def)
+	}
+	return empty, fmt.Errorf("not convertiable to kind `%v`", def.kind)
+}
+
+func convertBool(m marker.Marker, def *Definition) (any, error) {
+	if !isBoolConvPossible(def) {
+		return nil, errors.New("bool conversion not possible")
+	}
+	b := m.Value().Bool()
+	v, err := convBool(b, def)
+    if err != nil {
+        return nil, err
+    }
+	return v.Interface(), nil
+}
+
+func convBool(b bool, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	if def.kind == reflect.Bool {
+		return newValue(b, def)
+	}
+	return empty, fmt.Errorf("not convertiable to kind `%v`", def.kind)
+}
+
+func convertInteger(m marker.Marker, def *Definition) (any, error) {
+	var v reflect.Value
+	var err error
+	if !isIntConvPossible(def) {
+		return nil, errors.New("int conversion not possible")
+	}
+	if isUint(def.kind) {
+		v, err = convUint(m.Value().Uint(), def)
+	}
+	if isInt(def.kind) {
+		v, err = convInt(m.Value().Int(), def)
+	}
+    if err != nil {
+        return nil, err
+    }
+	return v.Interface(), nil
+}
+
+func convInt(i int64, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	if !isIntInLimit(i, def.kind) {
+		return empty, errors.New("cannot convert overflow will occur")
+	}
+	return newValue(i, def)
+}
+
+func convUint(i uint64, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	if !isUintInLimit(i, def.kind) {
+		return empty, errors.New("cannot convert overflow will occur")
+	}
+	return newValue(i, def)
+}
+
+func convertDecimal(m marker.Marker, def *Definition) (any, error) {
+	if !isFloatConvPossible(def) {
+		return nil, errors.New("float conversion not possible")
+	}
+	f := m.Value().Float()
+	v, err := convFloat(f, def)
+    if err != nil {
+        return nil, err
+    }
+	return v.Interface(), nil
+}
+
+func convFloat(f float64, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	if !isFloatInLimit(f, def.kind) {
+		return empty, errors.New("cannot convert overflow will occur")
+	}
+	return newValue(f, def)
+}
+
+func convertComplex(m marker.Marker, def *Definition) (any, error) {
+	if !isComplexConvPossible(def) {
+		return nil, errors.New("complex conversion not possible")
+	}
+	c := m.Value().Complex()
+	v, err := convComplex(c, def)
+    if err != nil {
+        return nil, err
+    }
+	return v.Interface(), nil
+}
+
+func convComplex(c complex128, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	if !isComplexInLimit(c, def.kind) {
+		return empty, errors.New("cannot convert overflow will occur")
+	}
+	return newValue(c, def)
 }

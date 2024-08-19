@@ -1,6 +1,8 @@
 package main
 
-import "reflect"
+import (
+	"reflect"
+)
 
 func MakeDef(name string, t Target, output reflect.Type) *Definition {
 	def := &Definition{

@@ -76,15 +76,11 @@ func TestConverter_Convert(t *testing.T) {
 				marker.NewDefault("jsonschema:validation:string", reflect.String, reflect.ValueOf("string")),
 				marker.NewDefault("jsonschema:validation:byte", reflect.String, reflect.ValueOf("b")),
 				marker.NewDefault("jsonschema:validation:rune", reflect.String, reflect.ValueOf("r")),
-				marker.NewDefault("jsonschema:validation:runeslice", reflect.String, reflect.ValueOf("rrrrrr")),
-				marker.NewDefault("jsonschema:validation:byteslice", reflect.String, reflect.ValueOf("bbbbbb")),
 			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:string", TargetConst, reflect.TypeOf(str(""))),
 				MakeDef("jsonschema:validation:byte", TargetConst, reflect.TypeOf(b(0))),
 				MakeDef("jsonschema:validation:rune", TargetConst, reflect.TypeOf(r(0))),
-				MakeDef("jsonschema:validation:byteslice", TargetConst, reflect.TypeOf(byteSlice([]byte{}))),
-				MakeDef("jsonschema:validation:runeslice", TargetConst, reflect.TypeOf(runeSlice([]rune{}))),
 			},
 		},
 		{
@@ -113,14 +109,6 @@ func TestConverter_Convert(t *testing.T) {
 		},
 		{
 			name: "integer marker",
-			markers: []marker.Marker{
-				marker.NewDefault("jsonschema:validation:i", reflect.Int64, reflect.ValueOf(30)),
-				marker.NewDefault("jsonschema:validation:i8", reflect.Int64, reflect.ValueOf(2)),
-				marker.NewDefault("jsonschema:validation:i16", reflect.Int64, reflect.ValueOf(32767)),
-				marker.NewDefault("jsonschema:validation:i32", reflect.Int64, reflect.ValueOf(213712389)),
-				marker.NewDefault("jsonschema:validation:i64", reflect.Int64, reflect.ValueOf(1237812378192378)),
-				marker.NewDefault("jsonschema:validation:rune", reflect.Int64, reflect.ValueOf(math.MaxInt32)),
-			},
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:i", TargetConst, reflect.TypeOf(i(0))),
 				MakeDef("jsonschema:validation:i8", TargetConst, reflect.TypeOf(i8(0))),
@@ -128,6 +116,15 @@ func TestConverter_Convert(t *testing.T) {
 				MakeDef("jsonschema:validation:i32", TargetConst, reflect.TypeOf(i32(0))),
 				MakeDef("jsonschema:validation:i64", TargetConst, reflect.TypeOf(i64(0))),
 				MakeDef("jsonschema:validation:rune", TargetConst, reflect.TypeOf(r(0))),
+			},
+			markers: []marker.Marker{
+				marker.NewDefault("jsonschema:validation:i", reflect.Int64, reflect.ValueOf(30)),
+				marker.NewDefault("jsonschema:validation:i8", reflect.Int64, reflect.ValueOf(math.MaxInt8)),
+				marker.NewDefault("jsonschema:validation:i8", reflect.Int64, reflect.ValueOf(2)),
+				marker.NewDefault("jsonschema:validation:i16", reflect.Int64, reflect.ValueOf(32767)),
+				marker.NewDefault("jsonschema:validation:i32", reflect.Int64, reflect.ValueOf(213712389)),
+				marker.NewDefault("jsonschema:validation:i64", reflect.Int64, reflect.ValueOf(1237812378192378)),
+				marker.NewDefault("jsonschema:validation:rune", reflect.Int64, reflect.ValueOf(math.MaxInt32)),
 			},
 		},
 		{
@@ -183,7 +180,10 @@ func TestConverter_Convert(t *testing.T) {
 				if err != nil {
 					t.Error(err)
 				}
-				t.Log(v)
+				t.Logf("value is of type `%v` and has the value `%v`", reflect.TypeOf(v), reflect.ValueOf(v))
+				if reflect.ValueOf(v).Kind() == reflect.Ptr {
+					t.Log(reflect.ValueOf(v).Elem())
+				}
 			}
 
 		})

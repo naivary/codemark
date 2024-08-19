@@ -2,17 +2,53 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"math"
 	"reflect"
-
-	"golang.org/x/exp/constraints"
 )
 
 const (
 	_rune = reflect.Int32
 	_byte = reflect.Uint8
 )
+
+func typeOfKind(k reflect.Kind) reflect.Type {
+	switch k {
+	case reflect.Int:
+		return reflect.TypeOf(int(0))
+	case reflect.Int8:
+		return reflect.TypeOf(int8(0))
+	case reflect.Int16:
+		return reflect.TypeOf(int16(0))
+	case reflect.Int32:
+		return reflect.TypeOf(int32(0))
+	case reflect.Int64:
+		return reflect.TypeOf(int64(0))
+	case reflect.Uint:
+		return reflect.TypeOf(uint(0))
+	case reflect.Uint8:
+		return reflect.TypeOf(uint8(0))
+	case reflect.Uint16:
+		return reflect.TypeOf(uint16(0))
+	case reflect.Uint32:
+		return reflect.TypeOf(uint32(0))
+	case reflect.Uint64:
+		return reflect.TypeOf(uint64(0))
+	case reflect.Float32:
+		return reflect.TypeOf(float32(0.0))
+	case reflect.Float64:
+		return reflect.TypeOf(float64(0.0))
+	case reflect.Complex64:
+		return reflect.TypeOf(complex64(0 + 0i))
+	case reflect.Complex128:
+		return reflect.TypeOf(complex128(0 + 0i))
+	case reflect.String:
+		return reflect.TypeOf(string(""))
+	case reflect.Bool:
+		return reflect.TypeOf(bool(false))
+	default:
+		return nil
+	}
+}
 
 func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
 	for _, kind := range kinds {
@@ -28,15 +64,13 @@ func isIntConvPossible(def *Definition) bool {
 		reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
-		reflect.Int32, // +rune
+		reflect.Int32,
 		reflect.Int64,
 		reflect.Uint,
-		reflect.Uint8, // +byte
+		reflect.Uint8,
 		reflect.Uint16,
 		reflect.Uint32,
 		reflect.Uint64,
-		reflect.Float32,
-		reflect.Float64,
 	)
 }
 
@@ -49,25 +83,11 @@ func isComplexConvPossible(def *Definition) bool {
 }
 
 func isBoolConvPossible(def *Definition) bool {
-	return def.kind == reflect.Bool
+	return anyOf(def.kind, reflect.Bool, reflect.Struct)
 }
 
 func isStringConvPossible(def *Definition) bool {
-	if anyOf(def.kind, reflect.String, reflect.Uint8, reflect.Int32) {
-		return true
-	}
-	if def.kind != reflect.Slice {
-		return false
-	}
-	sliceKind := def.output.Elem().Kind()
-	return anyOf(sliceKind, _byte, _rune)
-}
-
-func valueOf[T any](v T, isPointer bool) reflect.Value {
-	if isPointer {
-		return reflect.ValueOf(&v)
-	}
-	return reflect.ValueOf(v)
+	return anyOf(def.kind, reflect.String, reflect.Uint8, reflect.Int32)
 }
 
 func resolvePtr(def *Definition) (reflect.Kind, bool) {
@@ -142,44 +162,43 @@ func isUint(k reflect.Kind) bool {
 	return anyOf(k, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64)
 }
 
-func newComplexType[T complex128 | complex64](val complex128, def *Definition) any {
-	value := reflect.New(def.output).Elem()
-	v := valueOf(T(val), def.isPointer).Convert(def.output)
-	value.Set(v)
-	return value.Interface()
+func isInt(k reflect.Kind) bool {
+	return anyOf(k, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64)
 }
 
-func newNumberType[T constraints.Integer | constraints.Float | constraints.Unsigned, V uint64 | int64 | float64](val V, def *Definition) any {
-	value := reflect.New(def.output).Elem()
-	v := valueOf(T(val), def.isPointer).Convert(def.output)
-	value.Set(v)
-	return value.Interface()
-}
-
-func newType[T any](val T, def *Definition) any {
-	value := reflect.New(def.output).Elem()
-	v := valueOf[T](val, def.isPointer).Convert(def.output)
-	value.Set(v)
-	return value.Interface()
-
-}
-
-func newSliceType[T any](slice reflect.Value, def *Definition) (any, error) {
-	length := slice.Len()
-	val := make([]T, 0, length)
-	for i := 0; i < length; i++ {
-		elem := slice.Index(i).Elem()
-		kind := elem.Kind()
-		if kind != def.sliceKind {
-			return nil, errors.New("not convetable because elemtns are not the same as the slicekind")
-		}
-        fmt.Println(kind)
-        fmt.Println(elem.Int())
-		v, isT := elem.Interface().(T)
-		if !isT {
-			return nil, errors.New("its not the same type")
-		}
-		val = append(val, v)
+func newValue[T any](val T, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	kindValue, err := convertToKind(val, def)
+	if err != nil {
+		return empty, err
 	}
-	return newType(val, def), nil
+	return convertToDef(kindValue, def)
+}
+
+func convertToDef(kindValue reflect.Value, def *Definition) (reflect.Value, error) {
+	defValue := reflect.New(def.output).Elem()
+	converted := kindValue.Convert(def.output)
+	defValue.Set(converted)
+	return defValue, nil
+}
+
+func convertToKind[T any](val T, def *Definition) (reflect.Value, error) {
+	var empty reflect.Value
+	typ := typeOfKind(def.kind)
+	convertTo := reflect.New(typ)
+    if !def.isPointer {
+        convertTo = convertTo.Elem()
+    }
+	value := valueOf(val, def.isPointer)
+	if !value.CanConvert(convertTo.Type()) {
+		return empty, errors.New("cannot convert")
+	}
+	return value.Convert(convertTo.Type()), nil
+}
+
+func valueOf[T any](v T, isPointer bool) reflect.Value {
+	if isPointer {
+		return reflect.ValueOf(&v)
+	}
+	return reflect.ValueOf(v)
 }
