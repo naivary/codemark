@@ -137,12 +137,7 @@ func isComplexInLimit(c complex128, limit reflect.Kind) bool {
 }
 
 func isUint(k reflect.Kind) bool {
-	switch k {
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return true
-	default:
-		return false
-	}
+	return anyOf(k, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64)
 }
 
 func newComplexType[T complex128 | complex64](val complex128, def *Definition) any {

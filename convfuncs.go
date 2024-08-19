@@ -14,7 +14,10 @@ func convComplex(c complex128, def *Definition) (any, error) {
 	if kind == reflect.Complex64 {
 		return newComplexType[complex64](c, def), nil
 	}
-	return newComplexType[complex128](c, def), nil
+	if kind == reflect.Complex128 {
+		return newComplexType[complex128](c, def), nil
+	}
+	return nil, errors.New("conversion not possible")
 }
 
 func convInt(i int64, def *Definition) (any, error) {
@@ -34,7 +37,16 @@ func convInt(i int64, def *Definition) (any, error) {
 	if kind == reflect.Int64 {
 		return newNumberType[int64, int64](i, def), nil
 	}
-	return newNumberType[int, int64](i, def), nil
+	if kind == reflect.Int {
+		return newNumberType[int, int64](i, def), nil
+	}
+	if kind == reflect.Float32 {
+		return newNumberType[float32, int64](i, def), nil
+	}
+	if kind == reflect.Float64 {
+		return newNumberType[float64, int64](i, def), nil
+	}
+	return nil, errors.New("conversion not possible")
 }
 
 func convUint(i uint64, def *Definition) (any, error) {
@@ -54,7 +66,10 @@ func convUint(i uint64, def *Definition) (any, error) {
 	if kind == reflect.Uint64 {
 		return newNumberType[uint64, uint64](i, def), nil
 	}
-	return newNumberType[uint, uint64](i, def), nil
+	if kind == reflect.Uint {
+		return newNumberType[uint, uint64](i, def), nil
+	}
+	return nil, errors.New("conversion no possible")
 }
 
 func convFloat(f float64, def *Definition) (any, error) {
@@ -65,7 +80,10 @@ func convFloat(f float64, def *Definition) (any, error) {
 	if kind == reflect.Float32 {
 		return newNumberType[float32, float64](f, def), nil
 	}
-	return newNumberType[float64, float64](f, def), nil
+	if kind == reflect.Float64 {
+		return newNumberType[float64, float64](f, def), nil
+	}
+	return nil, errors.New("conversion not possible")
 }
 
 func convString(s string, def *Definition) (any, error) {
@@ -83,11 +101,14 @@ func convString(s string, def *Definition) (any, error) {
 		return nil, fmt.Errorf("cannot convert it")
 	}
 	// check if its a []byte or []rune slice
-	if kind == reflect.Slice && def.sliceKind == _byte {
+	if def.sliceKind == _byte {
 		bytes := []byte(s)
 		return convSliceOfBytes(bytes, def)
 	}
-	return convSliceOfRunes([]rune(s), def)
+	if def.sliceKind == _rune {
+		return convSliceOfRunes([]rune(s), def)
+	}
+	return nil, errors.New("conversion not possible")
 }
 
 func convByte(b byte, def *Definition) (any, error) {
