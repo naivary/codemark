@@ -15,6 +15,7 @@ func ptr[T any](t T) *T {
 type str string
 type strPtr *string
 type stringSlice []string
+type stringSlicePtr *[]*string
 
 type c64 complex64
 type c128 complex128
@@ -155,10 +156,12 @@ func TestConverter_Convert(t *testing.T) {
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:ints", TargetConst, reflect.TypeOf(iSlice([]int{}))),
 				MakeDef("jsonschema:validation:ints64", TargetConst, reflect.TypeOf(i64Slice([]int64{}))),
+				MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]*string)))),
 			},
 			markers: []marker.Marker{
 				marker.NewDefault("jsonschema:validation:ints", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:ints64", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
+				marker.NewDefault("jsonschema:validation:stringsptr", reflect.Slice, reflect.ValueOf([]any{"string", "onemore", "again"})),
 			},
 		},
 	}
