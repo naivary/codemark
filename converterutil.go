@@ -92,12 +92,11 @@ func isStringConvPossible(def *Definition) bool {
 
 func resolvePtr(def *Definition) (reflect.Kind, bool) {
 	kind := def.output.Kind()
-	isPointer := false
-	if kind == reflect.Ptr {
-		isPointer = true
-		kind = def.output.Elem().Kind()
+	if kind != reflect.Ptr {
+		return kind, false
 	}
-	return kind, isPointer
+	kind = def.output.Elem().Kind()
+	return kind, true
 }
 
 func isIntInLimit(i int64, limit reflect.Kind) bool {
@@ -186,9 +185,9 @@ func convertToKind[T any](val T, def *Definition) (reflect.Value, error) {
 	var empty reflect.Value
 	typ := typeOfKind(def.kind)
 	convertTo := reflect.New(typ)
-    if !def.isPointer {
-        convertTo = convertTo.Elem()
-    }
+	if !def.isPointer {
+		convertTo = convertTo.Elem()
+	}
 	value := valueOf(val, def.isPointer)
 	if !value.CanConvert(convertTo.Type()) {
 		return empty, errors.New("cannot convert")

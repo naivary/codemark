@@ -10,7 +10,7 @@ func MakeDef(name string, t Target, output reflect.Type) *Definition {
 		target: t,
 		output: output,
 	}
-	def.resolveKind()
+	def.setUnderlying()
 	return def
 }
 
@@ -40,9 +40,7 @@ type Definition struct {
 
 	kind reflect.Kind
 
-	isPointer bool
-
-	sliceKind reflect.Kind
+	underlying reflect.Type
 }
 
 type DefinitionHelp struct {
@@ -75,9 +73,12 @@ func (d *Definition) Help() *DefinitionHelp {
 	return d.help
 }
 
-func (d *Definition) resolveKind() {
-	d.kind, d.isPointer = resolvePtr(d)
-	if d.kind == reflect.Slice {
-		d.sliceKind = d.output.Elem().Kind()
+func (d *Definition) setUnderlying() {
+	kind, isPointer := resolvePtr(d)
+	typ := typeOfKind(kind)
+	ptr := reflect.New(typ)
+	if !isPointer {
+		ptr = ptr.Elem()
 	}
+	d.underlying = ptr.Type()
 }
