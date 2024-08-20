@@ -52,6 +52,7 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	case reflect.String:
 		return convertString(marker, def)
 	case reflect.Slice:
+		return convertSlice(marker, def)
 	}
 	return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
 }
@@ -177,4 +178,21 @@ func convComplex(c complex128, def *Definition) (reflect.Value, error) {
 		return empty, errors.New("cannot convert overflow will occur")
 	}
 	return valueFor(c, def)
+}
+
+func convertSlice(m marker.Marker, def *Definition) (any, error) {
+	if !isSliceConvPossible(def.kind) {
+		return nil, errors.New("slice marker can only be converted to slice types")
+	}
+	elems := m.Value()
+	slice := reflect.MakeSlice(def.underlying, 0, elems.Len())
+	for i := 0; i < m.Value().Len(); i++ {
+		elem := elems.Index(i)
+		v, err := valueFor(elem.Interface(), def)
+		if err != nil {
+			return nil, err
+		}
+		slice = reflect.Append(slice, v)
+	}
+	return convertToOutput(slice, def)
 }
