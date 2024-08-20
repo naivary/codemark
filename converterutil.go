@@ -182,7 +182,7 @@ func isInt(k reflect.Kind) bool {
 	return anyOf(k, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64)
 }
 
-func newValue[T any](val T, def *Definition) (reflect.Value, error) {
+func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
 	// always call `Elem()` because underlying is already the correct type.
 	// Otherwise you might end with a `**int`
 	typ := def.underlying

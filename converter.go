@@ -71,16 +71,16 @@ func convertString(m marker.Marker, def *Definition) (any, error) {
 func convString(s string, def *Definition) (reflect.Value, error) {
 	var empty reflect.Value
 	if def.kind == reflect.String {
-		return newValue(s, def)
+		return valueFor(s, def)
 	}
 	if def.kind == _byte && len(s) == 1 {
 		b := byte(s[0])
-		return newValue(b, def)
+		return valueFor(b, def)
 	}
 
 	if def.kind == _rune && len(s) == 1 {
 		r := rune(s[0])
-		return newValue(r, def)
+		return valueFor(r, def)
 	}
 	return empty, fmt.Errorf("not convertiable to kind `%v`", def.kind)
 }
@@ -100,7 +100,7 @@ func convertBool(m marker.Marker, def *Definition) (any, error) {
 func convBool(b bool, def *Definition) (reflect.Value, error) {
 	var empty reflect.Value
 	if def.kind == reflect.Bool {
-		return newValue(b, def)
+		return valueFor(b, def)
 	}
 	return empty, fmt.Errorf("not convertiable to kind `%v`", def.kind)
 }
@@ -128,7 +128,7 @@ func convInt(i int64, def *Definition) (reflect.Value, error) {
 	if !isIntInLimit(i, def.kind) {
 		return empty, errors.New("cannot convert overflow will occur")
 	}
-	return newValue(i, def)
+	return valueFor(i, def)
 }
 
 func convUint(i uint64, def *Definition) (reflect.Value, error) {
@@ -136,7 +136,7 @@ func convUint(i uint64, def *Definition) (reflect.Value, error) {
 	if !isUintInLimit(i, def.kind) {
 		return empty, errors.New("cannot convert overflow will occur")
 	}
-	return newValue(i, def)
+	return valueFor(i, def)
 }
 
 func convertDecimal(m marker.Marker, def *Definition) (any, error) {
@@ -156,7 +156,7 @@ func convFloat(f float64, def *Definition) (reflect.Value, error) {
 	if !isFloatInLimit(f, def.kind) {
 		return empty, errors.New("cannot convert overflow will occur")
 	}
-	return newValue(f, def)
+	return valueFor(f, def)
 }
 
 func convertComplex(m marker.Marker, def *Definition) (any, error) {
@@ -176,5 +176,5 @@ func convComplex(c complex128, def *Definition) (reflect.Value, error) {
 	if !isComplexInLimit(c, def.kind) {
 		return empty, errors.New("cannot convert overflow will occur")
 	}
-	return newValue(c, def)
+	return valueFor(c, def)
 }
