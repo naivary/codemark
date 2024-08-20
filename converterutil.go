@@ -183,12 +183,12 @@ func isInt(k reflect.Kind) bool {
 }
 
 func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
-	// always call `Elem()` because underlying is already the correct type.
-	// Otherwise you might end with a `**int`
 	typ := def.underlying
 	if def.kind == reflect.Slice {
 		typ = def.sliceType()
 	}
+	// always call `Elem()` because underlying is already the correct type.
+	// Otherwise you might end with a double pointer
 	decl := reflect.New(typ).Elem()
 	value := valueOf(val, def).Convert(typ)
 	decl.Set(value)
@@ -196,6 +196,10 @@ func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
 }
 
 func valueOf[T any](val T, def *Definition) reflect.Value {
+	// TODO: reflect.Slice is not handled
+	if def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Ptr {
+		return reflect.ValueOf(&val)
+	}
 	if def.output.Kind() == reflect.Ptr {
 		return reflect.ValueOf(&val)
 	}
@@ -203,6 +207,8 @@ func valueOf[T any](val T, def *Definition) reflect.Value {
 }
 
 func convertToOutput(value reflect.Value, def *Definition) (any, error) {
+	// TODO: if its a *[]*T slice we need to convert the given value ([]*T) to the
+	// pointer
 	if !value.CanConvert(def.output) {
 		return nil, errors.New("cannot convert")
 	}
@@ -219,4 +225,13 @@ func underlying(t reflect.Type) reflect.Type {
 		return reflect.SliceOf(t.Elem())
 	}
 	return typeOfKind(kind)
+}
+
+func makeSlice(t reflect.Type, l, c int) reflect.Value {
+	kind := t.Kind()
+	if kind != reflect.Ptr {
+		return reflect.MakeSlice(t, l, c)
+	}
+	typ := t.Elem()
+	return reflect.MakeSlice(typ, l, c)
 }

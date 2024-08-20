@@ -74,6 +74,11 @@ func (d *Definition) Help() *DefinitionHelp {
 	return d.help
 }
 
+func (d *Definition) Kind() reflect.Kind {
+    // TODO: this should be the acces to the kind
+    return reflect.Chan
+}
+
 func (d *Definition) getKind() reflect.Kind {
 	kind := d.output.Kind()
 	if kind != reflect.Ptr {
@@ -91,4 +96,12 @@ func (d *Definition) sliceType() reflect.Type {
 		return typ.Elem()
 	}
 	return typ
+}
+
+func (d *Definition) sliceKind() reflect.Kind {
+    typ := d.sliceType()
+    if typ.Kind() == reflect.Ptr {
+        typ = typ.Elem()
+    }
+    return typ.Kind()
 }

@@ -71,18 +71,22 @@ func convertString(m marker.Marker, def *Definition) (any, error) {
 
 func convString(s string, def *Definition) (reflect.Value, error) {
 	var empty reflect.Value
-	if def.kind == reflect.String {
+	kind := def.kind
+	if kind == reflect.Slice {
+		kind = def.sliceKind()
+	}
+	if kind == reflect.String {
 		return valueFor(s, def)
 	}
-	if def.kind == _byte && len(s) == 1 {
+	if kind == _byte && len(s) == 1 {
 		b := byte(s[0])
-		return valueFor(b, def)
+		return valueFor[byte](b, def)
 	}
-	if def.kind == _rune && len(s) == 1 {
+	if kind == _rune && len(s) == 1 {
 		r := rune(s[0])
-		return valueFor(r, def)
+		return valueFor[rune](r, def)
 	}
-	return empty, fmt.Errorf("not convertiable to kind `%v`", def.kind)
+	return empty, fmt.Errorf("not convertiable to kind `%v`", kind)
 }
 
 func convertBool(m marker.Marker, def *Definition) (any, error) {
@@ -161,10 +165,15 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		return nil, errors.New("slice marker can only be converted to slice types")
 	}
 	elems := m.Value()
-	slice := reflect.MakeSlice(def.underlying, 0, elems.Len())
+	slice := makeSlice(def.underlying, 0, elems.Len())
 	for i := 0; i < m.Value().Len(); i++ {
 		elem := elems.Index(i)
-		v, err := valueFor(elem.Interface(), def)
+		kind := elem.Elem().Kind()
+		var v reflect.Value
+		var err error
+		if kind == reflect.String {
+			v, err = convString(elem.Elem().String(), def)
+		}
 		if err != nil {
 			return nil, err
 		}
