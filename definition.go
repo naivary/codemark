@@ -6,11 +6,12 @@ import (
 
 func MakeDef(name string, t Target, output reflect.Type) *Definition {
 	def := &Definition{
-		name:   name,
-		target: t,
-		output: output,
+		name:       name,
+		target:     t,
+		output:     output,
+		underlying: underlying(output),
 	}
-	def.setUnderlying()
+	def.kind = def.getKind()
 	return def
 }
 
@@ -38,9 +39,9 @@ type Definition struct {
 
 	deprecatedInFavorOf *string
 
-	kind reflect.Kind
-
 	underlying reflect.Type
+
+	kind reflect.Kind
 }
 
 type DefinitionHelp struct {
@@ -73,12 +74,21 @@ func (d *Definition) Help() *DefinitionHelp {
 	return d.help
 }
 
-func (d *Definition) setUnderlying() {
-	kind, isPointer := resolvePtr(d)
-	typ := typeOfKind(kind)
-	ptr := reflect.New(typ)
-	if !isPointer {
-		ptr = ptr.Elem()
+func (d *Definition) getKind() reflect.Kind {
+	kind := d.output.Kind()
+	if kind != reflect.Ptr {
+		return kind
 	}
-	d.underlying = ptr.Type()
+	return d.output.Elem().Kind()
+}
+
+func (d *Definition) sliceType() reflect.Type {
+	if d.kind != reflect.Slice {
+		return nil
+	}
+	typ := d.output.Elem()
+	if typ.Kind() == reflect.Slice {
+		return typ.Elem()
+	}
+	return typ
 }

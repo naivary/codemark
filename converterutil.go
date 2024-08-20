@@ -11,6 +11,28 @@ const (
 	_byte = reflect.Uint8
 )
 
+func isConvertibleTo(from reflect.Kind, to reflect.Kind) bool {
+	if from == reflect.Slice {
+		return isSliceConvPossible(to)
+	}
+	if from == reflect.String {
+		return isStringConvPossible(to)
+	}
+	if from == reflect.Int64 {
+		return isIntConvPossible(to)
+	}
+	if from == reflect.Float64 {
+		return isFloatConvPossible(to)
+	}
+	if from == reflect.Bool {
+		return isBoolConvPossible(to)
+	}
+	if from == reflect.Complex128 {
+		return isComplexConvPossible(to)
+	}
+	return false
+}
+
 func typeOfKind(k reflect.Kind) reflect.Type {
 	switch k {
 	case reflect.Int:
@@ -59,8 +81,8 @@ func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
 	return false
 }
 
-func isIntConvPossible(def *Definition) bool {
-	return anyOf(def.kind,
+func isIntConvPossible(kind reflect.Kind) bool {
+	return anyOf(kind,
 		reflect.Int,
 		reflect.Int8,
 		reflect.Int16,
@@ -74,29 +96,24 @@ func isIntConvPossible(def *Definition) bool {
 	)
 }
 
-func isFloatConvPossible(def *Definition) bool {
-	return anyOf(def.kind, reflect.Float32, reflect.Float64)
+func isSliceConvPossible(kind reflect.Kind) bool {
+	return anyOf(kind, reflect.Slice)
 }
 
-func isComplexConvPossible(def *Definition) bool {
-	return anyOf(def.kind, reflect.Complex64, reflect.Complex128)
+func isFloatConvPossible(kind reflect.Kind) bool {
+	return anyOf(kind, reflect.Float32, reflect.Float64)
 }
 
-func isBoolConvPossible(def *Definition) bool {
-	return anyOf(def.kind, reflect.Bool, reflect.Struct)
+func isComplexConvPossible(kind reflect.Kind) bool {
+	return anyOf(kind, reflect.Complex64, reflect.Complex128)
 }
 
-func isStringConvPossible(def *Definition) bool {
-	return anyOf(def.kind, reflect.String, reflect.Uint8, reflect.Int32)
+func isBoolConvPossible(kind reflect.Kind) bool {
+	return anyOf(kind, reflect.Bool, reflect.Struct)
 }
 
-func resolvePtr(def *Definition) (reflect.Kind, bool) {
-	kind := def.output.Kind()
-	if kind != reflect.Ptr {
-		return kind, false
-	}
-	kind = def.output.Elem().Kind()
-	return kind, true
+func isStringConvPossible(kind reflect.Kind) bool {
+	return anyOf(kind, reflect.String, reflect.Uint8, reflect.Int32)
 }
 
 func isIntInLimit(i int64, limit reflect.Kind) bool {
@@ -166,38 +183,40 @@ func isInt(k reflect.Kind) bool {
 }
 
 func newValue[T any](val T, def *Definition) (reflect.Value, error) {
-	var empty reflect.Value
-	kindValue, err := convertToKind(val, def)
-	if err != nil {
-		return empty, err
+	// always call `Elem()` because underlying is already the correct type.
+	// Otherwise you might end with a `**int`
+	typ := def.underlying
+	if def.kind == reflect.Slice {
+		typ = def.sliceType()
 	}
-	return convertToDef(kindValue, def)
+	decl := reflect.New(typ).Elem()
+	value := valueOf(val, def).Convert(typ)
+	decl.Set(value)
+	return decl, nil
 }
 
-func convertToDef(kindValue reflect.Value, def *Definition) (reflect.Value, error) {
-	defValue := reflect.New(def.output).Elem()
-	converted := kindValue.Convert(def.output)
-	defValue.Set(converted)
-	return defValue, nil
+func valueOf[T any](val T, def *Definition) reflect.Value {
+	if def.output.Kind() == reflect.Ptr {
+		return reflect.ValueOf(&val)
+	}
+	return reflect.ValueOf(val)
 }
 
-func convertToKind[T any](val T, def *Definition) (reflect.Value, error) {
-	var empty reflect.Value
-	typ := typeOfKind(def.kind)
-	convertTo := reflect.New(typ)
-	if !def.isPointer {
-		convertTo = convertTo.Elem()
+func convertToOutput(value reflect.Value, def *Definition) (any, error) {
+	if !value.CanConvert(def.output) {
+		return nil, errors.New("cannot convert")
 	}
-	value := valueOf(val, def.isPointer)
-	if !value.CanConvert(convertTo.Type()) {
-		return empty, errors.New("cannot convert")
-	}
-	return value.Convert(convertTo.Type()), nil
+	output := value.Convert(def.output)
+	return output.Interface(), nil
 }
 
-func valueOf[T any](v T, isPointer bool) reflect.Value {
-	if isPointer {
-		return reflect.ValueOf(&v)
+func underlying(t reflect.Type) reflect.Type {
+	kind := t.Kind()
+	if kind == reflect.Ptr {
+		return reflect.PointerTo(t.Elem())
 	}
-	return reflect.ValueOf(v)
+	if kind == reflect.Slice {
+		return reflect.SliceOf(t.Elem())
+	}
+	return typeOfKind(kind)
 }

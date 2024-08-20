@@ -57,7 +57,7 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 }
 
 func convertString(m marker.Marker, def *Definition) (any, error) {
-	if !isStringConvPossible(def) {
+	if !isStringConvPossible(def.kind) {
 		return nil, errors.New("string conversion not possible")
 	}
 	s := m.Value().String()
@@ -65,7 +65,7 @@ func convertString(m marker.Marker, def *Definition) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return value.Interface(), nil
+	return convertToOutput(value, def)
 }
 
 func convString(s string, def *Definition) (reflect.Value, error) {
@@ -86,15 +86,15 @@ func convString(s string, def *Definition) (reflect.Value, error) {
 }
 
 func convertBool(m marker.Marker, def *Definition) (any, error) {
-	if !isBoolConvPossible(def) {
+	if !isBoolConvPossible(def.kind) {
 		return nil, errors.New("bool conversion not possible")
 	}
 	b := m.Value().Bool()
 	v, err := convBool(b, def)
-    if err != nil {
-        return nil, err
-    }
-	return v.Interface(), nil
+	if err != nil {
+		return nil, err
+	}
+	return convertToOutput(v, def)
 }
 
 func convBool(b bool, def *Definition) (reflect.Value, error) {
@@ -108,7 +108,7 @@ func convBool(b bool, def *Definition) (reflect.Value, error) {
 func convertInteger(m marker.Marker, def *Definition) (any, error) {
 	var v reflect.Value
 	var err error
-	if !isIntConvPossible(def) {
+	if !isIntConvPossible(def.kind) {
 		return nil, errors.New("int conversion not possible")
 	}
 	if isUint(def.kind) {
@@ -117,10 +117,10 @@ func convertInteger(m marker.Marker, def *Definition) (any, error) {
 	if isInt(def.kind) {
 		v, err = convInt(m.Value().Int(), def)
 	}
-    if err != nil {
-        return nil, err
-    }
-	return v.Interface(), nil
+	if err != nil {
+		return nil, err
+	}
+	return convertToOutput(v, def)
 }
 
 func convInt(i int64, def *Definition) (reflect.Value, error) {
@@ -140,15 +140,15 @@ func convUint(i uint64, def *Definition) (reflect.Value, error) {
 }
 
 func convertDecimal(m marker.Marker, def *Definition) (any, error) {
-	if !isFloatConvPossible(def) {
+	if !isFloatConvPossible(def.kind) {
 		return nil, errors.New("float conversion not possible")
 	}
 	f := m.Value().Float()
 	v, err := convFloat(f, def)
-    if err != nil {
-        return nil, err
-    }
-	return v.Interface(), nil
+	if err != nil {
+		return nil, err
+	}
+	return convertToOutput(v, def)
 }
 
 func convFloat(f float64, def *Definition) (reflect.Value, error) {
@@ -160,15 +160,15 @@ func convFloat(f float64, def *Definition) (reflect.Value, error) {
 }
 
 func convertComplex(m marker.Marker, def *Definition) (any, error) {
-	if !isComplexConvPossible(def) {
+	if !isComplexConvPossible(def.kind) {
 		return nil, errors.New("complex conversion not possible")
 	}
 	c := m.Value().Complex()
 	v, err := convComplex(c, def)
-    if err != nil {
-        return nil, err
-    }
-	return v.Interface(), nil
+	if err != nil {
+		return nil, err
+	}
+	return convertToOutput(v, def)
 }
 
 func convComplex(c complex128, def *Definition) (reflect.Value, error) {
