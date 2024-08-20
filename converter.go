@@ -78,7 +78,6 @@ func convString(s string, def *Definition) (reflect.Value, error) {
 		b := byte(s[0])
 		return valueFor(b, def)
 	}
-
 	if def.kind == _rune && len(s) == 1 {
 		r := rune(s[0])
 		return valueFor(r, def)
@@ -107,37 +106,14 @@ func convBool(b bool, def *Definition) (reflect.Value, error) {
 }
 
 func convertInteger(m marker.Marker, def *Definition) (any, error) {
-	var v reflect.Value
-	var err error
 	if !isIntConvPossible(def.kind) {
 		return nil, errors.New("int conversion not possible")
 	}
-	if isUint(def.kind) {
-		v, err = convUint(m.Value().Uint(), def)
-	}
-	if isInt(def.kind) {
-		v, err = convInt(m.Value().Int(), def)
-	}
+	v, err := valueFor(m.Value().Interface(), def)
 	if err != nil {
 		return nil, err
 	}
 	return convertToOutput(v, def)
-}
-
-func convInt(i int64, def *Definition) (reflect.Value, error) {
-	var empty reflect.Value
-	if !isIntInLimit(i, def.kind) {
-		return empty, errors.New("cannot convert overflow will occur")
-	}
-	return valueFor(i, def)
-}
-
-func convUint(i uint64, def *Definition) (reflect.Value, error) {
-	var empty reflect.Value
-	if !isUintInLimit(i, def.kind) {
-		return empty, errors.New("cannot convert overflow will occur")
-	}
-	return valueFor(i, def)
 }
 
 func convertDecimal(m marker.Marker, def *Definition) (any, error) {
