@@ -200,15 +200,13 @@ func valueOf[T any](val T, def *Definition) reflect.Value {
 	if def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Ptr {
 		return reflect.ValueOf(&val)
 	}
-	if def.output.Kind() == reflect.Ptr {
+	if def.output.Kind() == reflect.Ptr && def.kind != reflect.Slice {
 		return reflect.ValueOf(&val)
 	}
 	return reflect.ValueOf(val)
 }
 
 func convertToOutput(value reflect.Value, def *Definition) (any, error) {
-	// TODO: if its a *[]*T slice we need to convert the given value ([]*T) to the
-	// pointer
 	if !value.CanConvert(def.output) {
 		return nil, errors.New("cannot convert")
 	}

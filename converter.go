@@ -166,6 +166,9 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 	}
 	elems := m.Value()
 	slice := makeSlice(def.underlying, 0, elems.Len())
+	if def.underlying.Kind() == reflect.Ptr {
+		slice = reflect.New(slice.Type())
+	}
 	for i := 0; i < m.Value().Len(); i++ {
 		elem := elems.Index(i)
 		kind := elem.Elem().Kind()
@@ -177,7 +180,17 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		slice = reflect.Append(slice, v)
+		slice = appendToSlice(slice, v)
 	}
 	return convertToOutput(slice, def)
+}
+
+func appendToSlice(slice reflect.Value, elem reflect.Value) reflect.Value {
+	if slice.Kind() == reflect.Ptr {
+		s := slice.Elem()
+		s = reflect.Append(s, elem)
+		slice.Elem().Set(s)
+		return slice
+	}
+	return reflect.Append(slice, elem)
 }

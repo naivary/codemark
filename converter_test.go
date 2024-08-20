@@ -16,7 +16,8 @@ type str string
 type strPtr *string
 type stringSlice []string
 type stringSliceElemPtr []*string
-type stringSlicePtr *[]*string
+type stringSliceDoublePtr *[]*string
+type stringSlicePtr *[]string
 
 type c64 complex64
 type c128 complex128
@@ -159,13 +160,15 @@ func TestConverter_Convert(t *testing.T) {
 				MakeDef("jsonschema:validation:ints64", TargetConst, reflect.TypeOf(i64Slice([]int64{}))),
 				//MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]*string)))),
 				MakeDef("jsonschema:validation:stringselemptr", TargetConst, reflect.TypeOf(stringSliceElemPtr([]*string{}))),
-				MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]*string)))),
+				MakeDef("jsonschema:validation:stringsdoubleptr", TargetConst, reflect.TypeOf(stringSliceDoublePtr(new([]*string)))),
+				MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]string)))),
 			},
 			markers: []marker.Marker{
-				marker.NewDefault("jsonschema:validation:stringsptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
+				marker.NewDefault("jsonschema:validation:stringsdoubleptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
 				//marker.NewDefault("jsonschema:validation:ints", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				//marker.NewDefault("jsonschema:validation:ints64", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:stringselemptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
+				marker.NewDefault("jsonschema:validation:stringsptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
 			},
 		},
 	}
