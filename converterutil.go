@@ -187,8 +187,16 @@ func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
 	// always call `Elem()` because underlying is already the correct type.
 	// Otherwise you might end with a double pointer
 	decl := reflect.New(typ).Elem()
-	// conversion has to be always between non-pointer types
-	value := valueOf(val, def).Convert(typ)
+	value := valueOf(val, def)
+	if typ.Kind() == reflect.Ptr {
+		// v is always non pointer type
+		// cannot convert to pointer
+		value = value.Elem().Convert(typ.Elem())
+		s := reflect.New(value.Type())
+		s.Elem().Set(value)
+		return s, nil
+	}
+	value = value.Convert(typ)
 	decl.Set(value)
 	return decl, nil
 }

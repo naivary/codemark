@@ -37,6 +37,8 @@ type i64 int64
 
 type iSlice []int
 type iSliceElemPtr []*int
+type iSliceDoublePtr *[]*int
+type iSlicePtr *[]int
 
 type i8Slice []int8
 type i16Slice []int16
@@ -158,13 +160,16 @@ func TestConverter_Convert(t *testing.T) {
 		{
 			name: "slice marker",
 			defs: []*Definition{
-				MakeDef("jsonschema:validation:ints", TargetConst, reflect.TypeOf(iSlice([]int{}))),
-				MakeDef("jsonschema:validation:ints64", TargetConst, reflect.TypeOf(i64Slice([]int64{}))),
 				MakeDef("jsonschema:validation:stringselemptr", TargetConst, reflect.TypeOf(stringSliceElemPtr([]*string{}))),
 				MakeDef("jsonschema:validation:stringsdoubleptr", TargetConst, reflect.TypeOf(stringSliceDoublePtr(new([]*string)))),
 				MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]string)))),
 				MakeDef("jsonschema:validation:stringslice", TargetConst, reflect.TypeOf(stringSlice([]string{}))),
+				MakeDef("jsonschema:validation:ints", TargetConst, reflect.TypeOf(iSlice([]int{}))),
+				MakeDef("jsonschema:validation:ints64", TargetConst, reflect.TypeOf(i64Slice([]int64{}))),
 				MakeDef("jsonschema:validation:intselemptr", TargetConst, reflect.TypeOf(iSliceElemPtr([]*int{}))),
+				MakeDef("jsonschema:validation:intdoubleptr", TargetConst, reflect.TypeOf(iSliceDoublePtr(new([]*int)))),
+				MakeDef("jsonschema:validation:intsptr", TargetConst, reflect.TypeOf(iSlicePtr(new([]int)))),
+				MakeDef("jsonschema:validation:bytes", TargetConst, reflect.TypeOf(byteSlice([]byte{}))),
 			},
 			markers: []marker.Marker{
 				marker.NewDefault("jsonschema:validation:stringsdoubleptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
@@ -174,6 +179,9 @@ func TestConverter_Convert(t *testing.T) {
 				marker.NewDefault("jsonschema:validation:ints", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:ints64", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:intselemptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
+				marker.NewDefault("jsonschema:validation:intdoubleptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
+				marker.NewDefault("jsonschema:validation:intsptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
+				marker.NewDefault("jsonschema:validation:bytes", reflect.Slice, reflect.ValueOf([]any{"s", "d", "a"})),
 			},
 		},
 	}
