@@ -62,7 +62,7 @@ func (d *Definition) Name() string {
 	return d.name
 }
 
-func (d *Definition) Type() reflect.Type {
+func (d *Definition) Output() reflect.Type {
 	return d.output
 }
 
@@ -74,9 +74,23 @@ func (d *Definition) Help() *DefinitionHelp {
 	return d.help
 }
 
+func nonPointerKind(t reflect.Type) reflect.Kind {
+	kind := t.Kind()
+	if kind != reflect.Ptr {
+		return kind
+	}
+	return nonPointerKind(t.Elem())
+}
+
 func (d *Definition) Kind() reflect.Kind {
-    // TODO: this should be the acces to the kind
-    return reflect.Chan
+	return nonPointerKind(d.Type())
+}
+
+func (d *Definition) Type() reflect.Type {
+	if d.sliceType() != nil {
+		return d.sliceType()
+	}
+	return d.underlying
 }
 
 func (d *Definition) getKind() reflect.Kind {
@@ -99,9 +113,9 @@ func (d *Definition) sliceType() reflect.Type {
 }
 
 func (d *Definition) sliceKind() reflect.Kind {
-    typ := d.sliceType()
-    if typ.Kind() == reflect.Ptr {
-        typ = typ.Elem()
-    }
-    return typ.Kind()
+	typ := d.sliceType()
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	return typ.Kind()
 }

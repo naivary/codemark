@@ -36,6 +36,8 @@ type i32 int32
 type i64 int64
 
 type iSlice []int
+type iSliceElemPtr []*int
+
 type i8Slice []int8
 type i16Slice []int16
 type i32Slice []int32
@@ -158,17 +160,20 @@ func TestConverter_Convert(t *testing.T) {
 			defs: []*Definition{
 				MakeDef("jsonschema:validation:ints", TargetConst, reflect.TypeOf(iSlice([]int{}))),
 				MakeDef("jsonschema:validation:ints64", TargetConst, reflect.TypeOf(i64Slice([]int64{}))),
-				//MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]*string)))),
 				MakeDef("jsonschema:validation:stringselemptr", TargetConst, reflect.TypeOf(stringSliceElemPtr([]*string{}))),
 				MakeDef("jsonschema:validation:stringsdoubleptr", TargetConst, reflect.TypeOf(stringSliceDoublePtr(new([]*string)))),
 				MakeDef("jsonschema:validation:stringsptr", TargetConst, reflect.TypeOf(stringSlicePtr(new([]string)))),
+				MakeDef("jsonschema:validation:stringslice", TargetConst, reflect.TypeOf(stringSlice([]string{}))),
+				MakeDef("jsonschema:validation:intselemptr", TargetConst, reflect.TypeOf(iSliceElemPtr([]*int{}))),
 			},
 			markers: []marker.Marker{
 				marker.NewDefault("jsonschema:validation:stringsdoubleptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
-				//marker.NewDefault("jsonschema:validation:ints", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
-				//marker.NewDefault("jsonschema:validation:ints64", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:stringselemptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
 				marker.NewDefault("jsonschema:validation:stringsptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
+				marker.NewDefault("jsonschema:validation:stringslice", reflect.Slice, reflect.ValueOf([]any{"without", "pointer", "slice"})),
+				marker.NewDefault("jsonschema:validation:ints", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
+				marker.NewDefault("jsonschema:validation:ints64", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
+				marker.NewDefault("jsonschema:validation:intselemptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 			},
 		},
 	}
@@ -191,9 +196,6 @@ func TestConverter_Convert(t *testing.T) {
 					t.Error(err)
 				}
 				t.Logf("value is of type `%v` and has the value `%v`", reflect.TypeOf(v), reflect.ValueOf(v))
-				if reflect.ValueOf(v).Kind() == reflect.Ptr {
-					t.Log(reflect.ValueOf(v).Elem())
-				}
 			}
 
 		})

@@ -183,20 +183,17 @@ func isInt(k reflect.Kind) bool {
 }
 
 func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
-	typ := def.underlying
-	if def.kind == reflect.Slice {
-		typ = def.sliceType()
-	}
+	typ := def.Type()
 	// always call `Elem()` because underlying is already the correct type.
 	// Otherwise you might end with a double pointer
 	decl := reflect.New(typ).Elem()
+	// conversion has to be always between non-pointer types
 	value := valueOf(val, def).Convert(typ)
 	decl.Set(value)
 	return decl, nil
 }
 
 func valueOf[T any](val T, def *Definition) reflect.Value {
-	// TODO: reflect.Slice is not handled
 	if def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Ptr {
 		return reflect.ValueOf(&val)
 	}

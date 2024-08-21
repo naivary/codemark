@@ -113,11 +113,41 @@ func convertInteger(m marker.Marker, def *Definition) (any, error) {
 	if !isIntConvPossible(def.kind) {
 		return nil, errors.New("int conversion not possible")
 	}
-	v, err := valueFor(m.Value().Interface(), def)
+	var v reflect.Value
+	var err error
+	if isInt(def.kind) {
+		v, err = convInt(m.Value().Int(), def)
+	}
+	if isUint(def.kind) {
+		v, err = convUint(m.Value().Uint(), def)
+	}
 	if err != nil {
 		return nil, err
 	}
 	return convertToOutput(v, def)
+}
+
+func convInt(i int64, def *Definition) (reflect.Value, error) {
+    typ := def.Type()
+    if typ.Kind() == reflect.Ptr {
+        typ = typ.Elem()
+    }
+	if typ.OverflowInt(i) {
+		return reflect.Value{}, errors.New("overflow will occur")
+	}
+	return valueFor(i, def)
+}
+
+func convUint(i uint64, def *Definition) (reflect.Value, error) {
+    typ := def.Type()
+    if typ.Kind() == reflect.Ptr {
+        typ = typ.Elem()
+    }
+
+	if typ.OverflowUint(i) {
+		return reflect.Value{}, nil
+	}
+	return valueFor(i, def)
 }
 
 func convertDecimal(m marker.Marker, def *Definition) (any, error) {
@@ -176,6 +206,12 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		var err error
 		if kind == reflect.String {
 			v, err = convString(elem.Elem().String(), def)
+		}
+		if isInt(kind) {
+			v, err = convInt(elem.Elem().Int(), def)
+		}
+		if isUint(kind) {
+			v, err = convUint(elem.Elem().Uint(), def)
 		}
 		if err != nil {
 			return nil, err
