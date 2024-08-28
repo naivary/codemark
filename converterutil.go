@@ -148,7 +148,7 @@ func valueOf[T any](val T, def *Definition) reflect.Value {
 	return reflect.ValueOf(val)
 }
 
-func convertToOutput(value reflect.Value, def *Definition) (any, error) {
+func toOutput(value reflect.Value, def *Definition) (any, error) {
 	if !value.CanConvert(def.output) {
 		return nil, errors.New("cannot convert")
 	}

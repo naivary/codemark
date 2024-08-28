@@ -66,7 +66,7 @@ func convertString(m marker.Marker, def *Definition) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return convertToOutput(value, def)
+	return toOutput(value, def)
 }
 
 func convString(s string, def *Definition) (reflect.Value, error) {
@@ -98,7 +98,7 @@ func convertBool(m marker.Marker, def *Definition) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return convertToOutput(v, def)
+	return toOutput(v, def)
 }
 
 func convBool(b bool, def *Definition) (reflect.Value, error) {
@@ -124,7 +124,7 @@ func convertInteger(m marker.Marker, def *Definition) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return convertToOutput(v, def)
+	return toOutput(v, def)
 }
 
 func convInt(i int64, def *Definition) (reflect.Value, error) {
@@ -158,7 +158,7 @@ func convertDecimal(m marker.Marker, def *Definition) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return convertToOutput(v, def)
+	return toOutput(v, def)
 }
 
 func convFloat(f float64, def *Definition) (reflect.Value, error) {
@@ -182,7 +182,7 @@ func convertComplex(m marker.Marker, def *Definition) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	return convertToOutput(v, def)
+	return toOutput(v, def)
 }
 
 func convComplex(c complex128, def *Definition) (reflect.Value, error) {
@@ -224,7 +224,7 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		}
 		slice = appendToSlice(slice, v)
 	}
-	return convertToOutput(slice, def)
+	return toOutput(slice, def)
 }
 
 func appendToSlice(slice reflect.Value, elem reflect.Value) reflect.Value {
