@@ -201,9 +201,13 @@ func TestConverter_Convert(t *testing.T) {
 			for _, marker := range tc.markers {
 				v, err := conv.Convert(marker, TargetConst)
 				if err != nil {
-					t.Error(err)
+					t.Fatal(err)
 				}
-				t.Logf("value is of type `%v` and has the value `%v`", reflect.TypeOf(v), reflect.ValueOf(v))
+				def := reg.Get(marker.Ident())
+				typ := reflect.TypeOf(v)
+				if typ != def.output {
+					t.Fatalf("conversion to definition type did not work. Expected: %v. Got: %v", def.output, typ)
+				}
 			}
 
 		})

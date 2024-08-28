@@ -11,9 +11,8 @@ func TestLexer_Lex(t *testing.T) {
 		isValid bool
 	}{
 		{
-			name: "random input before",
-			input: `dasdasd asd asdsadasd as 
-            +jsonschema:validation:maximum=3`,
+			name:    "random input before",
+			input:   `dasdasd asd asdsadasd as +jsonschema:validation:maximum=3`,
 			isValid: false,
 		},
 		{
@@ -48,14 +47,15 @@ func TestLexer_Lex(t *testing.T) {
 		{
 			name: "multi marker without doc",
 			input: `+jsonschema:validation:maximum=3
-+jsonschema:validatiom:format=email`,
++jsonschema:validation:format="email"`,
 			isValid: true,
 		},
 		{
 			name: "multi marker without doc reversed",
-			input: `+jsonschema:validation:maximum=3
-+jsonschema:validatiom:format=email
-dasdasd asdasd as dasdasd ads adsd`,
+			input: `
++jsonschema:validation:maximum=3
++jsonschema:validatiom:format="email"
+this is a normal docs string`,
 			isValid: true,
 		},
 		{
@@ -88,7 +88,7 @@ dasdasd asdasd as dasdasd ads adsd`,
 		{
 			name: "multi marker without doc",
 			input: `+jsonschema:validation:maximum=3 dashdasjdhasjdhasd
-+jsonschema:validatiom:format=email`,
++jsonschema:validatiom:format="email"`,
 			isValid: true,
 		},
 		{
@@ -159,7 +159,7 @@ dasdasd asdasd as dasdasd ads adsd`,
 		{
 			name:    "bool with assignment false with spaces and number after",
 			input:   `+jsonschema:validation:max=false      3`,
-			isValid: true,
+			isValid: false,
 		},
 		{
 			name:    "negative integer",
@@ -188,7 +188,13 @@ dasdasd asdasd as dasdasd ads adsd`,
 			l := Lex(tc.input)
 			l.Run()
 			for token := range l.tokens {
-				t.Log(token)
+				if token.Kind != TokenKindError {
+					t.Log(token)
+					continue
+				}
+				if token.Kind == TokenKindError && tc.isValid {
+					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, token.Value)
+				}
 			}
 		})
 	}

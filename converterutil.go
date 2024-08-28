@@ -184,28 +184,46 @@ func isInt(k reflect.Kind) bool {
 
 func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
 	typ := def.Type()
-	// always call `Elem()` because underlying is already the correct type.
+	// always call `Elem()` because typ is already the correct type.
 	// Otherwise you might end with a double pointer
 	decl := reflect.New(typ).Elem()
-	value := valueOf(val, def)
 	if typ.Kind() == reflect.Ptr {
-		// v is always non pointer type
-		// cannot convert to pointer
-		value = value.Elem().Convert(typ.Elem())
-		s := reflect.New(value.Type())
-		s.Elem().Set(value)
-		return s, nil
+		return valueForPtr(val, def)
+	}
+	value := valueOf(val, def)
+	if !value.CanConvert(typ) {
+		return reflect.Value{}, errors.New("cannot convert")
 	}
 	value = value.Convert(typ)
 	decl.Set(value)
 	return decl, nil
 }
 
+func valueForPtr[T any](val T, def *Definition) (reflect.Value, error) {
+	typ := def.Type().Elem()
+	value := valueOf(val, def).Elem()
+	if !value.Type().ConvertibleTo(typ) {
+		return reflect.Value{}, errors.New("types are not convertiable")
+	}
+	value = value.Convert(typ)
+	decl := reflect.New(typ)
+	decl.Elem().Set(value)
+	return decl, nil
+}
+
+func isElemOfSlicePtr(def *Definition) bool {
+	return def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Ptr
+}
+
+func isNonSlicePtr(def *Definition) bool {
+	return def.output.Kind() == reflect.Ptr && def.kind != reflect.Slice
+}
+
 func valueOf[T any](val T, def *Definition) reflect.Value {
-	if def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Ptr {
+	if isElemOfSlicePtr(def) {
 		return reflect.ValueOf(&val)
 	}
-	if def.output.Kind() == reflect.Ptr && def.kind != reflect.Slice {
+	if isNonSlicePtr(def) {
 		return reflect.ValueOf(&val)
 	}
 	return reflect.ValueOf(val)

@@ -66,6 +66,27 @@ func isSpecialCharacter(escape string, r rune) bool {
 	return strings.Contains(escape, string(r))
 }
 
+func scanStringN(l *Lexer) error {
+	chars := `"\`
+    // +path:to:marker="string\""
+    // 
+	valid := func(r rune) bool {
+		return r != eof && !strings.Contains(chars, string(r))
+	}
+	l.acceptFunc(valid)
+
+	// r will be either " or \
+	// if its a " return it
+	if r := l.peek(); r == '"' {
+		return nil
+	}
+	// if here then its a `\`
+	// we have to check which character follows the \
+	l.next()
+
+	return nil
+}
+
 // `c` is defining which characters have to follow after a
 // a character defined by `escape` so it is still a valid unescaped symbol.
 // For example +path:to:marker=["item\"s"]. The last `"` don't have to be

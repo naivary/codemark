@@ -74,18 +74,6 @@ func (d *Definition) Help() *DefinitionHelp {
 	return d.help
 }
 
-func nonPointerKind(t reflect.Type) reflect.Kind {
-	kind := t.Kind()
-	if kind != reflect.Ptr {
-		return kind
-	}
-	return nonPointerKind(t.Elem())
-}
-
-func (d *Definition) Kind() reflect.Kind {
-	return nonPointerKind(d.Type())
-}
-
 func (d *Definition) Type() reflect.Type {
 	if d.sliceType() != nil {
 		return d.sliceType()
