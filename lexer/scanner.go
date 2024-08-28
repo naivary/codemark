@@ -3,7 +3,7 @@ package lexer
 import (
 	"errors"
 	"fmt"
-	"strings"
+	"strconv"
 )
 
 func scanRealNumber(l *Lexer) (TokenKind, error) {
@@ -62,89 +62,22 @@ func scanNumber(l *Lexer) (TokenKind, error) {
 	return kind, err
 }
 
-func isSpecialCharacter(escape string, r rune) bool {
-	return strings.Contains(escape, string(r))
-}
-
-func scanStringN(l *Lexer) error {
-	chars := `"\`
-    // +path:to:marker="string\""
-    // 
-	valid := func(r rune) bool {
-		return r != eof && !strings.Contains(chars, string(r))
+func scanString(l *Lexer) error {
+	const backslash = '\\'
+	v := func(r rune) bool {
+		if r == backslash {
+			l.next()
+			return true
+		}
+		if r != eof && r != '"' {
+			return true
+		}
+		return false
 	}
-	l.acceptFunc(valid)
-
-	// r will be either " or \
-	// if its a " return it
-	if r := l.peek(); r == '"' {
-		return nil
+	l.acceptFunc(v)
+	s := fmt.Sprintf(`"%s"`, l.currentValue())
+	if _, err := strconv.Unquote(s); err != nil {
+		return fmt.Errorf("string `%s` is not a valid go string", l.currentValue())
 	}
-	// if here then its a `\`
-	// we have to check which character follows the \
-	l.next()
-
 	return nil
-}
-
-// `c` is defining which characters have to follow after a
-// a character defined by `escape` so it is still a valid unescaped symbol.
-// For example +path:to:marker=["item\"s"]. The last `"` don't have to be
-// escaped because its the end of the string followed by a `]`.
-func scanStringWithEscape(l *Lexer, escape string, c string) error {
-	// if no escape characters are provided
-	// none will be escaped
-	if escape != "" && !strings.Contains(escape, "\\") {
-		// `\` has to be escaped too
-		escape += "\\"
-	}
-	valid := func(r rune) bool {
-		return r != eof && !isSpecialCharacter(escape, r) && !isNewline(r)
-	}
-	l.acceptFunc(valid)
-
-	r := l.peek()
-	if r == eof || isSpace(r) {
-		// scanned the full string without any error
-		return nil
-	}
-	if r == '\\' {
-		// check if correct escaping is taking place
-		l.next()
-		return escapeChar(l, escape, c)
-	}
-	l.next()
-	// have to keep the width because the next character may be a eof which
-	// results in the width lost.
-	width := l.width
-	isCorrect := isCorrectUnescaped(l, c)
-	if isCorrect {
-		l.width = width
-		l.backup()
-		return nil
-	}
-	return fmt.Errorf("special character `%s` is not escaped", string(r))
-}
-
-func isCorrectUnescaped(l *Lexer, c string) bool {
-	r := l.peek()
-	if c == "" && (r == eof || isSpace(r)) {
-		return true
-	}
-	return strings.Contains(c, string(r))
-}
-
-func escapeChar(l *Lexer, escape string, c string) error {
-	if isSpecialCharacter(escape, l.peek()) {
-		l.next()
-		return scanStringWithEscape(l, escape, c)
-	}
-	return errors.New("unexpected `\\` in string literal. Has to be escaped using `\\`")
-}
-
-func scanString(l *Lexer) {
-	valid := func(r rune) bool {
-		return !isSpace(r) && r != eof && !isNewline(r)
-	}
-	l.acceptFunc(valid)
 }

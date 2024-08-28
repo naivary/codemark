@@ -250,8 +250,7 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
-	err := scanStringWithEscape(l, `"`, ``)
-	if err != nil {
+	if err := scanString(l); err != nil {
 		return l.errorf(err.Error())
 	}
 	l.emit(TokenKindString)
@@ -272,8 +271,7 @@ func lexEndDoubleQuotationMarkString(l *Lexer) stateFunc {
 func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
-	err := scanStringWithEscape(l, `"`, ",]")
-	if err != nil {
+	if err := scanString(l); err != nil {
 		return l.errorf(err.Error())
 	}
 	l.emit(TokenKindString)
