@@ -261,15 +261,7 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 func lexEndDoubleQuotationMarkString(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
-	l.acceptFunc(isSpace)
-	l.ignore()
-
-	switch r := l.peek(); {
-	case r == newline || r == eof:
-		return lexText
-	default:
-		return l.errorf("after a string only a newline can follow")
-	}
+	return lexEndOfExpr
 }
 
 func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
@@ -304,4 +296,15 @@ func lexCloseSquareBracket(l *Lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindCloseSquareBracket)
 	return lexText
+}
+
+func lexEndOfExpr(l *Lexer) stateFunc {
+	l.acceptFunc(isSpace)
+	l.ignore()
+	switch r := l.peek(); {
+	case r == newline || r == eof:
+		return lexText
+	default:
+		return l.errorf("after a finished marker expression only a newline can follow")
+	}
 }
