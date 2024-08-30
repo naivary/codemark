@@ -103,15 +103,11 @@ func lexIdent(l *Lexer) stateFunc {
 func lexAssignment(l *Lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindAssignment)
-	// figure out which is next
 	switch r := l.peek(); {
 	case r == '[':
 		return lexOpenSquareBracket
 	case unicode.IsDigit(r):
 		return lexNumber
-		// a string is only recognised if a letter
-		// follows the assignment symbol. Can change it
-		// if an `"` token is introduced
 	case r == '"':
 		return lexStartDoubleQuotationMarkString
 	case r == 't' || r == 'f':

@@ -65,12 +65,23 @@ func scanNumber(l *Lexer) (TokenKind, error) {
 func scanString(l *Lexer) error {
 	const backslash = '\\'
 	v := func(r rune) bool {
+		if r != '"' && r != backslash {
+			return true
+		}
 		if r == backslash {
 			l.next()
 			return true
 		}
-		if r != eof && r != '"' {
-			return true
+		p := l.peek()
+		const double = '"'
+		const comma = ','
+		const rb = ']'
+		if r == double && p == eof {
+			l.pos -= 1
+			return false
+		}
+		if r == double && p == comma || p == rb {
+			return false
 		}
 		return false
 	}

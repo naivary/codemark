@@ -181,6 +181,11 @@ this is a normal docs string`,
 			input:   `+jsonschema:validation:max=[true, false, "some-string", 2, 0x24, 3.21, 3+2i, -2]`,
 			isValid: true,
 		},
+		{
+			name:    "invalid string value",
+			input:   `+jsonschema:validation:name="name\""`,
+			isValid: false,
+		},
 	}
 
 	for _, tc := range tests {
@@ -188,10 +193,7 @@ this is a normal docs string`,
 			l := Lex(tc.input)
 			l.Run()
 			for token := range l.tokens {
-				if token.Kind != TokenKindError {
-					t.Log(token)
-					continue
-				}
+				t.Log(token)
 				if token.Kind == TokenKindError && tc.isValid {
 					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, token.Value)
 				}
