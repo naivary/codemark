@@ -183,7 +183,7 @@ this is a normal docs string`,
 		},
 		{
 			name:    "invalid string value",
-			input:   `+jsonschema:validation:name="name"`,
+			input:   `+jsonschema:validation:name="name\"`,
 			isValid: false,
 		},
 	}
