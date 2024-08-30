@@ -75,8 +75,8 @@ func scanString(l *Lexer) error {
 		return false
 	}
 	l.acceptFunc(v)
-	s := fmt.Sprintf(`"%s"`, l.currentValue())
-	if _, err := strconv.Unquote(s); err != nil {
+	quoted := fmt.Sprintf(`"%s"`, l.currentValue())
+	if _, err := strconv.Unquote(quoted); err != nil {
 		return fmt.Errorf("string `%s` is not a valid go string", l.currentValue())
 	}
 	return nil

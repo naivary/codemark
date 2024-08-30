@@ -81,6 +81,14 @@ func (d *Definition) Type() reflect.Type {
 	return d.underlying
 }
 
+func (d *Definition) NonPtrType() reflect.Type {
+	typ := d.Type()
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
+	return typ
+}
+
 func (d *Definition) getKind() reflect.Kind {
 	kind := d.output.Kind()
 	if kind != reflect.Ptr {

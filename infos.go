@@ -7,8 +7,6 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-type MarkerValues map[string]any
-
 type Info struct {
 	Consts     []*ConstInfo
 	Vars       []*VarInfo
