@@ -97,11 +97,6 @@ func (l *Lexer) backup() {
 	l.pos -= l.width
 }
 
-func (l *Lexer) forceBackup() {
-	_, width := utf8.DecodeRuneInString(string(l.input[len(l.input)-1]))
-	l.pos -= width
-}
-
 func (l *Lexer) peek() rune {
 	r := l.next()
 	l.backup()

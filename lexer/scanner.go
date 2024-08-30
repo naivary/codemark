@@ -72,17 +72,6 @@ func scanString(l *Lexer) error {
 			l.next()
 			return true
 		}
-		p := l.peek()
-		const double = '"'
-		const comma = ','
-		const rb = ']'
-		if r == double && p == eof {
-			l.pos -= 1
-			return false
-		}
-		if r == double && p == comma || p == rb {
-			return false
-		}
 		return false
 	}
 	l.acceptFunc(v)

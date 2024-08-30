@@ -261,7 +261,15 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 func lexEndDoubleQuotationMarkString(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
-	return lexText
+	l.acceptFunc(isSpace)
+	l.ignore()
+
+	switch r := l.peek(); {
+	case r == newline || r == eof:
+		return lexText
+	default:
+		return l.errorf("after a string only a newline can follow")
+	}
 }
 
 func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
