@@ -186,6 +186,17 @@ this is a normal docs string`,
 			input:   `+jsonschema:validation:name="name\"`,
 			isValid: false,
 		},
+		{
+			name:    "invalid identifier",
+			input:   `+jsonschema:validation="name"`,
+			isValid: false,
+		},
+		{
+			name: "boolean without assignment wiht doc",
+			input: `+jsonschema:validation:required
+this is the doc`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {

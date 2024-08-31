@@ -12,9 +12,8 @@ func ignoreSpace(l *Lexer) {
 	l.ignore()
 }
 
-func ignoreNewline(l *Lexer) {
-	l.acceptFunc(isNewline)
-	l.ignore()
+func isDigit(r rune) bool {
+	return unicode.IsDigit(r) || r == '-' || r == '+'
 }
 
 func isSpace(r rune) bool {
@@ -69,7 +68,7 @@ func lexPlus(l *Lexer) stateFunc {
 	l.emit(TokenKindPlus)
 	switch r := l.peek(); {
 	case !isAlphaLower(r):
-		return l.errorf("after a `+` an immediate identifier is expected. The identifier can only be in lower letters and has to contain three `:` describing the path")
+		return l.errorf("after a `+` an immediate identifier is expected. The identifier can only be in lower letters and has to contain two `:` describing the path")
 	}
 	return lexIdent
 }
@@ -79,24 +78,20 @@ func lexIdent(l *Lexer) stateFunc {
 		return (unicode.IsLetter(r) && unicode.IsLower(r)) || r == colon
 	}
 	l.acceptFunc(valid)
-	r := l.peek()
-	if r == '\n' {
-		return l.errorf("marker cannot span multiple lines")
-	}
-
-	if strings.Count(l.currentValue(), string(colon)) < 1 {
-		l.ignore()
-		return lexText
+	idn := l.currentValue()
+	colons := strings.Count(idn, string(colon))
+	if colons < 2 {
+		return l.errorf("expected two colons in `%s` but got %d", idn, colons)
 	}
 	l.emit(TokenKindIdent)
 
-	switch r {
-	case '=':
+	switch r := l.peek(); {
+	case r == '=':
 		return lexAssignment
-	case eof:
+	case r == eof || r == newline:
 		return lexBoolWithoutAssignment
 	default:
-		return l.errorf("unexpected token")
+		return l.errorf("expected an assignment operator or a newline after the identifier `%s`", idn)
 	}
 }
 
@@ -106,16 +101,14 @@ func lexAssignment(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == '[':
 		return lexOpenSquareBracket
-	case unicode.IsDigit(r):
+	case isDigit(r):
 		return lexNumber
 	case r == '"':
 		return lexStartDoubleQuotationMarkString
 	case r == 't' || r == 'f':
 		return lexBool
-	case r == '-' || r == '+':
-		return lexNumber
 	default:
-		return l.errorf("expecting value after assignment")
+		return l.errorf("expecting value after assignment. For the possible valid values see: <docs link>")
 	}
 }
 
@@ -150,12 +143,6 @@ func lexNumber(l *Lexer) stateFunc {
 		return l.errorf(err.Error())
 	}
 	l.emit(kind)
-	/*r := l.peek()
-	if isNewline(r) {
-		l.next()
-		// ignore the new line
-		l.ignore()
-	}*/
 	return lexEndOfExpr
 }
 
@@ -165,18 +152,29 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == ']':
 		return lexCloseSquareBracket
-	case unicode.IsDigit(r) || r == '-' || r == '+':
+	case isDigit(r):
 		return lexNumberArrayValue
 	case r == '"':
 		return lexStartDoubleQuotationMarkStringArray
 	case r == 't' || r == 'f':
 		return lexBoolArrayValue
 	case isSpace(r):
-		return l.errorf("no space allowed of the opening bracket of array")
+		return l.errorf("no space allowed after the opening bracket of an array")
 	case r == ',':
 		return l.errorf("expected value in array not seperator")
 	default:
 		return l.errorf("expected closing bracket. Be sure that there is no whitespace between the last element and `]`")
+	}
+}
+
+func lexArraySequence(l *Lexer) stateFunc {
+	switch r := l.peek(); {
+	case r == ',':
+		return lexCommaSeperator
+	case r == ']':
+		return lexCloseSquareBracket
+	default:
+		return l.errorf("expected next array value or closing bracket")
 	}
 }
 
@@ -194,14 +192,7 @@ func lexBoolArrayValue(l *Lexer) stateFunc {
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
 	l.emit(TokenKindBool)
-	switch r := l.peek(); {
-	case r == ',':
-		return lexCommaSeperator
-	case r == ']':
-		return lexCloseSquareBracket
-	default:
-		return l.errorf("expected next array value or closing bracket")
-	}
+	return lexArraySequence
 }
 
 func lexNumberArrayValue(l *Lexer) stateFunc {
@@ -210,14 +201,7 @@ func lexNumberArrayValue(l *Lexer) stateFunc {
 		return l.errorf(err.Error())
 	}
 	l.emit(kind)
-	switch r := l.peek(); {
-	case r == ',':
-		return lexCommaSeperator
-	case r == ']':
-		return lexCloseSquareBracket
-	default:
-		return l.errorf("expected next array value or closing bracket")
-	}
+	return lexArraySequence
 }
 
 func lexCommaSeperator(l *Lexer) stateFunc {
@@ -225,7 +209,7 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 	l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {
-	case unicode.IsDigit(r) || r == '-' || r == '+':
+	case isDigit(r):
 		return lexNumberArrayValue
 	case r == '"':
 		return lexStartDoubleQuotationMarkStringArray
@@ -277,14 +261,7 @@ func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 func lexEndDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
-	switch r := l.peek(); {
-	case r == ']':
-		return lexCloseSquareBracket
-	case r == ',':
-		return lexCommaSeperator
-	default:
-		return l.errorf("expected closing bracket or next value of array")
-	}
+	return lexArraySequence
 }
 
 func lexCloseSquareBracket(l *Lexer) stateFunc {
