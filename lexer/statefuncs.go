@@ -66,11 +66,11 @@ func lexText(l *Lexer) stateFunc {
 
 func lexPlus(l *Lexer) stateFunc {
 	l.next()
+	l.emit(TokenKindPlus)
 	switch r := l.peek(); {
 	case !isAlphaLower(r):
-		return l.errorf("expected an identfier")
+		return l.errorf("after a `+` an immediate identifier is expected. The identifier can only be in lower letters and has to contain three `:` describing the path")
 	}
-	l.emit(TokenKindPlus)
 	return lexIdent
 }
 
