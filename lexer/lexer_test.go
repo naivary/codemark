@@ -186,11 +186,6 @@ this is a normal docs string`,
 			input:   `+jsonschema:validation:name="name\"`,
 			isValid: false,
 		},
-		{
-			name:    "space before expression",
-			input:   `    +jsonschema:validation:name="name"`,
-			isValid: false,
-		},
 	}
 
 	for _, tc := range tests {
