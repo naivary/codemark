@@ -89,7 +89,7 @@ this is a normal docs string`,
 			name: "multi marker without doc",
 			input: `+jsonschema:validation:maximum=3 dashdasjdhasjdhasd
 +jsonschema:validatiom:format="email"`,
-			isValid: true,
+			isValid: false,
 		},
 		{
 			name:    "array with single integer",

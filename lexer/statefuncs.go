@@ -46,7 +46,6 @@ func lexText(l *Lexer) stateFunc {
 	if hasPlusPrefix(l.input, l.pos) {
 		return lexPlus
 	}
-
 	for {
 		r := l.next()
 		if r == eof {
@@ -124,7 +123,7 @@ func lexBoolWithoutAssignment(l *Lexer) stateFunc {
 	l.emitToken(assignToken)
 	t := NewToken(TokenKindBool, "true")
 	l.emitToken(t)
-	return lexText
+	return lexEndOfExpr
 }
 
 func lexBool(l *Lexer) stateFunc {
@@ -140,13 +139,8 @@ func lexBool(l *Lexer) stateFunc {
 		}
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
-	l.acceptFunc(isSpace)
-	r := l.peek()
-	if r == eof {
-		l.emit(TokenKindBool)
-		return lexText
-	}
-	return l.errorf("did not expect anything after `%s`. Found `%s`", spelling, string(r))
+	l.emit(TokenKindBool)
+	return lexEndOfExpr
 }
 
 func lexNumber(l *Lexer) stateFunc {
@@ -155,13 +149,13 @@ func lexNumber(l *Lexer) stateFunc {
 		return l.errorf(err.Error())
 	}
 	l.emit(kind)
-	r := l.peek()
+	/*r := l.peek()
 	if isNewline(r) {
 		l.next()
 		// ignore the new line
 		l.ignore()
-	}
-	return lexText
+	}*/
+	return lexEndOfExpr
 }
 
 func lexOpenSquareBracket(l *Lexer) stateFunc {
@@ -295,7 +289,7 @@ func lexEndDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 func lexCloseSquareBracket(l *Lexer) stateFunc {
 	l.next()
 	l.emit(TokenKindCloseSquareBracket)
-	return lexText
+	return lexEndOfExpr
 }
 
 func lexEndOfExpr(l *Lexer) stateFunc {
