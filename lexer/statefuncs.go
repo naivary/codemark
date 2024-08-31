@@ -51,12 +51,13 @@ func lexText(l *Lexer) stateFunc {
 		if r == eof {
 			break
 		}
-		if isNewline(r) {
-			l.acceptFunc(isSpace)
-			l.ignore()
-			if hasPlusPrefix(l.input, l.pos) {
-				return lexPlus
-			}
+		if !isNewline(r) {
+			continue
+		}
+		l.acceptFunc(isSpace)
+		l.ignore()
+		if hasPlusPrefix(l.input, l.pos) {
+			return lexPlus
 		}
 	}
 	l.emit(TokenKindEOF)

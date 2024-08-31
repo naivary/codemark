@@ -13,7 +13,7 @@ func TestLexer_Lex(t *testing.T) {
 		{
 			name:    "random input before",
 			input:   `dasdasd asd asdsadasd as +jsonschema:validation:maximum=3`,
-			isValid: false,
+			isValid: true,
 		},
 		{
 			name:    "number input",
@@ -186,6 +186,11 @@ this is a normal docs string`,
 			input:   `+jsonschema:validation:name="name\"`,
 			isValid: false,
 		},
+		{
+			name:    "space before expression",
+			input:   `     +jsonschema:validation:name="name"`,
+			isValid: false,
+		},
 	}
 
 	for _, tc := range tests {
@@ -196,6 +201,10 @@ this is a normal docs string`,
 				t.Log(token)
 				if token.Kind == TokenKindError && tc.isValid {
 					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, token.Value)
+				}
+
+				if token.Kind == TokenKindEOF && !tc.isValid {
+					t.Fatalf("expected an error and didn't get one for `%s`", tc.input)
 				}
 			}
 		})
