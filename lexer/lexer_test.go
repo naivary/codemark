@@ -188,7 +188,7 @@ this is a normal docs string`,
 		},
 		{
 			name:    "space before expression",
-			input:   `     +jsonschema:validation:name="name"`,
+			input:   `    +jsonschema:validation:name="name"`,
 			isValid: false,
 		},
 	}
