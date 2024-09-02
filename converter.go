@@ -9,9 +9,8 @@ import (
 )
 
 type Converter interface {
-	// Convert is converting the given marker to the associated
-	// `Definition.output` type iff the target is correct and the conversion is
-	// possible.
+	// Convert is converting the given marker to `Definition.output` iff the
+	// conversion is possible
 	Convert(marker marker.Marker, target Target) (any, error)
 }
 
@@ -32,13 +31,13 @@ type converter struct {
 }
 
 func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
-	name := marker.Ident()
-	def := c.reg.Get(name)
+	idn := marker.Ident()
+	def := c.reg.Get(idn)
 	if def == nil {
-		return nil, fmt.Errorf("marker `%s` is not defined in the registry", name)
+		return nil, fmt.Errorf("marker `%s` is not defined in the registry", idn)
 	}
 	if target != def.target {
-		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", name, def.target, target)
+		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.target, target)
 	}
 	switch marker.Kind() {
 	case reflect.Int64:
@@ -190,7 +189,7 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 	}
 	elems := m.Value()
 	slice := makeSlice(def.underlying, 0, elems.Len())
-	if def.underlying.Kind() == reflect.Ptr {
+	if def.underlying.Kind() == reflect.Pointer {
 		slice = reflect.New(slice.Type())
 	}
 	for i := 0; i < m.Value().Len(); i++ {
@@ -213,14 +212,4 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		slice = appendToSlice(slice, v)
 	}
 	return toOutput(slice, def)
-}
-
-func appendToSlice(slice reflect.Value, elem reflect.Value) reflect.Value {
-	if slice.Kind() == reflect.Ptr {
-		s := slice.Elem()
-		s = reflect.Append(s, elem)
-		slice.Elem().Set(s)
-		return slice
-	}
-	return reflect.Append(slice, elem)
 }

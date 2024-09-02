@@ -1,7 +1,7 @@
 package main
 
 import (
-	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -90,15 +90,27 @@ func isBoolConvPossible(kind reflect.Kind) bool {
 }
 
 func isStringConvPossible(kind reflect.Kind) bool {
-	return anyOf(kind, reflect.String, reflect.Uint8, reflect.Int32)
+	return anyOf(kind, reflect.String, _byte, _rune)
 }
 
 func isUint(k reflect.Kind) bool {
-	return anyOf(k, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64)
+	return anyOf(k,
+		reflect.Uint,
+		reflect.Uint8, // e.g. byte
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+	)
 }
 
 func isInt(k reflect.Kind) bool {
-	return anyOf(k, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64)
+	return anyOf(k,
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32, // e.g. rune
+		reflect.Int64,
+	)
 }
 
 func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
@@ -106,12 +118,12 @@ func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
 	// always call `Elem()` because typ is already the correct type.
 	// Otherwise you might end with a double pointer
 	decl := reflect.New(typ).Elem()
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Pointer {
 		return valueForPtr(val, def)
 	}
 	value := valueOf(val, def)
 	if !value.CanConvert(typ) {
-		return reflect.Value{}, errors.New("cannot convert")
+		return reflect.Value{}, fmt.Errorf("cannot convert from `%v` to `%v`", value.Type(), typ)
 	}
 	value = value.Convert(typ)
 	decl.Set(value)
@@ -122,7 +134,7 @@ func valueForPtr[T any](val T, def *Definition) (reflect.Value, error) {
 	typ := def.typ().Elem()
 	value := valueOf(val, def).Elem()
 	if !value.Type().ConvertibleTo(typ) {
-		return reflect.Value{}, errors.New("types are not convertiable")
+		return reflect.Value{}, fmt.Errorf("type `%v` is not convertiable to `%v`", value.Type(), typ)
 	}
 	value = value.Convert(typ)
 	decl := reflect.New(typ)
@@ -130,16 +142,16 @@ func valueForPtr[T any](val T, def *Definition) (reflect.Value, error) {
 	return decl, nil
 }
 
-func isElemOfSlicePtr(def *Definition) bool {
-	return def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Ptr
+func isSliceElemPtr(def *Definition) bool {
+	return def.kind == reflect.Slice && def.sliceType().Kind() == reflect.Pointer
 }
 
 func isNonSlicePtr(def *Definition) bool {
-	return def.output.Kind() == reflect.Ptr && def.kind != reflect.Slice
+	return def.output.Kind() == reflect.Pointer && def.kind != reflect.Slice
 }
 
 func valueOf[T any](val T, def *Definition) reflect.Value {
-	if isElemOfSlicePtr(def) {
+	if isSliceElemPtr(def) {
 		return reflect.ValueOf(&val)
 	}
 	if isNonSlicePtr(def) {
@@ -150,7 +162,7 @@ func valueOf[T any](val T, def *Definition) reflect.Value {
 
 func toOutput(value reflect.Value, def *Definition) (any, error) {
 	if !value.CanConvert(def.output) {
-		return nil, errors.New("cannot convert")
+		return nil, fmt.Errorf("conversion from `%v` to `%v` is not possible", value.Type(), def.output)
 	}
 	output := value.Convert(def.output)
 	return output.Interface(), nil
@@ -158,7 +170,7 @@ func toOutput(value reflect.Value, def *Definition) (any, error) {
 
 func underlying(t reflect.Type) reflect.Type {
 	kind := t.Kind()
-	if kind == reflect.Ptr {
+	if kind == reflect.Pointer {
 		return reflect.PointerTo(t.Elem())
 	}
 	if kind == reflect.Slice {
@@ -169,9 +181,19 @@ func underlying(t reflect.Type) reflect.Type {
 
 func makeSlice(t reflect.Type, l, c int) reflect.Value {
 	kind := t.Kind()
-	if kind != reflect.Ptr {
+	if kind != reflect.Pointer {
 		return reflect.MakeSlice(t, l, c)
 	}
 	typ := t.Elem()
 	return reflect.MakeSlice(typ, l, c)
+}
+
+func appendToSlice(slice reflect.Value, elem reflect.Value) reflect.Value {
+	if slice.Kind() == reflect.Pointer {
+		s := slice.Elem()
+		s = reflect.Append(s, elem)
+		slice.Elem().Set(s)
+		return slice
+	}
+	return reflect.Append(slice, elem)
 }

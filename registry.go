@@ -5,7 +5,7 @@ import "fmt"
 type Registry interface {
 	Define(def *Definition) error
 
-	Get(name string) *Definition
+	Get(idn string) *Definition
 
 	All() map[string]*Definition
 }
@@ -31,8 +31,8 @@ func (r *registry) Define(d *Definition) error {
 	return nil
 }
 
-func (r *registry) Get(name string) *Definition {
-	return r.defs[name]
+func (r *registry) Get(idn string) *Definition {
+	return r.defs[idn]
 }
 
 func (r *registry) All() map[string]*Definition {

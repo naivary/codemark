@@ -83,7 +83,7 @@ func (d *Definition) typ() reflect.Type {
 
 func (d *Definition) nonPtrType() reflect.Type {
 	typ := d.typ()
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 	return typ
@@ -110,7 +110,7 @@ func (d *Definition) sliceType() reflect.Type {
 
 func (d *Definition) sliceKind() reflect.Kind {
 	typ := d.sliceType()
-	if typ.Kind() == reflect.Ptr {
+	if typ.Kind() == reflect.Pointer {
 		typ = typ.Elem()
 	}
 	return typ.Kind()
