@@ -102,7 +102,7 @@ func isInt(k reflect.Kind) bool {
 }
 
 func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
-	typ := def.Type()
+	typ := def.typ()
 	// always call `Elem()` because typ is already the correct type.
 	// Otherwise you might end with a double pointer
 	decl := reflect.New(typ).Elem()
@@ -119,7 +119,7 @@ func valueFor[T any](val T, def *Definition) (reflect.Value, error) {
 }
 
 func valueForPtr[T any](val T, def *Definition) (reflect.Value, error) {
-	typ := def.Type().Elem()
+	typ := def.typ().Elem()
 	value := valueOf(val, def).Elem()
 	if !value.Type().ConvertibleTo(typ) {
 		return reflect.Value{}, errors.New("types are not convertiable")

@@ -74,15 +74,15 @@ func (d *Definition) Help() *DefinitionHelp {
 	return d.help
 }
 
-func (d *Definition) Type() reflect.Type {
+func (d *Definition) typ() reflect.Type {
 	if d.sliceType() != nil {
 		return d.sliceType()
 	}
 	return d.underlying
 }
 
-func (d *Definition) NonPtrType() reflect.Type {
-	typ := d.Type()
+func (d *Definition) nonPtrType() reflect.Type {
+	typ := d.typ()
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
