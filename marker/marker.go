@@ -14,6 +14,9 @@ type Marker interface {
 	Kind() reflect.Kind
 
 	Value() reflect.Value
+
+    // TODO: thinka bout error markers
+	// IsError() bool
 }
 
 func NewDefault(ident string, kind reflect.Kind, value reflect.Value) *Default {
