@@ -69,7 +69,10 @@ func (p *parser) run() {
 		}
 		if token.Kind == lexer.TokenKindError {
 			state, next = p.errorf("failed while lexing: %s", token.Value)
-			return
+            // we can either break or use continue. To convey to the usual
+            // pattern of returning the next state and _next or _keep it's
+            // better to go with conutinue
+            continue
 		}
 		state, next = state(p, token)
 	}
@@ -85,7 +88,6 @@ func (p *parser) errorf(format string, args ...any) (parseFunc, bool) {
 	err := fmt.Errorf(format, args...)
 	p.m.SetError(err)
 	p.emit()
-	close(p.markers)
 	return nil, _keep
 }
 
