@@ -11,7 +11,7 @@ func MakeDef(name string, t Target, output reflect.Type) *Definition {
 		output:     output,
 		underlying: underlying(output),
 	}
-	def.kind = def.getKind()
+	def.kind = def.nonPtrKind()
 	return def
 }
 
@@ -89,9 +89,9 @@ func (d *Definition) nonPtrType() reflect.Type {
 	return typ
 }
 
-func (d *Definition) getKind() reflect.Kind {
+func (d *Definition) nonPtrKind() reflect.Kind {
 	kind := d.output.Kind()
-	if kind != reflect.Ptr {
+	if kind != reflect.Pointer {
 		return kind
 	}
 	return d.output.Elem().Kind()
