@@ -18,7 +18,6 @@ func Lex(input string) *Lexer {
 		input:  strings.TrimSpace(input),
 		tokens: make(chan Token, 100),
 		state:  lexText,
-		plus:   plus,
 	}
 }
 
@@ -31,23 +30,17 @@ type Lexer struct {
 	pos int
 	// length of the last rune read
 	width int
-	// state is the `stateFunc` to begin with
+	// the `stateFunc` to begin with
 	state stateFunc
 	// channel of scanned tokens
 	tokens chan Token
-	// needed sign to satrt the action
-	plus string
-	// token to return to the parser
-	token Token
 }
 
-func (l *Lexer) errorf(format string, args ...any) stateFunc {
-	l.tokens <- NewToken(TokenKindError, fmt.Sprintf(format, args...))
-	l.start = 0
-	l.pos = 0
-	l.input = l.input[:0]
-	return nil
-
+func (l *Lexer) Run() {
+	for state := l.state; state != nil; {
+		state = state(l)
+	}
+	close(l.tokens)
 }
 
 func (l *Lexer) NextToken() Token {
@@ -61,6 +54,15 @@ func (l *Lexer) NextToken() Token {
 	}
 }
 
+func (l *Lexer) errorf(format string, args ...any) stateFunc {
+	l.tokens <- NewToken(TokenKindError, fmt.Sprintf(format, args...))
+	l.start = 0
+	l.pos = 0
+	l.input = l.input[:0]
+	return nil
+
+}
+
 func (l *Lexer) next() rune {
 	var r rune
 	if l.pos >= len(l.input) {
@@ -70,13 +72,6 @@ func (l *Lexer) next() rune {
 	r, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
 	l.pos += l.width
 	return r
-}
-
-func (l *Lexer) Run() {
-	for state := l.state; state != nil; {
-		state = state(l)
-	}
-	close(l.tokens)
 }
 
 func (l *Lexer) emit(kind TokenKind) {

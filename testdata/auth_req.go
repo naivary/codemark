@@ -72,7 +72,7 @@ var Now = time.Now()
 // a user using email and password
 type AuthRequest struct {
 	// Size of the request
-	//
+	// 
 	// +jsonschema:validation:maximum=3
 	Size Size `json:"size,omitempty"`
 
@@ -82,7 +82,6 @@ type AuthRequest struct {
 	Email string `json:"email,omitempty"`
 
 	// Password is the raw password of the user
-	// +jsonschema:validation:items={something: 3}
 	Password string `json:"password,omitempty"`
 
 	// age and length do tell exactly that
