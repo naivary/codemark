@@ -274,7 +274,7 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 	l.acceptFunc(isSpace)
 	l.ignore()
 	switch r := l.peek(); {
-	case r == newline || r == eof:
+	case isNewline(r) || r == eof:
 		return lexText
 	default:
 		return l.errorf("after a finished marker expression only a newline can follow")

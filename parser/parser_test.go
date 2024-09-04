@@ -72,19 +72,12 @@ func TestParse(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			p := parse(tc.input)
-			p.run()
-			/*if err != nil && !tc.isValid {
-				return
-			}
+			markers, err := Parse(tc.input)
 			if err != nil && tc.isValid {
-				t.Fatalf("expected to parse correctly but got error: `%s`", err.Error())
+				t.Fatalf("Expected to be valid but got an error marker: %v", err)
 			}
-			if err == nil && !tc.isValid {
-				t.Fatalf("expected an error. Got nil")
-			}*/
-			for m := range p.markers {
-				t.Logf("kind: `%v`; value: `%v`; isError: `%v`\n", m.Kind(), m.Value(), m.IsError())
+			for _, m := range markers {
+				t.Logf("kind: `%v`; value: `%v`\n", m.Kind(), m.Value())
 			}
 		})
 	}

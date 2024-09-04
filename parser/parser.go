@@ -43,24 +43,31 @@ func parseComplex128(v string) (complex128, error) {
 // should be passed instead
 type parseFunc func(*parser, lexer.Token) (parseFunc, bool)
 
-func parse(input string) *parser {
-	return &parser{
+func Parse(input string) ([]marker.Marker, error) {
+	const minMarker = 1
+	p := &parser{
 		l:       lexer.Lex(input),
 		state:   parsePlus,
-		markers: make(chan marker.Marker, 2),
+		markers: make([]marker.Marker, 0, minMarker),
 		m:       &marker.Default{},
 	}
+	p.run()
+	return p.markers, p.err
 }
 
 type parser struct {
-	l       *lexer.Lexer
-	state   parseFunc
-	markers chan marker.Marker
-	m       *marker.Default
+	l *lexer.Lexer
+
+	state parseFunc
+	// all the markers which have been built, including error markers
+	markers []marker.Marker
+	// the current marker which is being build
+	m *marker.Default
+
+	err error
 }
 
 func (p *parser) run() {
-	p.l.Run()
 	next := false
 	token := p.l.NextToken()
 	for state := p.state; state != nil; {
@@ -69,25 +76,22 @@ func (p *parser) run() {
 		}
 		if token.Kind == lexer.TokenKindError {
 			state, next = p.errorf("failed while lexing: %s", token.Value)
-            // we can either break or use continue. To convey to the usual
-            // pattern of returning the next state and _next or _keep it's
-            // better to go with conutinue
-            continue
+			// we can either break or use continue. To convey to the usual
+			// pattern of returning the next state and _next or _keep it's
+			// better to use conutinue
+			continue
 		}
 		state, next = state(p, token)
 	}
-	close(p.markers)
 }
 
 func (p *parser) emit() {
-	p.markers <- p.m
+	p.markers = append(p.markers, p.m)
 	p.m = &marker.Default{}
 }
 
 func (p *parser) errorf(format string, args ...any) (parseFunc, bool) {
-	err := fmt.Errorf(format, args...)
-	p.m.SetError(err)
-	p.emit()
+	p.err = fmt.Errorf(format, args...)
 	return nil, _keep
 }
 

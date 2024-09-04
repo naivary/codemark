@@ -202,7 +202,6 @@ this is the doc`,
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			l := Lex(tc.input)
-			l.Run()
 			for token := range l.tokens {
 				t.Log(token)
 				if token.Kind == TokenKindError && tc.isValid {

@@ -14,11 +14,13 @@ const (
 )
 
 func Lex(input string) *Lexer {
-	return &Lexer{
+	l := &Lexer{
 		input:  strings.TrimSpace(input),
 		tokens: make(chan Token, 100),
 		state:  lexText,
 	}
+	l.run()
+	return l
 }
 
 type Lexer struct {
@@ -36,13 +38,7 @@ type Lexer struct {
 	tokens chan Token
 }
 
-func (l *Lexer) Run() {
-	for state := l.state; state != nil; {
-		state = state(l)
-	}
-	close(l.tokens)
-}
-
+// NextToken returns the next token of the channel
 func (l *Lexer) NextToken() Token {
 	for {
 		select {
@@ -52,6 +48,13 @@ func (l *Lexer) NextToken() Token {
 			l.state = l.state(l)
 		}
 	}
+}
+
+func (l *Lexer) run() {
+	for state := l.state; state != nil; {
+		state = state(l)
+	}
+	close(l.tokens)
 }
 
 func (l *Lexer) errorf(format string, args ...any) stateFunc {

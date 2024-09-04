@@ -111,7 +111,10 @@ func TestScanNumber(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		l := Lex(tc.input)
+		l := &Lexer{
+			input:  tc.input,
+			tokens: make(chan Token),
+		}
 		t.Run(tc.name, func(t *testing.T) {
 			kind, err := scanNumber(l)
 			if err != nil && tc.isValid {
