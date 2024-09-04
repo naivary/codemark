@@ -3,10 +3,13 @@ package main
 import (
 	"errors"
 	"go/ast"
-	"go/parser"
+	gparser "go/parser"
 	"go/token"
 	"go/types"
+	"slices"
 
+	"github.com/naivary/codemark/parser"
+	"golang.org/x/exp/maps"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -23,7 +26,7 @@ func NewLoader(conv Converter, cfg *packages.Config) Loader {
 		l.cfg = l.defaultConfig()
 	}
 	l.cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
-		return parser.ParseFile(fset, filename, src, parser.ParseComments)
+		return gparser.ParseFile(fset, filename, src, gparser.ParseComments)
 	}
 	return l
 }
@@ -66,7 +69,6 @@ func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
 	}
 	types := make([]*ast.GenDecl, 0, 0)
 	for _, decl := range file.Decls {
-		// FuncDecl -> Method or Func
 		funcDecl, isFuncDecl := decl.(*ast.FuncDecl)
 		if isFuncDecl {
 			l.funcDecl(funcDecl)
@@ -86,6 +88,61 @@ func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
 	}
 	for _, typ := range types {
 		l.typeDecl(pkg, typ)
+	}
+	return l.loadDefs()
+}
+
+func (l *loader) loadDefs() error {
+	docs := map[Target][]DocDefer{
+		TargetConst:      convertToDocDefer(l.info.Consts),
+		TargetVar:        convertToDocDefer(l.info.Vars),
+		TargetMethod:     convertToDocDefer(maps.Values(l.info.Methods)),
+		TargetFunc:       convertToDocDefer(l.info.Funcs),
+		TargetInterface:  convertToDocDefer(l.info.Interfaces),
+		TargetType:       slices.Concat(convertToDocDefer(l.info.Structs), convertToDocDefer(l.info.BasicTypes)),
+		TargetAlias:      convertToDocDefer(l.info.Aliases),
+		TargetImportStmt: convertToDocDefer(l.info.Imports),
+	}
+	importedPkgs := make([]*ImportInfo, 0, 0)
+	for _, imp := range l.info.Imports {
+		importedPkgs = slices.Concat(importedPkgs, imp.Imports)
+	}
+	docs[TargetImportPackage] = convertToDocDefer(importedPkgs)
+
+	fields := make([]*FieldInfo, 0, 0)
+	for _, strc := range l.info.Structs {
+		fields = slices.Concat(fields, strc.Fields)
+	}
+	docs[TargetField] = convertToDocDefer(fields)
+
+	interfaceFuncInfos := make([]*InterfaceFuncInfo, 0, 0)
+	for _, iface := range l.info.Interfaces {
+		interfaceFuncInfos = slices.Concat(interfaceFuncInfos, iface.Funcs)
+	}
+	docs[TargetInterfaceFunc] = convertToDocDefer(interfaceFuncInfos)
+
+	for target, docs := range docs {
+		for _, doc := range docs {
+			if err := l.setDefs(doc, target); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (l *loader) setDefs(d DocDefer, t Target) error {
+	markers, err := parser.Parse(d.Doc())
+	if err != nil {
+		return err
+	}
+	for _, marker := range markers {
+		def, err := l.conv.Convert(marker, t)
+		if err != nil {
+			return err
+		}
+		idn := marker.Ident()
+		d.Defs().Add(idn, def)
 	}
 	return nil
 }
@@ -121,11 +178,16 @@ func (l *loader) funcDecl(decl *ast.FuncDecl) {
 func (l *loader) methodDecl(decl *ast.FuncDecl) {
 	typ := decl.Recv.List[0].Type
 	ident, isIdent := typ.(*ast.Ident)
-	if isIdent {
-		info := NewMethodInfo(decl, ident, nil)
-		l.info.Methods[ident.Name] = append(l.info.Methods[ident.Name], info)
+	if !isIdent {
+		l.ptrRecvMethodDecl(decl)
 		return
 	}
+	info := NewMethodInfo(decl, ident, nil)
+	l.info.Methods[ident.Name] = append(l.info.Methods[ident.Name], info)
+}
+
+func (l *loader) ptrRecvMethodDecl(decl *ast.FuncDecl) {
+	typ := decl.Recv.List[0].Type
 	pointer := typ.(*ast.StarExpr)
 	ptrIdent := pointer.X.(*ast.Ident)
 	info := NewMethodInfo(decl, ptrIdent, pointer)
@@ -142,7 +204,6 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 			l.info.Aliases = append(l.info.Aliases, info)
 			continue
 		}
-
 		named := typ.(*types.Named).Underlying()
 		strc, isStruct := named.(*types.Struct)
 		if isStruct {
@@ -157,7 +218,6 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 			l.info.Interfaces = append(l.info.Interfaces, info)
 			continue
 		}
-
 		basic, isBasic := named.(*types.Basic)
 		if isBasic {
 			info := NewBasicTypeInfo(typeSpec, basic, decl, nil)
@@ -165,7 +225,6 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 			l.info.BasicTypes = append(l.info.BasicTypes, info)
 			continue
 		}
-
 		ptr, isPtr := named.(*types.Pointer)
 		if isPtr {
 			basic := ptr.Elem().(*types.Basic)
@@ -175,6 +234,13 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 		}
 	}
 }
+
+func (l *loader) structTypeDecl() {}
+func (l *loader) basicTypeDecl()  {}
+func (l *loader) aliasTypeDecl()  {}
+func (l *loader) sliceTypeDecl()  {}
+func (l *loader) arrayTypeDecl()  {}
+func (l *loader) mapTypeDecl()    {}
 
 func (l *loader) defaultConfig() *packages.Config {
 	return &packages.Config{

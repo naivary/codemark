@@ -7,11 +7,14 @@ import (
 	"fmt"
 
 	// this is the time docs
+	p "go/parser"
 	"time"
-    p "go/parser"
 )
 
-type PointerBasic *int
+// TODO: pointer to non basic
+// type ptrNonBasicSlice *[]int
+//type ptrNonBasic *struct{}
+//type PointerBasic *int
 
 type (
 	out string
@@ -20,6 +23,7 @@ type (
 )
 
 // documentation for interface
+// +path:to:maxh=3
 type Interface interface {
 	// docs for a
 	A(context.Context) error
@@ -32,6 +36,7 @@ type Interface interface {
 const in, line = 3, 2
 
 const (
+	// +path:to:max=3
 	A int = 2
 	B     = ""
 )
@@ -72,13 +77,9 @@ var Now = time.Now()
 // a user using email and password
 type AuthRequest struct {
 	// Size of the request
-	// 
-	// +jsonschema:validation:maximum=3
 	Size Size `json:"size,omitempty"`
 
 	// Email of the user
-	//
-	// +jsonschema:validation:format=email
 	Email string `json:"email,omitempty"`
 
 	// Password is the raw password of the user

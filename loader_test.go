@@ -1,6 +1,7 @@
 package main
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -11,7 +12,7 @@ func TestLoader(t *testing.T) {
 	}{
 		{
 			name:  "simple file",
-			paths: []string{"testdata/auth_req.go", "testdata/consts.go"},
+			paths: []string{"testdata/auth_req.go"},
 		},
 		{
 			name:  "sub directory",
@@ -19,20 +20,33 @@ func TestLoader(t *testing.T) {
 		},
 	}
 
+	reg := NewRegistry()
+	defs := []*Definition{
+		MakeDef("path:to:max", TargetConst, reflect.TypeOf(i(int(0)))),
+		MakeDef("path:to:maxh", TargetInterface, reflect.TypeOf(i(int(0)))),
+	}
+	for _, def := range defs {
+		if err := reg.Define(def); err != nil {
+			t.Error(err)
+		}
+	}
 	for _, tc := range tests {
-		/*reg := NewRegistry()
-				conv, err := NewConverter(reg)
-		        if err != nil {
-		            t.Error(err)
-		        }
-				t.Run(tc.name, func(t *testing.T) {
-					l := NewLoader(conv, nil)
-					info, err := l.Load(tc.paths...)
-					if err != nil {
-						t.Fatal(err.Error())
-					}
-					t.Log(info)
-				})*/
-		_ = tc
+		conv, err := NewConverter(reg)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Run(tc.name, func(t *testing.T) {
+			l := NewLoader(conv, nil)
+			infos, err := l.Load(tc.paths...)
+			if err != nil {
+				t.Fatal(err.Error())
+			}
+
+			for _, info := range infos {
+				for _, iface := range info.Interfaces {
+					t.Log(iface.Defs())
+				}
+			}
+		})
 	}
 }

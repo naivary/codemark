@@ -17,6 +17,8 @@ const (
 	TargetInterface
 	TargetImportStmt
 	TargetImportPackage
+	TargetAlias
+	TargetInterfaceFunc
 )
 
 var targetNames = map[Target]string{
@@ -30,11 +32,13 @@ var targetNames = map[Target]string{
 	TargetInterface:     "TargetInterface",
 	TargetImportStmt:    "TargetImportStmt",
 	TargetImportPackage: "TargetImportPackage",
+	TargetAlias:         "TargetAlias",
+	TargetInterfaceFunc: "TargetInterfaceFunc",
 }
 
 func (t Target) String() string {
 	if name, ok := targetNames[t]; ok {
-        return name
+		return name
 	}
 	return fmt.Sprintf("Target<%d>", t)
 }
