@@ -41,12 +41,7 @@ func TestLoader(t *testing.T) {
 			if err != nil {
 				t.Fatal(err.Error())
 			}
-
-			for _, info := range infos {
-				for _, iface := range info.Interfaces {
-					t.Log(iface.Defs())
-				}
-			}
+			_ = infos
 		})
 	}
 }

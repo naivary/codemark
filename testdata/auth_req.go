@@ -1,3 +1,4 @@
+// this is thed ocumentation for the pkg
 package testdata
 
 // import docs
@@ -6,15 +7,32 @@ import (
 	"context"
 	"fmt"
 
-	// this is the time docs
+	// this is the docs for a named package
 	p "go/parser"
 	"time"
 )
 
-// TODO: pointer to non basic
-// type ptrNonBasicSlice *[]int
-//type ptrNonBasic *struct{}
-//type PointerBasic *int
+// this is the documentation for multiple vars
+var (
+	// this is the documentati for one variable in multiple
+	multiple int
+	vars     string
+)
+
+// this is the documentation of the type keyword
+type (
+	// this is the doc of int
+	this int
+	are  float32
+	many string
+	decl complex128
+)
+
+type emptyStruct struct{}
+type basic int
+type slice []int
+type ptrMap map[int]int
+type array [2]int
 
 type (
 	out string

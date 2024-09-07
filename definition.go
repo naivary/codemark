@@ -4,9 +4,9 @@ import (
 	"reflect"
 )
 
-func MakeDef(name string, t Target, output reflect.Type) *Definition {
+func MakeDef(idn string, t Target, output reflect.Type) *Definition {
 	def := &Definition{
-		name:       name,
+		identifier: idn,
 		target:     t,
 		output:     output,
 		underlying: underlying(output),
@@ -24,10 +24,10 @@ func MakeDefWithHelp(name string, t Target, output reflect.Type, help *Definitio
 type Definition struct {
 	// Name of the definition in the correct format
 	// e.g. +path:to:mark
-	name string
+	identifier string
 
 	// The output type to which the value
-	// of the marker will be mapped to
+	// of the marker will be converted to
 	output reflect.Type
 
 	// TargetType defines on which type of
@@ -58,8 +58,8 @@ func (d *Definition) IsDeprecated() (*string, bool) {
 	return d.deprecatedInFavorOf, d.deprecatedInFavorOf == nil
 }
 
-func (d *Definition) Name() string {
-	return d.name
+func (d *Definition) Idn() string {
+	return d.identifier
 }
 
 func (d *Definition) Output() reflect.Type {

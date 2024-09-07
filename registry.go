@@ -23,11 +23,11 @@ type registry struct {
 }
 
 func (r *registry) Define(d *Definition) error {
-	def, isDefined := r.defs[d.name]
+	def, isDefined := r.defs[d.identifier]
 	if isDefined {
-		return fmt.Errorf("definition is already defined: %s", def.name)
+		return fmt.Errorf("definition is already defined: %s", def.identifier)
 	}
-	r.defs[d.name] = d
+	r.defs[d.identifier] = d
 	return nil
 }
 
