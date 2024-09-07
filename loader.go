@@ -235,13 +235,6 @@ func (l *loader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) {
 	}
 }
 
-func (l *loader) structTypeDecl() {}
-func (l *loader) basicTypeDecl()  {}
-func (l *loader) aliasTypeDecl()  {}
-func (l *loader) sliceTypeDecl()  {}
-func (l *loader) arrayTypeDecl()  {}
-func (l *loader) mapTypeDecl()    {}
-
 func (l *loader) defaultConfig() *packages.Config {
 	return &packages.Config{
 		Mode: packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes,

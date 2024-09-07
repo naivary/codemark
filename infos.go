@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"go/ast"
 	"go/types"
 
@@ -27,6 +26,10 @@ func (d Definitions) Add(idn string, def any) {
 func (d Definitions) IsSet(idn string) bool {
 	_, ok := d[idn]
 	return ok
+}
+
+func (d Definitions) Get(idn string) []any {
+	return d[idn]
 }
 
 type Info struct {
@@ -281,7 +284,7 @@ func NewInterfaceInfo(typeSpec *ast.TypeSpec, iface *types.Interface, decl *ast.
 		InterfaceType: ifaceType,
 		Funcs:         make([]*InterfaceFuncInfo, 0, len(ifaceType.Methods.List)),
 		defs:          Definitions{},
-		doc:           typeSpec.Doc.Text(),
+		doc:           decl.Doc.Text(),
 	}
 	for _, meth := range ifaceType.Methods.List {
 		ifaceFuncInfo := &InterfaceFuncInfo{
