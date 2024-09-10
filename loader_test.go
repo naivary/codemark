@@ -41,7 +41,13 @@ func TestLoader(t *testing.T) {
 			if err != nil {
 				t.Fatal(err.Error())
 			}
-			_ = infos
+			for _, info := range infos {
+				for _, meth := range info.Methods {
+					t.Log(meth.Name())
+                    t.Log(meth.ReceiverExpr())
+                    t.Log(meth.ReceiverName())
+				}
+			}
 		})
 	}
 }

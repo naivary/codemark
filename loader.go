@@ -5,18 +5,21 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"go/types"
 
 	"golang.org/x/tools/go/packages"
 )
+// TODO: I have to include eveything from types.* e.g. *types.Var oder
+// *types.Signature etc.
 
 type Loader interface {
-	Load(patterns ...string) (map[string]*Infos, error)
+	Load(patterns ...string) (map[string]*PackageInfo, error)
 }
 
 func NewLoader(conv Converter, cfg *packages.Config) Loader {
 	l := &loader{
-		infos: NewInfos(),
-		conv:  conv,
+		conv:    conv,
+		pkgInfo: &PackageInfo{},
 	}
 	if cfg == nil {
 		l.cfg = l.defaultConfig()
@@ -30,13 +33,13 @@ func NewLoader(conv Converter, cfg *packages.Config) Loader {
 var _ Loader = (*loader)(nil)
 
 type loader struct {
-	conv  Converter
-	cfg   *packages.Config
-	infos *Infos
+	conv    Converter
+	cfg     *packages.Config
+	pkgInfo *PackageInfo
 }
 
-func (l *loader) Load(patterns ...string) (map[string]*Infos, error) {
-	infos := make(map[string]*Infos, len(patterns))
+func (l *loader) Load(patterns ...string) (map[string]*PackageInfo, error) {
+	info := make(map[string]*PackageInfo, len(patterns))
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -55,11 +58,11 @@ func (l *loader) Load(patterns ...string) (map[string]*Infos, error) {
 			if err := l.fileToInfo(pkg, file); err != nil {
 				return nil, err
 			}
-			infos[pkg.ID] = l.infos
-			l.infos = NewInfos()
+			info[pkg.ID] = l.pkgInfo
+			l.pkgInfo = &PackageInfo{}
 		}
 	}
-	return infos, nil
+	return info, nil
 }
 
 func (l *loader) defaultConfig() *packages.Config {
@@ -69,11 +72,6 @@ func (l *loader) defaultConfig() *packages.Config {
 }
 
 func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
-	return nil
-}
-
-/*func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
-	types := make([]*ast.GenDecl, 0, 0)
 	for _, decl := range file.Decls {
 		funcDecl, isFuncDecl := decl.(*ast.FuncDecl)
 		if isFuncDecl {
@@ -83,17 +81,106 @@ func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
 		genDecl := decl.(*ast.GenDecl)
 		switch genDecl.Tok {
 		case token.CONST:
-			l.constDecl(pkg, genDecl)
+			l.constInfo(genDecl)
 		case token.VAR:
-			l.varDecl(pkg, genDecl)
+			l.varInfo(genDecl)
 		case token.IMPORT:
-			l.importDecl(genDecl)
+			l.importInfo(genDecl)
 		case token.TYPE:
-			types = append(types, genDecl)
+			l.typeDecl(pkg, genDecl)
 		}
 	}
-	for _, typ := range types {
-		l.typeDecl(pkg, typ)
+	return nil
+}
+
+func (l *loader) funcDecl(fn *ast.FuncDecl) {
+	if isMethod(fn) {
+		l.methodInfo(fn)
+		return
 	}
-	return l.loadDefs()
-}*/
+	l.funcInfo(fn)
+}
+
+func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) {
+	specs := convertSpecs[*ast.TypeSpec](gen.Specs)
+	for _, spec := range specs {
+		typ := pkg.TypesInfo.TypeOf(spec.Name)
+		alias, isAlias := typ.(*types.Alias)
+		if isAlias {
+			l.aliasInfo(gen, alias, spec)
+			continue
+		}
+		named := typ.(*types.Named).Underlying()
+		pointer, isPointer := named.(*types.Pointer)
+		if isPointer {
+			l.typeInfo(gen, pointer.Elem(), spec)
+			continue
+		}
+		strct, isStruct := named.(*types.Struct)
+		if isStruct {
+			l.structInfo(gen, strct, spec)
+			continue
+		}
+		iface, isInterface := named.(*types.Interface)
+		if isInterface {
+			l.interfaceInfo(gen, iface, spec)
+			continue
+		}
+	}
+}
+
+func (l *loader) funcInfo(fn *ast.FuncDecl) {
+	info := &FuncInfo{
+		doc:  fn.Doc.Text(),
+		defs: Definitions{},
+		Decl: fn,
+	}
+	l.pkgInfo.Funcs = append(l.pkgInfo.Funcs, info)
+}
+
+func (l *loader) methodInfo(fn *ast.FuncDecl) {
+	info := &MethodInfo{
+		doc:  fn.Doc.Text(),
+		defs: Definitions{},
+		Decl: fn,
+	}
+	l.pkgInfo.Methods = append(l.pkgInfo.Methods, info)
+}
+
+func (l *loader) constInfo(gen *ast.GenDecl) {
+	specs := convertSpecs[*ast.ValueSpec](gen.Specs)
+	for _, spec := range specs {
+		doc := gen.Doc.Text() + spec.Doc.Text()
+		info := &ConstInfo{
+			doc:  doc,
+			defs: Definitions{},
+			Spec: spec,
+			Decl: gen,
+		}
+		l.pkgInfo.Consts = append(l.pkgInfo.Consts, info)
+	}
+}
+
+func (l *loader) varInfo(gen *ast.GenDecl) {
+	specs := convertSpecs[*ast.ValueSpec](gen.Specs)
+	for _, spec := range specs {
+		doc := gen.Doc.Text() + spec.Doc.Text()
+		info := &VarInfo{
+			doc:  doc,
+			defs: Definitions{},
+			Spec: spec,
+			Decl: gen,
+		}
+		l.pkgInfo.Vars = append(l.pkgInfo.Vars, info)
+	}
+}
+
+func (l *loader) structInfo(gen *ast.GenDecl, strct *types.Struct, spec *ast.TypeSpec) {}
+
+func (l *loader) interfaceInfo(gen *ast.GenDecl, iface *types.Interface, spec *ast.TypeSpec) {}
+
+func (l *loader) importInfo(gen *ast.GenDecl) {}
+
+func (l *loader) aliasInfo(gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) {}
+
+func (l *loader) typeInfo(gen *ast.GenDecl, typ types.Type, spec *ast.TypeSpec) {}

@@ -12,9 +12,9 @@ import (
 	"time"
 )
 
-// this is the documentation for multiple vars
+// this is the documentation for multiple vars on the var keyword
 var (
-	// this is the documentati for one variable in multiple
+	// this is the documentati for one variable in multiple for `multiple`
 	multiple int
 	vars     string
 )
@@ -51,8 +51,7 @@ type Interface interface {
 	D() int
 }
 
-const in, line = 3, 2
-
+// this should be gendecl
 const (
 	// +path:to:max=3
 	A int = 2
@@ -64,6 +63,9 @@ const (
 	Of     = '\n'
 	Consts = 2 + 3i
 )
+
+// this is a doc line for in line
+const In, Line = 2, "something"
 
 // name is very important
 const NewName = "test-name"
@@ -82,7 +84,9 @@ var Comment = p.ParseComments
 
 func (s *Size) Ptr() {}
 
+// this is the doc for the const doc
 const (
+	// this is the sierequestmax doc
 	SizeReququestMax = iota + 1
 	SizeReququestMin = iota + 1
 )
