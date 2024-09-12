@@ -319,7 +319,10 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 
 	for _, meth := range ifaceType.Methods.List {
 		if isEmbedded(meth) {
-			// TODO: handle embedded interfaces
+			// TODO: for now embedded fields will be ignored but there should be
+			// a consistent rule how to integreate them as signature
+			// informations. Maybe a slice which is containing the other
+			// interfaces found?
 			continue
 		}
 		doc := meth.Doc.Text()

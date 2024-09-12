@@ -49,12 +49,14 @@ type (
 )
 
 type twoMethodIface interface {
+    error
 	X() string
 	Z() int
 }
 
 // documentation for interface
 type Interface interface {
+    // this is the doc for error which is embedded
 	error
 	twoMethodIface
 	// docs for a
