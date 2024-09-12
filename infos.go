@@ -2,6 +2,7 @@ package main
 
 import (
 	"go/ast"
+	"go/types"
 )
 
 const UnknownMethodName = "UNKNOWN_METHOD_NAME"
@@ -77,7 +78,18 @@ var _ info = (*MethodInfo)(nil)
 type MethodInfo struct {
 	doc  string
 	defs Definitions
+	typ  types.Type
+	obj  types.Object
+
 	Decl *ast.FuncDecl
+}
+
+func (m MethodInfo) Type() types.Type {
+	return m.typ
+}
+
+func (m MethodInfo) FuncType() *types.Func {
+	return m.obj.(*types.Func)
 }
 
 func (m MethodInfo) Doc() string {
@@ -117,6 +129,9 @@ var _ info = (*FuncInfo)(nil)
 type FuncInfo struct {
 	doc  string
 	defs Definitions
+	obj  types.Object
+	typ  types.Type
+
 	Decl *ast.FuncDecl
 }
 
@@ -140,13 +155,25 @@ func (f FuncInfo) Returns() *ast.FieldList {
 	return f.Decl.Type.Results
 }
 
+func (f FuncInfo) FuncType() *types.Func {
+	return f.obj.(*types.Func)
+}
+
+func (f FuncInfo) Type() types.Type {
+	return f.typ
+}
+
 var _ info = (*ConstInfo)(nil)
 
 type ConstInfo struct {
-	doc  string
-	defs Definitions
-	Decl *ast.GenDecl
-	Spec *ast.ValueSpec
+	doc   string
+	defs  Definitions
+	idn   *ast.Ident
+	value ast.Expr
+	typ   types.Type
+	obj   types.Object
+
+	decl *ast.GenDecl
 }
 
 func (c ConstInfo) Doc() string {
@@ -158,24 +185,28 @@ func (c ConstInfo) Defs() Definitions {
 }
 
 func (c ConstInfo) Name() string {
-	return c.Spec.Names[0].Name
+	return c.idn.Name
 }
 
 func (c ConstInfo) Value() ast.Expr {
-	return c.Spec.Values[0]
+	return c.value
 }
 
-func (c ConstInfo) Type() ast.Expr {
-	return c.Spec.Type
+func (c ConstInfo) Ident() *ast.Ident {
+	return c.idn
 }
 
 var _ info = (*VarInfo)(nil)
 
 type VarInfo struct {
-	doc  string
-	defs Definitions
-	Decl *ast.GenDecl
-	Spec *ast.ValueSpec
+	doc   string
+	defs  Definitions
+	idn   *ast.Ident
+	value ast.Expr
+	typ   types.Type
+	obj   types.Object
+
+	decl *ast.GenDecl
 }
 
 func (v VarInfo) Doc() string {
@@ -186,12 +217,29 @@ func (v VarInfo) Defs() Definitions {
 	return v.defs
 }
 
+func (v VarInfo) Name() string {
+	return v.idn.Name
+}
+
+func (v VarInfo) Value() ast.Expr {
+	return v.value
+}
+
+func (v VarInfo) Ident() *ast.Ident {
+	return v.idn
+}
+
 var _ info = (*StructInfo)(nil)
 
 type StructInfo struct {
-	doc  string
-	defs Definitions
-	decl *ast.GenDecl
+	doc    string
+	defs   Definitions
+	fields []*FieldInfo
+	idn    *ast.Ident
+	typ    types.Type
+	obj    types.Object
+	spec   *ast.TypeSpec
+	decl   *ast.GenDecl
 }
 
 func (s StructInfo) Doc() string {
@@ -202,12 +250,41 @@ func (s StructInfo) Defs() Definitions {
 	return s.defs
 }
 
+var _ info = (*FieldInfo)(nil)
+
+type FieldInfo struct {
+	idn  *ast.Ident
+	doc  string
+	expr ast.Expr
+	defs Definitions
+
+	typ types.Type
+	obj types.Object
+}
+
+func (f FieldInfo) Doc() string {
+	return f.doc
+}
+
+func (f FieldInfo) Defs() Definitions {
+	return f.defs
+}
+
+func (f FieldInfo) IsEmbedded() bool {
+	return f.idn == nil
+}
+
 var _ info = (*InterfaceInfo)(nil)
 
 type InterfaceInfo struct {
 	doc  string
 	defs Definitions
-	decl *ast.GenDecl
+	idn  *ast.Ident
+	typ  types.Type
+	obj  types.Object
+
+	signatures []*SignatureInfo
+	decl       *ast.GenDecl
 }
 
 func (i InterfaceInfo) Doc() string {
@@ -216,6 +293,36 @@ func (i InterfaceInfo) Doc() string {
 
 func (i InterfaceInfo) Defs() Definitions {
 	return i.defs
+}
+
+func (i InterfaceInfo) Name() string {
+	return i.idn.Name
+}
+
+type SignatureInfo struct {
+	doc  string
+	defs Definitions
+	idn  *ast.Ident
+	obj  types.Object
+	typ  types.Type
+
+	isEmbedded bool
+}
+
+func (s SignatureInfo) Doc() string {
+	return s.doc
+}
+
+func (s SignatureInfo) Defs() Definitions {
+	return s.defs
+}
+
+func (s SignatureInfo) SignatureType() *types.Signature {
+	return s.typ.(*types.Signature)
+}
+
+func (s SignatureInfo) IsEmbedded() bool {
+	return s.isEmbedded
 }
 
 var _ info = (*TypeInfo)(nil)

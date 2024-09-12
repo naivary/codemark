@@ -19,6 +19,14 @@ var (
 	vars     string
 )
 
+var _ fmt.Stringer = (*stringer)(nil)
+
+type stringer struct{}
+
+func (s stringer) String() string {
+	return ""
+}
+
 // this is the documentation of the type keyword
 type (
 	// this is the doc of int
@@ -41,8 +49,8 @@ type (
 )
 
 // documentation for interface
-// +path:to:maxh=3
 type Interface interface {
+	error
 	// docs for a
 	A(context.Context) error
 	// this is docs for b
@@ -53,15 +61,13 @@ type Interface interface {
 
 // this should be gendecl
 const (
-	// +path:to:max=3
 	A int = 2
 	B     = ""
 )
 
 const (
-	Block  = 3
-	Of     = '\n'
-	Consts = 2 + 3i
+	Block = 3
+	Of    = '\n'
 )
 
 // this is a doc line for in line
@@ -91,7 +97,6 @@ const (
 	SizeReququestMin = iota + 1
 )
 
-// +jsonschema:validation=231
 // some docs
 var Now = time.Now()
 
@@ -110,6 +115,7 @@ type AuthRequest struct {
 	// age and length do tell exactly that
 	Age, Length int
 
+	// +path:to:field=31
 	Max int
 }
 
@@ -120,6 +126,7 @@ func (AuthRequest) Back(name string) error {
 }
 
 type AuthEmbedded struct {
+	// this is the doc for the embedded field?
 	AuthRequest
 
 	Rule string
@@ -138,6 +145,7 @@ var StringMy = fmt.Sprintf("somethign")
 
 // NewAuthReq is creating a new
 // authentication request
+// +path:to:func=3
 func NewAuthReq() AuthRequest {
 	return AuthRequest{}
 }

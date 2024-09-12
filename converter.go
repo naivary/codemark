@@ -37,6 +37,7 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 		return nil, fmt.Errorf("marker `%s` is not defined in the registry", idn)
 	}
 	if target != def.target {
+        fmt.Println("i am herre")
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.target, target)
 	}
 	switch marker.Kind() {

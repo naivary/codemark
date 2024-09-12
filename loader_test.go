@@ -22,8 +22,10 @@ func TestLoader(t *testing.T) {
 
 	reg := NewRegistry()
 	defs := []*Definition{
-		MakeDef("path:to:max", TargetConst, reflect.TypeOf(i(int(0)))),
-		MakeDef("path:to:maxh", TargetInterface, reflect.TypeOf(i(int(0)))),
+		MakeDef("path:to:const", TargetConst, reflect.TypeOf(i(int(0)))),
+		MakeDef("path:to:iface", TargetInterface, reflect.TypeOf(i(int(0)))),
+		MakeDef("path:to:func", TargetFunc, reflect.TypeOf(i(int(0)))),
+		MakeDef("path:to:field", TargetField, reflect.TypeOf(i(int(0)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -41,13 +43,7 @@ func TestLoader(t *testing.T) {
 			if err != nil {
 				t.Fatal(err.Error())
 			}
-			for _, info := range infos {
-				for _, meth := range info.Methods {
-					t.Log(meth.Name())
-                    t.Log(meth.ReceiverExpr())
-                    t.Log(meth.ReceiverName())
-				}
-			}
+			_ = infos
 		})
 	}
 }

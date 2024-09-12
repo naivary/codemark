@@ -18,22 +18,22 @@ const (
 	TargetImportStmt
 	TargetImportPackage
 	TargetAlias
-	TargetInterfaceFunc
+	TargetInterfaceSignature
 )
 
 var targetNames = map[Target]string{
-	TargetField:         "TargetField",
-	TargetType:          "TargetType",
-	TargetPackage:       "TargetPackage",
-	TargetFunc:          "TargetFunc",
-	TargetConst:         "TargetConst",
-	TargetVar:           "TargetVar",
-	TargetMethod:        "TargetMethod",
-	TargetInterface:     "TargetInterface",
-	TargetImportStmt:    "TargetImportStmt",
-	TargetImportPackage: "TargetImportPackage",
-	TargetAlias:         "TargetAlias",
-	TargetInterfaceFunc: "TargetInterfaceFunc",
+	TargetField:              "TargetField",
+	TargetType:               "TargetType",
+	TargetPackage:            "TargetPackage",
+	TargetFunc:               "TargetFunc",
+	TargetConst:              "TargetConst",
+	TargetVar:                "TargetVar",
+	TargetMethod:             "TargetMethod",
+	TargetInterface:          "TargetInterface",
+	TargetImportStmt:         "TargetImportStmt",
+	TargetImportPackage:      "TargetImportPackage",
+	TargetAlias:              "TargetAlias",
+	TargetInterfaceSignature: "TargetInterfaceSignature",
 }
 
 func (t Target) String() string {

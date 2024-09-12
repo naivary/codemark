@@ -9,9 +9,9 @@ import (
 
 	"golang.org/x/tools/go/packages"
 )
-// TODO: I have to include eveything from types.* e.g. *types.Var oder
-// *types.Signature etc.
 
+// TODO: I have to include eveything from types.* e.g. *types.Var or
+// *types.Signature etc.
 type Loader interface {
 	Load(patterns ...string) (map[string]*PackageInfo, error)
 }
@@ -75,112 +75,288 @@ func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
 	for _, decl := range file.Decls {
 		funcDecl, isFuncDecl := decl.(*ast.FuncDecl)
 		if isFuncDecl {
-			l.funcDecl(funcDecl)
+			err := l.funcDecl(pkg, funcDecl)
+			if err != nil {
+				return err
+			}
 			continue
 		}
+		var err error
 		genDecl := decl.(*ast.GenDecl)
 		switch genDecl.Tok {
 		case token.CONST:
-			l.constInfo(genDecl)
+			err = l.constInfo(pkg, genDecl)
 		case token.VAR:
-			l.varInfo(genDecl)
+			err = l.varInfo(pkg, genDecl)
 		case token.IMPORT:
-			l.importInfo(genDecl)
+			err = l.importInfo(genDecl)
 		case token.TYPE:
-			l.typeDecl(pkg, genDecl)
+			err = l.typeDecl(pkg, genDecl)
+		}
+		if err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func (l *loader) funcDecl(fn *ast.FuncDecl) {
+func (l *loader) funcDecl(pkg *packages.Package, fn *ast.FuncDecl) error {
 	if isMethod(fn) {
-		l.methodInfo(fn)
-		return
+		return l.methodInfo(pkg, fn)
 	}
-	l.funcInfo(fn)
+	return l.funcInfo(pkg, fn)
 }
 
-func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) {
+func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) error {
 	specs := convertSpecs[*ast.TypeSpec](gen.Specs)
 	for _, spec := range specs {
 		typ := pkg.TypesInfo.TypeOf(spec.Name)
 		alias, isAlias := typ.(*types.Alias)
 		if isAlias {
-			l.aliasInfo(gen, alias, spec)
+			err := l.aliasInfo(gen, alias, spec)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 		named := typ.(*types.Named).Underlying()
 		pointer, isPointer := named.(*types.Pointer)
 		if isPointer {
-			l.typeInfo(gen, pointer.Elem(), spec)
+			err := l.typeInfo(gen, pointer.Elem(), spec)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 		strct, isStruct := named.(*types.Struct)
 		if isStruct {
-			l.structInfo(gen, strct, spec)
+			err := l.structInfo(pkg, gen, strct, spec)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 		iface, isInterface := named.(*types.Interface)
 		if isInterface {
-			l.interfaceInfo(gen, iface, spec)
+			err := l.interfaceInfo(pkg, gen, iface, spec)
+			if err != nil {
+				return err
+			}
 			continue
 		}
 	}
+	return nil
 }
 
-func (l *loader) funcInfo(fn *ast.FuncDecl) {
+func (l *loader) funcInfo(pkg *packages.Package, fn *ast.FuncDecl) error {
+	typ := pkg.TypesInfo.TypeOf(fn.Type)
+	obj := pkg.TypesInfo.ObjectOf(fn.Name)
+	doc := fn.Doc.Text()
+	defs, err := newDefinitions(doc, TargetFunc, l.conv)
+	if err != nil {
+		return err
+	}
 	info := &FuncInfo{
-		doc:  fn.Doc.Text(),
-		defs: Definitions{},
+		doc:  doc,
+		defs: defs,
 		Decl: fn,
+		typ:  typ,
+		obj:  obj,
 	}
 	l.pkgInfo.Funcs = append(l.pkgInfo.Funcs, info)
+	return nil
 }
 
-func (l *loader) methodInfo(fn *ast.FuncDecl) {
+func (l *loader) methodInfo(pkg *packages.Package, meth *ast.FuncDecl) error {
+	typ := pkg.TypesInfo.TypeOf(meth.Type)
+	obj := pkg.TypesInfo.ObjectOf(meth.Name)
+	doc := meth.Doc.Text()
+	defs, err := newDefinitions(doc, TargetMethod, l.conv)
+	if err != nil {
+		return err
+	}
 	info := &MethodInfo{
-		doc:  fn.Doc.Text(),
-		defs: Definitions{},
-		Decl: fn,
+		doc:  doc,
+		defs: defs,
+		obj:  obj,
+		typ:  typ,
+		Decl: meth,
 	}
 	l.pkgInfo.Methods = append(l.pkgInfo.Methods, info)
+	return nil
 }
 
-func (l *loader) constInfo(gen *ast.GenDecl) {
+func (l *loader) constInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 	specs := convertSpecs[*ast.ValueSpec](gen.Specs)
 	for _, spec := range specs {
 		doc := gen.Doc.Text() + spec.Doc.Text()
-		info := &ConstInfo{
-			doc:  doc,
-			defs: Definitions{},
-			Spec: spec,
-			Decl: gen,
+		defs, err := newDefinitions(doc, TargetConst, l.conv)
+		if err != nil {
+			return err
 		}
-		l.pkgInfo.Consts = append(l.pkgInfo.Consts, info)
+		for i, idn := range spec.Names {
+			var value ast.Expr
+			if len(spec.Values) > 0 {
+				value = spec.Values[i]
+			}
+			typ := pkg.TypesInfo.TypeOf(value)
+			obj := pkg.TypesInfo.ObjectOf(idn)
+			info := &ConstInfo{
+				doc:   doc,
+				idn:   idn,
+				value: value,
+				typ:   typ,
+				obj:   obj,
+				defs:  defs,
+			}
+			l.pkgInfo.Consts = append(l.pkgInfo.Consts, info)
+		}
 	}
+	return nil
 }
 
-func (l *loader) varInfo(gen *ast.GenDecl) {
+func (l *loader) varInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 	specs := convertSpecs[*ast.ValueSpec](gen.Specs)
 	for _, spec := range specs {
 		doc := gen.Doc.Text() + spec.Doc.Text()
-		info := &VarInfo{
-			doc:  doc,
-			defs: Definitions{},
-			Spec: spec,
-			Decl: gen,
+		defs, err := newDefinitions(doc, TargetVar, l.conv)
+		if err != nil {
+			return err
 		}
-		l.pkgInfo.Vars = append(l.pkgInfo.Vars, info)
+		for i, idn := range spec.Names {
+			var value ast.Expr
+			if len(spec.Values) > 0 {
+				value = spec.Values[i]
+			}
+			typ := pkg.TypesInfo.TypeOf(value)
+			obj := pkg.TypesInfo.ObjectOf(idn)
+			info := &VarInfo{
+				doc:   doc,
+				idn:   idn,
+				value: value,
+				typ:   typ,
+				obj:   obj,
+				defs:  defs,
+			}
+			l.pkgInfo.Vars = append(l.pkgInfo.Vars, info)
+		}
 	}
+	return nil
 }
 
-func (l *loader) structInfo(gen *ast.GenDecl, strct *types.Struct, spec *ast.TypeSpec) {}
+func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *types.Struct, spec *ast.TypeSpec) error {
+	structType := spec.Type.(*ast.StructType)
+	doc := spec.Doc.Text() + gen.Doc.Text()
+	defs, err := newDefinitions(doc, TargetType, l.conv)
+	if err != nil {
+		return err
+	}
+	info := &StructInfo{
+		idn:    spec.Name,
+		doc:    doc,
+		defs:   defs,
+		typ:    strct,
+		obj:    pkg.TypesInfo.ObjectOf(spec.Name),
+		spec:   spec,
+		fields: make([]*FieldInfo, 0, len(structType.Fields.List)),
+	}
 
-func (l *loader) interfaceInfo(gen *ast.GenDecl, iface *types.Interface, spec *ast.TypeSpec) {}
+	for _, field := range structType.Fields.List {
+		if isEmbedded(field) {
+			typ := pkg.TypesInfo.TypeOf(field.Type)
+			doc := field.Doc.Text()
+			defs, err := newDefinitions(doc, TargetField, l.conv)
+			if err != nil {
+				return err
+			}
+			fieldInfo := &FieldInfo{
+				doc:  doc,
+				expr: field.Type,
+				typ:  typ,
+				defs: defs,
+			}
+			info.fields = append(info.fields, fieldInfo)
+			continue
+		}
 
-func (l *loader) importInfo(gen *ast.GenDecl) {}
+		for _, idn := range field.Names {
+			typ := pkg.TypesInfo.TypeOf(field.Type)
+			obj := pkg.TypesInfo.ObjectOf(idn)
+			doc := field.Doc.Text()
+			defs, err := newDefinitions(doc, TargetField, l.conv)
+			if err != nil {
+				return err
+			}
+			fieldInfo := &FieldInfo{
+				doc:  doc,
+				idn:  idn,
+				expr: field.Type,
+				typ:  typ,
+				obj:  obj,
+				defs: defs,
+			}
+			info.fields = append(info.fields, fieldInfo)
+		}
+	}
+	l.pkgInfo.Structs = append(l.pkgInfo.Structs, info)
+	return nil
+}
 
-func (l *loader) aliasInfo(gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) {}
+func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *types.Interface, spec *ast.TypeSpec) error {
+	ifaceType := spec.Type.(*ast.InterfaceType)
+	typ := pkg.TypesInfo.TypeOf(spec.Type)
+	obj := pkg.TypesInfo.ObjectOf(spec.Name)
+	doc := gen.Doc.Text() + spec.Doc.Text()
+	info := &InterfaceInfo{
+		doc: doc,
+		idn: spec.Name,
+		typ: typ,
+		obj: obj,
+	}
+	for _, meth := range ifaceType.Methods.List {
+		if isEmbedded(meth) {
+			// embedded interfaces will be handled in the next step
+			typ := pkg.TypesInfo.TypeOf(meth.Type)
+			t := typ.(*types.Named).Underlying().(*types.Interface)
+			idn := meth.Type.(*ast.Ident)
+			obj := pkg.TypesInfo.ObjectOf(idn)
+			signatureInfo := &SignatureInfo{
+				doc:        doc,
+				idn:        idn,
+				typ:        t.Method(0).Signature(),
+				obj:        obj,
+				isEmbedded: true,
+			}
+			info.signatures = append(info.signatures, signatureInfo)
+			continue
+		}
+		name := meth.Names[0]
+		doc := meth.Doc.Text()
+		typ := pkg.TypesInfo.TypeOf(meth.Type)
+		obj := pkg.TypesInfo.ObjectOf(name)
 
-func (l *loader) typeInfo(gen *ast.GenDecl, typ types.Type, spec *ast.TypeSpec) {}
+		signatureInfo := &SignatureInfo{
+			doc: doc,
+			idn: name,
+			typ: typ,
+			obj: obj,
+		}
+		info.signatures = append(info.signatures, signatureInfo)
+	}
+
+	l.pkgInfo.Interfaces = append(l.pkgInfo.Interfaces, info)
+	return nil
+
+}
+
+func (l *loader) aliasInfo(gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) error {
+	return nil
+}
+
+func (l *loader) importInfo(gen *ast.GenDecl) error {
+	return nil
+}
+
+func (l *loader) typeInfo(gen *ast.GenDecl, typ types.Type, spec *ast.TypeSpec) error {
+	return nil
+}
