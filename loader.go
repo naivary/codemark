@@ -89,7 +89,7 @@ func (l *loader) fileToInfo(pkg *packages.Package, file *ast.File) error {
 		case token.VAR:
 			err = l.varInfo(pkg, genDecl)
 		case token.IMPORT:
-			err = l.importInfo(genDecl)
+			err = l.importInfo(pkg, genDecl)
 		case token.TYPE:
 			err = l.typeDecl(pkg, genDecl)
 		}
@@ -113,21 +113,13 @@ func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) error {
 		typ := pkg.TypesInfo.TypeOf(spec.Name)
 		alias, isAlias := typ.(*types.Alias)
 		if isAlias {
-			err := l.aliasInfo(gen, alias, spec)
+			err := l.aliasInfo(pkg, gen, alias, spec)
 			if err != nil {
 				return err
 			}
 			continue
 		}
 		named := typ.(*types.Named).Underlying()
-		pointer, isPointer := named.(*types.Pointer)
-		if isPointer {
-			err := l.typeInfo(gen, pointer.Elem(), spec)
-			if err != nil {
-				return err
-			}
-			continue
-		}
 		strct, isStruct := named.(*types.Struct)
 		if isStruct {
 			err := l.structInfo(pkg, gen, strct, spec)
@@ -144,6 +136,12 @@ func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) error {
 			}
 			continue
 		}
+		err := l.typeInfo(pkg, gen, named, spec)
+		if err != nil {
+			return err
+		}
+		continue
+
 	}
 	return nil
 }
@@ -321,6 +319,7 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 
 	for _, meth := range ifaceType.Methods.List {
 		if isEmbedded(meth) {
+			// TODO: handle embedded interfaces
 			continue
 		}
 		doc := meth.Doc.Text()
@@ -345,14 +344,70 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 
 }
 
-func (l *loader) aliasInfo(gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) error {
+func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) error {
+	typ := pkg.TypesInfo.TypeOf(spec.Type)
+	obj := pkg.TypesInfo.ObjectOf(spec.Name)
+	doc := gen.Doc.Text() + spec.Doc.Text()
+	defs, err := newDefinitions(doc, TargetAlias, l.conv)
+	if err != nil {
+		return err
+	}
+	info := &AliasInfo{
+		doc:   doc,
+		typ:   typ,
+		obj:   obj,
+		idn:   spec.Name,
+		defs:  defs,
+		alias: alias,
+	}
+	l.pkgInfo.Aliases = append(l.pkgInfo.Aliases, info)
 	return nil
 }
 
-func (l *loader) importInfo(gen *ast.GenDecl) error {
+func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
+	specs := convertSpecs[*ast.ImportSpec](gen.Specs)
+	importDoc := gen.Doc.Text()
+	defs, err := newDefinitions(importDoc, TargetImport, l.conv)
+	if err != nil {
+		return err
+	}
+	info := &ImportInfo{
+		defs: defs,
+		doc:  importDoc,
+	}
+
+	for _, spec := range specs {
+		doc := spec.Doc.Text()
+		defs, err := newDefinitions(doc, TargetImportedPackage, l.conv)
+		if err != nil {
+			return err
+		}
+		importedPkgInfo := &ImportedPackageInfo{
+			doc:  doc,
+			defs: defs,
+			spec: spec,
+		}
+		info.pkgs = append(info.pkgs, importedPkgInfo)
+	}
+	l.pkgInfo.Imports = append(l.pkgInfo.Imports, info)
 	return nil
 }
 
-func (l *loader) typeInfo(gen *ast.GenDecl, typ types.Type, spec *ast.TypeSpec) error {
+func (l *loader) typeInfo(pkg *packages.Package, gen *ast.GenDecl, typ types.Type, spec *ast.TypeSpec) error {
+	pkgTyp := pkg.TypesInfo.TypeOf(spec.Type)
+	obj := pkg.TypesInfo.ObjectOf(spec.Name)
+	doc := gen.Doc.Text() + spec.Doc.Text()
+	defs, err := newDefinitions(doc, TargetType, l.conv)
+	if err != nil {
+		return err
+	}
+	info := &TypeInfo{
+		idn:  spec.Name,
+		typ:  pkgTyp,
+		obj:  obj,
+		doc:  doc,
+		defs: defs,
+	}
+	l.pkgInfo.Types = append(l.pkgInfo.Types, info)
 	return nil
 }

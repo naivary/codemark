@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -43,7 +44,13 @@ func TestLoader(t *testing.T) {
 			if err != nil {
 				t.Fatal(err.Error())
 			}
-			_ = infos
+			for _, info := range infos {
+				for _, imp := range info.Imports {
+                    for _, pkg := range imp.Pkgs() {
+                        fmt.Println(pkg.Doc())
+                    }
+				}
+			}
 		})
 	}
 }

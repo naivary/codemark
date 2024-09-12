@@ -54,7 +54,7 @@ type PackageInfo struct {
 	doc  string
 	defs Definitions
 
-	Import     *ImportInfo
+	Imports    []*ImportInfo
 	Consts     []*ConstInfo
 	Vars       []*VarInfo
 	Funcs      []*FuncInfo
@@ -250,6 +250,10 @@ func (s StructInfo) Defs() Definitions {
 	return s.defs
 }
 
+func (s StructInfo) Name() string {
+	return s.idn.Name
+}
+
 var _ info = (*FieldInfo)(nil)
 
 type FieldInfo struct {
@@ -331,6 +335,10 @@ type TypeInfo struct {
 	doc  string
 	defs Definitions
 	decl *ast.GenDecl
+	idn  *ast.Ident
+
+	typ types.Type
+	obj types.Object
 }
 
 func (t TypeInfo) Doc() string {
@@ -341,16 +349,36 @@ func (t TypeInfo) Defs() Definitions {
 	return t.defs
 }
 
-func (t TypeInfo) IsPointer() bool {
-	return false
+func (t TypeInfo) Name() string {
+	return t.idn.Name
+}
+
+func (t TypeInfo) IsPointer() *types.Pointer {
+	pointer, isPointer := t.typ.(*types.Pointer)
+	if !isPointer {
+		return nil
+	}
+	return pointer
+}
+
+func (t TypeInfo) IsBasic() *types.Basic {
+	basic, isBasic := t.typ.(*types.Basic)
+	if !isBasic {
+		return nil
+	}
+	return basic
 }
 
 var _ info = (*AliasInfo)(nil)
 
 type AliasInfo struct {
 	doc  string
+	idn  *ast.Ident
 	defs Definitions
-	decl *ast.GenDecl
+	typ  types.Type
+	obj  types.Object
+
+	alias *types.Alias
 }
 
 func (a AliasInfo) Doc() string {
@@ -361,12 +389,21 @@ func (a AliasInfo) Defs() Definitions {
 	return a.defs
 }
 
+func (a AliasInfo) Name() string {
+	return a.idn.Name
+}
+
+func (a AliasInfo) Rhs() types.Type {
+	return a.alias.Rhs()
+}
+
 var _ info = (*ImportInfo)(nil)
 
 type ImportInfo struct {
 	doc  string
 	defs Definitions
-	decl *ast.GenDecl
+
+	pkgs []*ImportedPackageInfo
 }
 
 func (i ImportInfo) Doc() string {
@@ -375,4 +412,32 @@ func (i ImportInfo) Doc() string {
 
 func (i ImportInfo) Defs() Definitions {
 	return i.defs
+}
+
+func (i ImportInfo) Pkgs() []*ImportedPackageInfo {
+	return i.pkgs
+}
+
+var _ info = (*ImportedPackageInfo)(nil)
+
+type ImportedPackageInfo struct {
+	doc  string
+	defs Definitions
+	spec *ast.ImportSpec
+}
+
+func (i ImportedPackageInfo) Doc() string {
+	return i.doc
+}
+
+func (i ImportedPackageInfo) Defs() Definitions {
+	return i.defs
+}
+
+func (i ImportedPackageInfo) Path() *ast.BasicLit {
+	return i.spec.Path
+}
+
+func (i ImportedPackageInfo) Name() string {
+	return i.spec.Name.Name
 }

@@ -19,11 +19,11 @@ var (
 	vars     string
 )
 
-var _ fmt.Stringer = (*stringer)(nil)
+var _ fmt.Stringer = (*Stringer)(nil)
 
-type stringer struct{}
+type Stringer struct{}
 
-func (s stringer) String() string {
+func (s Stringer) String() string {
 	return ""
 }
 
