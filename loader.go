@@ -307,43 +307,39 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 	typ := pkg.TypesInfo.TypeOf(spec.Type)
 	obj := pkg.TypesInfo.ObjectOf(spec.Name)
 	doc := gen.Doc.Text() + spec.Doc.Text()
-	info := &InterfaceInfo{
-		doc: doc,
-		idn: spec.Name,
-		typ: typ,
-		obj: obj,
+	defs, err := newDefinitions(doc, TargetInterface, l.conv)
+	if err != nil {
+		return err
 	}
+	info := &InterfaceInfo{
+		doc:  doc,
+		idn:  spec.Name,
+		typ:  typ,
+		obj:  obj,
+		defs: defs,
+	}
+
 	for _, meth := range ifaceType.Methods.List {
 		if isEmbedded(meth) {
-			// embedded interfaces will be handled in the next step
-			typ := pkg.TypesInfo.TypeOf(meth.Type)
-			t := typ.(*types.Named).Underlying().(*types.Interface)
-			idn := meth.Type.(*ast.Ident)
-			obj := pkg.TypesInfo.ObjectOf(idn)
-			signatureInfo := &SignatureInfo{
-				doc:        doc,
-				idn:        idn,
-				typ:        t.Method(0).Signature(),
-				obj:        obj,
-				isEmbedded: true,
-			}
-			info.signatures = append(info.signatures, signatureInfo)
 			continue
 		}
-		name := meth.Names[0]
 		doc := meth.Doc.Text()
-		typ := pkg.TypesInfo.TypeOf(meth.Type)
+		defs, err := newDefinitions(doc, TargetInterfaceSignature, l.conv)
+		if err != nil {
+			return err
+		}
+		name := meth.Names[0]
 		obj := pkg.TypesInfo.ObjectOf(name)
-
+		typ := pkg.TypesInfo.TypeOf(meth.Type)
 		signatureInfo := &SignatureInfo{
-			doc: doc,
-			idn: name,
-			typ: typ,
-			obj: obj,
+			doc:  doc,
+			idn:  name,
+			typ:  typ,
+			obj:  obj,
+			defs: defs,
 		}
 		info.signatures = append(info.signatures, signatureInfo)
 	}
-
 	l.pkgInfo.Interfaces = append(l.pkgInfo.Interfaces, info)
 	return nil
 

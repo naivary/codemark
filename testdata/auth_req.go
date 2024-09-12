@@ -48,9 +48,15 @@ type (
 	ptr = *struct{}
 )
 
+type twoMethodIface interface {
+	X() string
+	Z() int
+}
+
 // documentation for interface
 type Interface interface {
 	error
+	twoMethodIface
 	// docs for a
 	A(context.Context) error
 	// this is docs for b
