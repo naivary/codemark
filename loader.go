@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -10,8 +11,6 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-// TODO: I have to include eveything from types.* e.g. *types.Var or
-// *types.Signature etc.
 type Loader interface {
 	Load(patterns ...string) (map[string]*PackageInfo, error)
 }
@@ -48,6 +47,7 @@ func (l *loader) Load(patterns ...string) (map[string]*PackageInfo, error) {
 		return nil, errors.New("loaded packages are empty. Check that the defined patterns are matching any files")
 	}
 	for _, pkg := range pkgs {
+        fmt.Println(pkg.Syntax)
 		if len(pkg.Errors) > 0 {
 			return nil, pkg.Errors[0]
 		}
@@ -56,6 +56,9 @@ func (l *loader) Load(patterns ...string) (map[string]*PackageInfo, error) {
 				return nil, errors.New("no top-level declarations found")
 			}
 			if err := l.fileToInfo(pkg, file); err != nil {
+				return nil, err
+			}
+			if err := l.packageInfo(pkg, file); err != nil {
 				return nil, err
 			}
 			info[pkg.ID] = l.pkgInfo
@@ -143,6 +146,18 @@ func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) error {
 		continue
 
 	}
+	return nil
+}
+
+func (l *loader) packageInfo(pkg *packages.Package, file *ast.File) error {
+	doc := file.Doc.Text()
+	defs, err := newDefinitions(doc, TargetPackage, l.conv)
+	if err != nil {
+		return err
+	}
+	l.pkgInfo.doc = doc
+	l.pkgInfo.defs = defs
+	l.pkgInfo.file = file
 	return nil
 }
 
@@ -378,7 +393,6 @@ func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 		defs: defs,
 		doc:  importDoc,
 	}
-
 	for _, spec := range specs {
 		doc := spec.Doc.Text()
 		defs, err := newDefinitions(doc, TargetImportedPackage, l.conv)

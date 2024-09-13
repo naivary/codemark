@@ -53,6 +53,7 @@ var _ info = (*PackageInfo)(nil)
 type PackageInfo struct {
 	doc  string
 	defs Definitions
+	file *ast.File
 
 	Imports    []*ImportInfo
 	Consts     []*ConstInfo
@@ -71,6 +72,10 @@ func (p PackageInfo) Doc() string {
 
 func (p PackageInfo) Defs() Definitions {
 	return p.defs
+}
+
+func (p PackageInfo) Name() string {
+	return p.file.Name.Name
 }
 
 var _ info = (*MethodInfo)(nil)
@@ -276,6 +281,14 @@ func (f FieldInfo) Defs() Definitions {
 
 func (f FieldInfo) IsEmbedded() bool {
 	return f.idn == nil
+}
+
+func (f FieldInfo) Name() string {
+	return f.idn.Name
+}
+
+func (f FieldInfo) Type() types.Type {
+	return f.typ
 }
 
 var _ info = (*InterfaceInfo)(nil)

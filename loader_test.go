@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 )
@@ -13,7 +12,7 @@ func TestLoader(t *testing.T) {
 	}{
 		{
 			name:  "simple file",
-			paths: []string{"testdata/auth_req.go"},
+			paths: []string{"testdata/auth_req.go", "testdata/consts.go", "testdata/docs.go"},
 		},
 		{
 			name:  "sub directory",
@@ -27,6 +26,7 @@ func TestLoader(t *testing.T) {
 		MakeDef("path:to:iface", TargetInterface, reflect.TypeOf(i(int(0)))),
 		MakeDef("path:to:func", TargetFunc, reflect.TypeOf(i(int(0)))),
 		MakeDef("path:to:field", TargetField, reflect.TypeOf(i(int(0)))),
+		MakeDef("path:to:pkg", TargetPackage, reflect.TypeOf(str(""))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -45,11 +45,8 @@ func TestLoader(t *testing.T) {
 				t.Fatal(err.Error())
 			}
 			for _, info := range infos {
-				for _, imp := range info.Imports {
-                    for _, pkg := range imp.Pkgs() {
-                        fmt.Println(pkg.Doc())
-                    }
-				}
+				t.Log(info.Defs())
+				t.Log(info.Name())
 			}
 		})
 	}
