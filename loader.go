@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -27,6 +28,10 @@ type File struct {
 
 func (f File) Path() string {
 	return f.path
+}
+
+func (f File) Name() string {
+	return filepath.Base(f.Path())
 }
 
 func NewFile() *File {
@@ -309,43 +314,43 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 
 	for _, field := range structType.Fields.List {
 		if isEmbedded(field) {
-			typ := pkg.TypesInfo.TypeOf(field.Type)
-			doc := field.Doc.Text()
-			defs, err := newDefinitions(doc, TargetField, l.conv)
+			fieldInfo, err := l.newFieldInfo(pkg, nil, field)
 			if err != nil {
 				return err
-			}
-			fieldInfo := &FieldInfo{
-				doc:  doc,
-				expr: field.Type,
-				typ:  typ,
-				defs: defs,
 			}
 			info.fields = append(info.fields, fieldInfo)
 			continue
 		}
 
 		for _, idn := range field.Names {
-			typ := pkg.TypesInfo.TypeOf(field.Type)
-			obj := pkg.TypesInfo.ObjectOf(idn)
-			doc := field.Doc.Text()
-			defs, err := newDefinitions(doc, TargetField, l.conv)
+			fieldInfo, err := l.newFieldInfo(pkg, idn, field)
 			if err != nil {
 				return err
-			}
-			fieldInfo := &FieldInfo{
-				doc:  doc,
-				idn:  idn,
-				expr: field.Type,
-				typ:  typ,
-				obj:  obj,
-				defs: defs,
 			}
 			info.fields = append(info.fields, fieldInfo)
 		}
 	}
 	l.file.Structs = append(l.file.Structs, info)
 	return nil
+}
+
+func (l *loader) newFieldInfo(pkg *packages.Package, idn *ast.Ident, field *ast.Field) (*FieldInfo, error) {
+	typ := pkg.TypesInfo.TypeOf(field.Type)
+	obj := pkg.TypesInfo.ObjectOf(idn)
+	doc := field.Doc.Text()
+	defs, err := newDefinitions(doc, TargetField, l.conv)
+	if err != nil {
+		return nil, err
+	}
+	fieldInfo := &FieldInfo{
+		doc:  doc,
+		idn:  idn,
+		expr: field.Type,
+		typ:  typ,
+		obj:  obj,
+		defs: defs,
+	}
+	return fieldInfo, nil
 }
 
 func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *types.Interface, spec *ast.TypeSpec) error {

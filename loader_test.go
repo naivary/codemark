@@ -40,10 +40,20 @@ func TestLoader(t *testing.T) {
 		}
 		t.Run(tc.name, func(t *testing.T) {
 			l := NewLoader(conv, nil)
-			_, err := l.Load(tc.paths...)
+			infos, err := l.Load(tc.paths...)
 			if err != nil {
-				t.Fatal(err.Error())
+				t.Fatalf("error occured while loading package: %v\n", err)
 			}
+			for _, files := range infos {
+				for _, file := range files {
+					for _, str := range file.Structs {
+						for _, field := range str.fields {
+							t.Log(field.IsEmbedded())
+						}
+					}
+				}
+			}
+
 		})
 	}
 }
