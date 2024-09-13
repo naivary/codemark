@@ -54,27 +54,17 @@ type PackageInfo struct {
 	doc  string
 	defs Definitions
 	file *ast.File
-
-	Imports    []*ImportInfo
-	Consts     []*ConstInfo
-	Vars       []*VarInfo
-	Funcs      []*FuncInfo
-	Methods    []*MethodInfo
-	Structs    []*StructInfo
-	Types      []*TypeInfo
-	Aliases    []*AliasInfo
-	Interfaces []*InterfaceInfo
 }
 
-func (p PackageInfo) Doc() string {
+func (p *PackageInfo) Doc() string {
 	return p.doc
 }
 
-func (p PackageInfo) Defs() Definitions {
+func (p *PackageInfo) Defs() Definitions {
 	return p.defs
 }
 
-func (p PackageInfo) Name() string {
+func (p *PackageInfo) Name() string {
 	return p.file.Name.Name
 }
 

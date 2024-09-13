@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -11,14 +10,51 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+type File struct {
+	path string
+
+	Package    *PackageInfo
+	Import     *ImportInfo
+	Consts     []*ConstInfo
+	Vars       []*VarInfo
+	Funcs      []*FuncInfo
+	Methods    []*MethodInfo
+	Structs    []*StructInfo
+	Types      []*TypeInfo
+	Aliases    []*AliasInfo
+	Interfaces []*InterfaceInfo
+}
+
+func (f File) Path() string {
+	return f.path
+}
+
+func NewFile() *File {
+	return &File{
+		Package: &PackageInfo{},
+		Import:  &ImportInfo{},
+	}
+}
+
+type Files map[string][]*File
+
+func (f Files) add(id string, file *File) {
+	files, ok := f[id]
+	if !ok {
+		f[id] = []*File{file}
+		return
+	}
+	f[id] = append(files, file)
+}
+
 type Loader interface {
-	Load(patterns ...string) (map[string]*PackageInfo, error)
+	Load(patterns ...string) (Files, error)
 }
 
 func NewLoader(conv Converter, cfg *packages.Config) Loader {
 	l := &loader{
-		conv:    conv,
-		pkgInfo: &PackageInfo{},
+		conv: conv,
+		file: NewFile(),
 	}
 	if cfg == nil {
 		l.cfg = l.defaultConfig()
@@ -32,13 +68,13 @@ func NewLoader(conv Converter, cfg *packages.Config) Loader {
 var _ Loader = (*loader)(nil)
 
 type loader struct {
-	conv    Converter
-	cfg     *packages.Config
-	pkgInfo *PackageInfo
+	conv Converter
+	cfg  *packages.Config
+	file *File
 }
 
-func (l *loader) Load(patterns ...string) (map[string]*PackageInfo, error) {
-	info := make(map[string]*PackageInfo, len(patterns))
+func (l *loader) Load(patterns ...string) (Files, error) {
+	infos := make(Files, len(patterns))
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -47,25 +83,22 @@ func (l *loader) Load(patterns ...string) (map[string]*PackageInfo, error) {
 		return nil, errors.New("loaded packages are empty. Check that the defined patterns are matching any files")
 	}
 	for _, pkg := range pkgs {
-        fmt.Println(pkg.Syntax)
 		if len(pkg.Errors) > 0 {
 			return nil, pkg.Errors[0]
 		}
 		for _, file := range pkg.Syntax {
-			if file.Decls == nil {
-				return nil, errors.New("no top-level declarations found")
-			}
 			if err := l.fileToInfo(pkg, file); err != nil {
 				return nil, err
 			}
 			if err := l.packageInfo(pkg, file); err != nil {
 				return nil, err
 			}
-			info[pkg.ID] = l.pkgInfo
-			l.pkgInfo = &PackageInfo{}
+			l.file.path = pkg.Fset.Position(file.Package).Filename
+			infos.add(pkg.ID, l.file)
+			l.file = NewFile()
 		}
 	}
-	return info, nil
+	return infos, nil
 }
 
 func (l *loader) defaultConfig() *packages.Config {
@@ -155,9 +188,9 @@ func (l *loader) packageInfo(pkg *packages.Package, file *ast.File) error {
 	if err != nil {
 		return err
 	}
-	l.pkgInfo.doc = doc
-	l.pkgInfo.defs = defs
-	l.pkgInfo.file = file
+	l.file.Package.doc = doc
+	l.file.Package.defs = defs
+	l.file.Package.file = file
 	return nil
 }
 
@@ -176,7 +209,7 @@ func (l *loader) funcInfo(pkg *packages.Package, fn *ast.FuncDecl) error {
 		typ:  typ,
 		obj:  obj,
 	}
-	l.pkgInfo.Funcs = append(l.pkgInfo.Funcs, info)
+	l.file.Funcs = append(l.file.Funcs, info)
 	return nil
 }
 
@@ -195,7 +228,7 @@ func (l *loader) methodInfo(pkg *packages.Package, meth *ast.FuncDecl) error {
 		typ:  typ,
 		Decl: meth,
 	}
-	l.pkgInfo.Methods = append(l.pkgInfo.Methods, info)
+	l.file.Methods = append(l.file.Methods, info)
 	return nil
 }
 
@@ -222,7 +255,7 @@ func (l *loader) constInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 				obj:   obj,
 				defs:  defs,
 			}
-			l.pkgInfo.Consts = append(l.pkgInfo.Consts, info)
+			l.file.Consts = append(l.file.Consts, info)
 		}
 	}
 	return nil
@@ -251,7 +284,7 @@ func (l *loader) varInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 				obj:   obj,
 				defs:  defs,
 			}
-			l.pkgInfo.Vars = append(l.pkgInfo.Vars, info)
+			l.file.Vars = append(l.file.Vars, info)
 		}
 	}
 	return nil
@@ -311,7 +344,7 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 			info.fields = append(info.fields, fieldInfo)
 		}
 	}
-	l.pkgInfo.Structs = append(l.pkgInfo.Structs, info)
+	l.file.Structs = append(l.file.Structs, info)
 	return nil
 }
 
@@ -357,7 +390,7 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 		}
 		info.signatures = append(info.signatures, signatureInfo)
 	}
-	l.pkgInfo.Interfaces = append(l.pkgInfo.Interfaces, info)
+	l.file.Interfaces = append(l.file.Interfaces, info)
 	return nil
 
 }
@@ -378,7 +411,7 @@ func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types
 		defs:  defs,
 		alias: alias,
 	}
-	l.pkgInfo.Aliases = append(l.pkgInfo.Aliases, info)
+	l.file.Aliases = append(l.file.Aliases, info)
 	return nil
 }
 
@@ -406,7 +439,7 @@ func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 		}
 		info.pkgs = append(info.pkgs, importedPkgInfo)
 	}
-	l.pkgInfo.Imports = append(l.pkgInfo.Imports, info)
+	l.file.Import = info
 	return nil
 }
 
@@ -425,6 +458,6 @@ func (l *loader) typeInfo(pkg *packages.Package, gen *ast.GenDecl, typ types.Typ
 		doc:  doc,
 		defs: defs,
 	}
-	l.pkgInfo.Types = append(l.pkgInfo.Types, info)
+	l.file.Types = append(l.file.Types, info)
 	return nil
 }

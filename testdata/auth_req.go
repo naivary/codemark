@@ -1,4 +1,5 @@
 // this is thed ocumentation for the pkg
+// +path:to:pkg="something"
 package testdata
 
 // import docs
