@@ -321,7 +321,6 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 			info.fields = append(info.fields, fieldInfo)
 			continue
 		}
-
 		for _, idn := range field.Names {
 			fieldInfo, err := l.newFieldInfo(pkg, idn, field)
 			if err != nil {
@@ -371,33 +370,57 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 	}
 
 	for _, meth := range ifaceType.Methods.List {
+		sigInfo, err := l.newSignatureInfo(pkg, meth)
 		if isEmbedded(meth) {
-			// TODO: for now embedded fields will be ignored but there should be
-			// a consistent rule how to integreate them as signature
-			// informations. Maybe a slice which is containing the other
-			// interfaces found?
-			continue
+			sigInfo, err = l.newEmbeddedSignatureInfo(pkg, meth)
 		}
-		doc := meth.Doc.Text()
-		defs, err := newDefinitions(doc, TargetInterfaceSignature, l.conv)
 		if err != nil {
 			return err
 		}
-		name := meth.Names[0]
-		obj := pkg.TypesInfo.ObjectOf(name)
-		typ := pkg.TypesInfo.TypeOf(meth.Type)
-		signatureInfo := &SignatureInfo{
-			doc:  doc,
-			idn:  name,
-			typ:  typ,
-			obj:  obj,
-			defs: defs,
-		}
-		info.signatures = append(info.signatures, signatureInfo)
+		info.signatures = append(info.signatures, sigInfo)
 	}
 	l.file.Interfaces = append(l.file.Interfaces, info)
 	return nil
+}
 
+func (l *loader) newSignatureInfo(pkg *packages.Package, meth *ast.Field) (*SignatureInfo, error) {
+	doc := meth.Doc.Text()
+	defs, err := newDefinitions(doc, TargetInterfaceSignature, l.conv)
+	if err != nil {
+		return nil, err
+	}
+	name := meth.Names[0]
+	obj := pkg.TypesInfo.ObjectOf(name)
+	typ := pkg.TypesInfo.TypeOf(meth.Type)
+	signatureInfo := &SignatureInfo{
+		doc:  doc,
+		idn:  name,
+		typ:  typ,
+		obj:  obj,
+		defs: defs,
+	}
+	return signatureInfo, nil
+}
+
+func (l *loader) newEmbeddedSignatureInfo(pkg *packages.Package, meth *ast.Field) (*SignatureInfo, error) {
+	typ := pkg.TypesInfo.TypeOf(meth.Type)
+	embeddedIface := typ.(*types.Named).Underlying().(*types.Interface)
+	doc := meth.Doc.Text()
+	defs, err := newDefinitions(doc, TargetInterfaceSignature, l.conv)
+	if err != nil {
+		return nil, err
+	}
+	sigInfo := &SignatureInfo{
+		doc: doc,
+		// typ is not *types.Signature because its embedded
+		typ:        embeddedIface,
+		obj:        pkg.TypesInfo.ObjectOf(meth.Type.(*ast.Ident)),
+		idn:        meth.Type.(*ast.Ident),
+		defs:       defs,
+		isEmbedded: true,
+	}
+
+	return sigInfo, nil
 }
 
 func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) error {

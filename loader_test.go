@@ -44,16 +44,7 @@ func TestLoader(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error occured while loading package: %v\n", err)
 			}
-			for _, files := range infos {
-				for _, file := range files {
-					for _, str := range file.Structs {
-						for _, field := range str.fields {
-							t.Log(field.IsEmbedded())
-						}
-					}
-				}
-			}
-
+            _ = infos
 		})
 	}
 }
