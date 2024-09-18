@@ -1,4 +1,4 @@
-package main
+package codemark
 
 import (
 	"errors"
@@ -368,12 +368,8 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 		obj:  obj,
 		defs: defs,
 	}
-
 	for _, meth := range ifaceType.Methods.List {
 		sigInfo, err := l.newSignatureInfo(pkg, meth)
-		if isEmbedded(meth) {
-			sigInfo, err = l.newEmbeddedSignatureInfo(pkg, meth)
-		}
 		if err != nil {
 			return err
 		}
@@ -384,6 +380,9 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 }
 
 func (l *loader) newSignatureInfo(pkg *packages.Package, meth *ast.Field) (*SignatureInfo, error) {
+	if isEmbedded(meth) {
+		return l.newEmbeddedSignatureInfo(pkg, meth)
+	}
 	doc := meth.Doc.Text()
 	defs, err := newDefinitions(doc, TargetInterfaceSignature, l.conv)
 	if err != nil {
