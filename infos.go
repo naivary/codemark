@@ -12,6 +12,19 @@ type info interface {
 	Doc() string
 	// Converted markers of the declaration
 	Defs() Definitions
+
+	Name() string
+}
+
+type Info struct {
+	Doc  string
+	Defs Definitions
+	Type types.Type
+	Obj  types.Object
+	Expr ast.Expr
+	Spec ast.Spec
+	Decl ast.Decl
+	Idn  *ast.Ident
 }
 
 // Converted markers to the given definitions. If multiple equal marker are
@@ -51,313 +64,223 @@ func (d Definitions) IsUnique(idn string) (any, bool) {
 var _ info = (*PackageInfo)(nil)
 
 type PackageInfo struct {
-	doc  string
-	defs Definitions
-	file *ast.File
+	Info *Info
+	File *ast.File
 }
 
 func (p *PackageInfo) Doc() string {
-	return p.doc
+	return p.Info.Doc
 }
 
 func (p *PackageInfo) Defs() Definitions {
-	return p.defs
+	return p.Info.Defs
 }
 
 func (p *PackageInfo) Name() string {
-	return p.file.Name.Name
+	return p.File.Name.Name
 }
 
 var _ info = (*MethodInfo)(nil)
 
 type MethodInfo struct {
-	doc  string
-	defs Definitions
-	typ  types.Type
-	obj  types.Object
-
-	Decl *ast.FuncDecl
+	Info *Info
 }
 
-func (m MethodInfo) Type() types.Type {
-	return m.typ
-}
-
-func (m MethodInfo) FuncType() *types.Func {
-	return m.obj.(*types.Func)
+func (m MethodInfo) funcDecl() *ast.FuncDecl {
+	return m.Info.Decl.(*ast.FuncDecl)
 }
 
 func (m MethodInfo) Doc() string {
-	return m.doc
+	return m.Info.Doc
 }
 
 func (m MethodInfo) Defs() Definitions {
-	return m.defs
+	return m.Info.Defs
 }
 
 func (m MethodInfo) Name() string {
-	return m.Decl.Name.Name
+	return m.funcDecl().Name.Name
 }
 
 func (m MethodInfo) ReceiverName() string {
-	field := m.Decl.Recv.List[0]
+	field := m.funcDecl().Recv.List[0]
 	if len(field.Names) == 0 {
 		return UnknownMethodName
 	}
 	return field.Names[0].Name
 }
 
-func (m MethodInfo) ReceiverExpr() ast.Expr {
-	return m.Decl.Recv.List[0].Type
+func (m MethodInfo) ReceiverType() ast.Expr {
+	return m.funcDecl().Recv.List[0].Type
 }
 
 func (m MethodInfo) Params() *ast.FieldList {
-	return m.Decl.Type.Params
+	return m.funcDecl().Type.Params
 }
 
 func (m MethodInfo) Returns() *ast.FieldList {
-	return m.Decl.Type.Results
+	return m.funcDecl().Type.Results
 }
 
 var _ info = (*FuncInfo)(nil)
 
 type FuncInfo struct {
-	doc  string
-	defs Definitions
-	obj  types.Object
-	typ  types.Type
+	Info *Info
+}
 
-	Decl *ast.FuncDecl
+func (f FuncInfo) funcDecl() *ast.FuncDecl {
+	return f.Info.Decl.(*ast.FuncDecl)
 }
 
 func (f FuncInfo) Doc() string {
-	return f.doc
+	return f.Info.Doc
 }
 
 func (f FuncInfo) Defs() Definitions {
-	return f.defs
+	return f.Info.Defs
 }
 
 func (f FuncInfo) Name() string {
-	return f.Decl.Name.Name
+	return f.funcDecl().Name.Name
 }
 
 func (f FuncInfo) Params() *ast.FieldList {
-	return f.Decl.Type.Params
+	return f.funcDecl().Type.Params
 }
 
 func (f FuncInfo) Returns() *ast.FieldList {
-	return f.Decl.Type.Results
-}
-
-func (f FuncInfo) FuncType() *types.Func {
-	return f.obj.(*types.Func)
-}
-
-func (f FuncInfo) Type() types.Type {
-	return f.typ
+	return f.funcDecl().Type.Results
 }
 
 var _ info = (*ConstInfo)(nil)
 
 type ConstInfo struct {
-	doc   string
-	defs  Definitions
-	idn   *ast.Ident
-	value ast.Expr
-	typ   types.Type
-	obj   types.Object
-
-	decl *ast.GenDecl
+	Info *Info
 }
 
 func (c ConstInfo) Doc() string {
-	return c.doc
+	return c.Info.Doc
 }
 
 func (c ConstInfo) Defs() Definitions {
-	return c.defs
+	return c.Info.Defs
 }
 
 func (c ConstInfo) Name() string {
-	return c.idn.Name
-}
-
-func (c ConstInfo) Value() ast.Expr {
-	return c.value
-}
-
-func (c ConstInfo) Ident() *ast.Ident {
-	return c.idn
+	return c.Info.Idn.Name
 }
 
 var _ info = (*VarInfo)(nil)
 
 type VarInfo struct {
-	doc   string
-	defs  Definitions
-	idn   *ast.Ident
-	value ast.Expr
-	typ   types.Type
-	obj   types.Object
-
-	decl *ast.GenDecl
+	Info *Info
 }
 
 func (v VarInfo) Doc() string {
-	return v.doc
+	return v.Info.Doc
 }
 
 func (v VarInfo) Defs() Definitions {
-	return v.defs
+	return v.Info.Defs
 }
 
 func (v VarInfo) Name() string {
-	return v.idn.Name
-}
-
-func (v VarInfo) Value() ast.Expr {
-	return v.value
-}
-
-func (v VarInfo) Ident() *ast.Ident {
-	return v.idn
+	return v.Info.Idn.Name
 }
 
 var _ info = (*StructInfo)(nil)
 
 type StructInfo struct {
-	doc    string
-	defs   Definitions
-	fields []*FieldInfo
-	idn    *ast.Ident
-	typ    types.Type
-	obj    types.Object
-	spec   *ast.TypeSpec
-	decl   *ast.GenDecl
+	Info   *Info
+	Fields []*FieldInfo
 }
 
 func (s StructInfo) Doc() string {
-	return s.doc
+	return s.Info.Doc
 }
 
 func (s StructInfo) Defs() Definitions {
-	return s.defs
+	return s.Info.Defs
 }
 
 func (s StructInfo) Name() string {
-	return s.idn.Name
+	return s.Info.Idn.Name
 }
 
 var _ info = (*FieldInfo)(nil)
 
 type FieldInfo struct {
-	idn  *ast.Ident
-	doc  string
-	expr ast.Expr
-	defs Definitions
-
-	typ types.Type
-	obj types.Object
+	Info *Info
 }
 
 func (f FieldInfo) Doc() string {
-	return f.doc
+	return f.Info.Doc
 }
 
 func (f FieldInfo) Defs() Definitions {
-	return f.defs
+	return f.Info.Defs
 }
 
 func (f FieldInfo) IsEmbedded() bool {
-	return f.idn == nil
+	return f.Info.Idn == nil
 }
 
 func (f FieldInfo) Name() string {
-	return f.idn.Name
-}
-
-func (f FieldInfo) Type() types.Type {
-	return f.typ
+	return f.Info.Idn.Name
 }
 
 var _ info = (*InterfaceInfo)(nil)
 
 type InterfaceInfo struct {
-	doc  string
-	defs Definitions
-	idn  *ast.Ident
-	typ  types.Type
-	obj  types.Object
-
-	signatures []*SignatureInfo
-	decl       *ast.GenDecl
+	Info       *Info
+	Signatures []*SignatureInfo
 }
 
 func (i InterfaceInfo) Doc() string {
-	return i.doc
+	return i.Info.Doc
 }
 
 func (i InterfaceInfo) Defs() Definitions {
-	return i.defs
+	return i.Info.Defs
 }
 
 func (i InterfaceInfo) Name() string {
-	return i.idn.Name
+	return i.Info.Idn.Name
 }
 
 type SignatureInfo struct {
-	doc  string
-	defs Definitions
-	idn  *ast.Ident
-	obj  types.Object
-	typ  types.Type
-
-	isEmbedded bool
+	Info       *Info
+	IsEmbedded bool
 }
 
 func (s SignatureInfo) Doc() string {
-	return s.doc
+	return s.Info.Doc
 }
 
 func (s SignatureInfo) Defs() Definitions {
-	return s.defs
-}
-
-func (s SignatureInfo) SignatureType() *types.Signature {
-	return s.typ.(*types.Signature)
-}
-
-func (s SignatureInfo) IsEmbedded() bool {
-	return s.isEmbedded
+	return s.Info.Defs
 }
 
 var _ info = (*TypeInfo)(nil)
 
 type TypeInfo struct {
-	doc  string
-	defs Definitions
-	decl *ast.GenDecl
-	idn  *ast.Ident
-
-	typ types.Type
-	obj types.Object
+	Info *Info
 }
 
 func (t TypeInfo) Doc() string {
-	return t.doc
+	return t.Info.Doc
 }
 
 func (t TypeInfo) Defs() Definitions {
-	return t.defs
+	return t.Info.Defs
 }
 
 func (t TypeInfo) Name() string {
-	return t.idn.Name
+	return t.Info.Idn.Name
 }
 
 func (t TypeInfo) IsPointer() *types.Pointer {
-	pointer, isPointer := t.typ.(*types.Pointer)
+	pointer, isPointer := t.Info.Type.(*types.Pointer)
 	if !isPointer {
 		return nil
 	}
@@ -365,7 +288,7 @@ func (t TypeInfo) IsPointer() *types.Pointer {
 }
 
 func (t TypeInfo) IsBasic() *types.Basic {
-	basic, isBasic := t.typ.(*types.Basic)
+	basic, isBasic := t.Info.Type.(*types.Basic)
 	if !isBasic {
 		return nil
 	}
@@ -375,72 +298,60 @@ func (t TypeInfo) IsBasic() *types.Basic {
 var _ info = (*AliasInfo)(nil)
 
 type AliasInfo struct {
-	doc  string
-	idn  *ast.Ident
-	defs Definitions
-	typ  types.Type
-	obj  types.Object
-
-	alias *types.Alias
+	Info *Info
 }
 
 func (a AliasInfo) Doc() string {
-	return a.doc
+	return a.Info.Doc
 }
 
 func (a AliasInfo) Defs() Definitions {
-	return a.defs
+	return a.Info.Defs
 }
 
 func (a AliasInfo) Name() string {
-	return a.idn.Name
+	return a.Info.Idn.Name
 }
 
 func (a AliasInfo) Rhs() types.Type {
-	return a.alias.Rhs()
+	alias := a.Info.Type.(*types.Alias)
+	return alias.Rhs()
 }
 
 var _ info = (*ImportInfo)(nil)
 
 type ImportInfo struct {
-	doc  string
-	defs Definitions
-
-	pkgs []*ImportedPackageInfo
+	Info *Info
+	Pkgs []*ImportedPackageInfo
 }
 
 func (i ImportInfo) Doc() string {
-	return i.doc
+	return i.Info.Doc
 }
 
 func (i ImportInfo) Defs() Definitions {
-	return i.defs
+	return i.Info.Defs
 }
 
-func (i ImportInfo) Pkgs() []*ImportedPackageInfo {
-	return i.pkgs
+func (i ImportInfo) Name() string {
+	return ""
 }
 
 var _ info = (*ImportedPackageInfo)(nil)
 
 type ImportedPackageInfo struct {
-	doc  string
-	defs Definitions
-	spec *ast.ImportSpec
+	Info *Info
 }
 
 func (i ImportedPackageInfo) Doc() string {
-	return i.doc
+	return i.Info.Doc
 }
 
 func (i ImportedPackageInfo) Defs() Definitions {
-	return i.defs
-}
-
-func (i ImportedPackageInfo) Path() *ast.BasicLit {
-	return i.spec.Path
+	return i.Info.Defs
 }
 
 func (i ImportedPackageInfo) Name() string {
-	return i.spec.Name.Name
+	spec := i.Info.Spec.(*ast.ImportSpec)
+	return spec.Name.Name
 }

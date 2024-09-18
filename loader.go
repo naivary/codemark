@@ -193,9 +193,9 @@ func (l *loader) packageInfo(pkg *packages.Package, file *ast.File) error {
 	if err != nil {
 		return err
 	}
-	l.file.Package.doc = doc
-	l.file.Package.defs = defs
-	l.file.Package.file = file
+	l.file.Package.Info.Doc = doc
+	l.file.Package.Info.Defs = defs
+	l.file.Package.File = file
 	return nil
 }
 
@@ -207,14 +207,14 @@ func (l *loader) funcInfo(pkg *packages.Package, fn *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := &FuncInfo{
-		doc:  doc,
-		defs: defs,
+	info := &Info{
+		Doc:  doc,
+		Defs: defs,
 		Decl: fn,
-		typ:  typ,
-		obj:  obj,
+		Type: typ,
+		Obj:  obj,
 	}
-	l.file.Funcs = append(l.file.Funcs, info)
+	l.file.Funcs = append(l.file.Funcs, &FuncInfo{info})
 	return nil
 }
 
@@ -226,14 +226,14 @@ func (l *loader) methodInfo(pkg *packages.Package, meth *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := &MethodInfo{
-		doc:  doc,
-		defs: defs,
-		obj:  obj,
-		typ:  typ,
+	info := &Info{
+		Doc:  doc,
+		Defs: defs,
+		Obj:  obj,
+		Type: typ,
 		Decl: meth,
 	}
-	l.file.Methods = append(l.file.Methods, info)
+	l.file.Methods = append(l.file.Methods, &MethodInfo{info})
 	return nil
 }
 
@@ -252,15 +252,16 @@ func (l *loader) constInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 			}
 			typ := pkg.TypesInfo.TypeOf(value)
 			obj := pkg.TypesInfo.ObjectOf(idn)
-			info := &ConstInfo{
-				doc:   doc,
-				idn:   idn,
-				value: value,
-				typ:   typ,
-				obj:   obj,
-				defs:  defs,
+			info := &Info{
+				Doc:  doc,
+				Defs: defs,
+				Idn:  idn,
+				Type: typ,
+				Obj:  obj,
+				Expr: value,
+				Spec: spec,
 			}
-			l.file.Consts = append(l.file.Consts, info)
+			l.file.Consts = append(l.file.Consts, &ConstInfo{info})
 		}
 	}
 	return nil
@@ -281,15 +282,16 @@ func (l *loader) varInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 			}
 			typ := pkg.TypesInfo.TypeOf(value)
 			obj := pkg.TypesInfo.ObjectOf(idn)
-			info := &VarInfo{
-				doc:   doc,
-				idn:   idn,
-				value: value,
-				typ:   typ,
-				obj:   obj,
-				defs:  defs,
+			info := &Info{
+				Doc:  doc,
+				Defs: defs,
+				Idn:  idn,
+				Type: typ,
+				Obj:  obj,
+				Expr: value,
+				Spec: spec,
 			}
-			l.file.Vars = append(l.file.Vars, info)
+			l.file.Vars = append(l.file.Vars, &VarInfo{info})
 		}
 	}
 	return nil
@@ -303,13 +305,14 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 		return err
 	}
 	info := &StructInfo{
-		idn:    spec.Name,
-		doc:    doc,
-		defs:   defs,
-		typ:    strct,
-		obj:    pkg.TypesInfo.ObjectOf(spec.Name),
-		spec:   spec,
-		fields: make([]*FieldInfo, 0, len(structType.Fields.List)),
+		Info: &Info{
+			Doc:  doc,
+			Defs: defs,
+			Type: strct,
+			Obj:  pkg.TypesInfo.ObjectOf(spec.Name),
+			Spec: spec,
+		},
+		Fields: make([]*FieldInfo, 0, len(structType.Fields.List)),
 	}
 
 	for _, field := range structType.Fields.List {
@@ -318,7 +321,7 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 			if err != nil {
 				return err
 			}
-			info.fields = append(info.fields, fieldInfo)
+			info.Fields = append(info.Fields, fieldInfo)
 			continue
 		}
 		for _, idn := range field.Names {
@@ -326,7 +329,7 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 			if err != nil {
 				return err
 			}
-			info.fields = append(info.fields, fieldInfo)
+			info.Fields = append(info.Fields, fieldInfo)
 		}
 	}
 	l.file.Structs = append(l.file.Structs, info)
@@ -341,15 +344,15 @@ func (l *loader) newFieldInfo(pkg *packages.Package, idn *ast.Ident, field *ast.
 	if err != nil {
 		return nil, err
 	}
-	fieldInfo := &FieldInfo{
-		doc:  doc,
-		idn:  idn,
-		expr: field.Type,
-		typ:  typ,
-		obj:  obj,
-		defs: defs,
+	info := &Info{
+		Doc:  doc,
+		Type: typ,
+		Obj:  obj,
+		Defs: defs,
+		Idn:  idn,
+		Expr: field.Type,
 	}
-	return fieldInfo, nil
+	return &FieldInfo{info}, nil
 }
 
 func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *types.Interface, spec *ast.TypeSpec) error {
@@ -362,18 +365,21 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 		return err
 	}
 	info := &InterfaceInfo{
-		doc:  doc,
-		idn:  spec.Name,
-		typ:  typ,
-		obj:  obj,
-		defs: defs,
+		Info: &Info{
+			Doc:  doc,
+			Defs: defs,
+			Type: typ,
+			Obj:  obj,
+			Spec: spec,
+		},
+		Signatures: make([]*SignatureInfo, 0, iface.NumMethods()+iface.NumEmbeddeds()),
 	}
 	for _, meth := range ifaceType.Methods.List {
 		sigInfo, err := l.newSignatureInfo(pkg, meth)
 		if err != nil {
 			return err
 		}
-		info.signatures = append(info.signatures, sigInfo)
+		info.Signatures = append(info.Signatures, sigInfo)
 	}
 	l.file.Interfaces = append(l.file.Interfaces, info)
 	return nil
@@ -391,14 +397,14 @@ func (l *loader) newSignatureInfo(pkg *packages.Package, meth *ast.Field) (*Sign
 	name := meth.Names[0]
 	obj := pkg.TypesInfo.ObjectOf(name)
 	typ := pkg.TypesInfo.TypeOf(meth.Type)
-	signatureInfo := &SignatureInfo{
-		doc:  doc,
-		idn:  name,
-		typ:  typ,
-		obj:  obj,
-		defs: defs,
+	info := &Info{
+		Doc:  doc,
+		Defs: defs,
+		Idn:  name,
+		Type: typ,
+		Obj:  obj,
 	}
-	return signatureInfo, nil
+	return &SignatureInfo{Info: info}, nil
 }
 
 func (l *loader) newEmbeddedSignatureInfo(pkg *packages.Package, meth *ast.Field) (*SignatureInfo, error) {
@@ -409,17 +415,16 @@ func (l *loader) newEmbeddedSignatureInfo(pkg *packages.Package, meth *ast.Field
 	if err != nil {
 		return nil, err
 	}
-	sigInfo := &SignatureInfo{
-		doc: doc,
-		// typ is not *types.Signature because its embedded
-		typ:        embeddedIface,
-		obj:        pkg.TypesInfo.ObjectOf(meth.Type.(*ast.Ident)),
-		idn:        meth.Type.(*ast.Ident),
-		defs:       defs,
-		isEmbedded: true,
+	idn := meth.Type.(*ast.Ident)
+	obj := pkg.TypesInfo.ObjectOf(idn)
+	info := &Info{
+		Doc:  doc,
+		Defs: defs,
+		Type: embeddedIface,
+		Obj:  obj,
+		Idn:  idn,
 	}
-
-	return sigInfo, nil
+	return &SignatureInfo{Info: info, IsEmbedded: true}, nil
 }
 
 func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) error {
@@ -430,19 +435,19 @@ func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types
 	if err != nil {
 		return err
 	}
-	info := &AliasInfo{
-		doc:   doc,
-		typ:   typ,
-		obj:   obj,
-		idn:   spec.Name,
-		defs:  defs,
-		alias: alias,
+	info := &Info{
+		Doc:  doc,
+		Defs: defs,
+		Type: typ,
+		Obj:  obj,
+		Idn:  spec.Name,
 	}
-	l.file.Aliases = append(l.file.Aliases, info)
+	l.file.Aliases = append(l.file.Aliases, &AliasInfo{info})
 	return nil
 }
 
 func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
+	// TODO: Missing Type and Obj, spec etc.
 	specs := convertSpecs[*ast.ImportSpec](gen.Specs)
 	importDoc := gen.Doc.Text()
 	defs, err := newDefinitions(importDoc, TargetImport, l.conv)
@@ -450,8 +455,10 @@ func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 		return err
 	}
 	info := &ImportInfo{
-		defs: defs,
-		doc:  importDoc,
+		Info: &Info{
+			Doc:  importDoc,
+			Defs: defs,
+		},
 	}
 	for _, spec := range specs {
 		doc := spec.Doc.Text()
@@ -460,31 +467,31 @@ func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 			return err
 		}
 		importedPkgInfo := &ImportedPackageInfo{
-			doc:  doc,
-			defs: defs,
-			spec: spec,
+			Info: &Info{
+				Doc:  doc,
+				Defs: defs,
+				Spec: spec,
+			},
 		}
-		info.pkgs = append(info.pkgs, importedPkgInfo)
+		info.Pkgs = append(info.Pkgs, importedPkgInfo)
 	}
 	l.file.Import = info
 	return nil
 }
 
 func (l *loader) typeInfo(pkg *packages.Package, gen *ast.GenDecl, typ types.Type, spec *ast.TypeSpec) error {
-	pkgTyp := pkg.TypesInfo.TypeOf(spec.Type)
 	obj := pkg.TypesInfo.ObjectOf(spec.Name)
 	doc := gen.Doc.Text() + spec.Doc.Text()
 	defs, err := newDefinitions(doc, TargetType, l.conv)
 	if err != nil {
 		return err
 	}
-	info := &TypeInfo{
-		idn:  spec.Name,
-		typ:  pkgTyp,
-		obj:  obj,
-		doc:  doc,
-		defs: defs,
+	info := &Info{
+		Doc:  doc,
+		Defs: defs,
+		Type: typ,
+		Obj:  obj,
 	}
-	l.file.Types = append(l.file.Types, info)
+	l.file.Types = append(l.file.Types, &TypeInfo{info})
 	return nil
 }
