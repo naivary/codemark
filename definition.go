@@ -6,9 +6,9 @@ import (
 
 func MakeDef(idn string, t Target, output reflect.Type) *Definition {
 	def := &Definition{
-		identifier: idn,
-		target:     t,
-		output:     output,
+		Ident:      idn,
+		Target:     t,
+		Output:     output,
 		underlying: underlying(output),
 	}
 	def.kind = def.nonPtrKind()
@@ -17,27 +17,27 @@ func MakeDef(idn string, t Target, output reflect.Type) *Definition {
 
 func MakeDefWithHelp(name string, t Target, output reflect.Type, help *DefinitionHelp) *Definition {
 	def := MakeDef(name, t, output)
-	def.help = help
+	def.Help = help
 	return def
 }
 
 type Definition struct {
 	// Name of the definition in the correct format
 	// e.g. +path:to:mark
-	identifier string
+	Ident string
 
 	// The output type to which the value
 	// of the marker will be converted to
-	output reflect.Type
+	Output reflect.Type
 
 	// TargetType defines on which type of
 	// target it can be applied e.g. constants,
 	// functions, types, variables etc.
-	target Target
+	Target Target
 
-	help *DefinitionHelp
+	Help *DefinitionHelp
 
-	deprecatedInFavorOf *string
+	DeprecatedInFavorOf *string
 
 	underlying reflect.Type
 
@@ -51,27 +51,11 @@ type DefinitionHelp struct {
 }
 
 func (d *Definition) DeprecateInFavorOf(marker string) {
-	d.deprecatedInFavorOf = &marker
+	d.DeprecatedInFavorOf = &marker
 }
 
 func (d *Definition) IsDeprecated() (*string, bool) {
-	return d.deprecatedInFavorOf, d.deprecatedInFavorOf == nil
-}
-
-func (d *Definition) Idn() string {
-	return d.identifier
-}
-
-func (d *Definition) Output() reflect.Type {
-	return d.output
-}
-
-func (d *Definition) Target() Target {
-	return d.target
-}
-
-func (d *Definition) Help() *DefinitionHelp {
-	return d.help
+	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf == nil
 }
 
 func (d *Definition) typ() reflect.Type {
@@ -90,18 +74,18 @@ func (d *Definition) nonPtrType() reflect.Type {
 }
 
 func (d *Definition) nonPtrKind() reflect.Kind {
-	kind := d.output.Kind()
+	kind := d.Output.Kind()
 	if kind != reflect.Pointer {
 		return kind
 	}
-	return d.output.Elem().Kind()
+	return d.Output.Elem().Kind()
 }
 
 func (d *Definition) sliceType() reflect.Type {
 	if d.kind != reflect.Slice {
 		return nil
 	}
-	typ := d.output.Elem()
+	typ := d.Output.Elem()
 	if typ.Kind() == reflect.Slice {
 		return typ.Elem()
 	}
