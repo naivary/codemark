@@ -214,9 +214,9 @@ func (l *loader) funcInfo(pkg *packages.Package, fn *ast.FuncDecl) error {
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		decl: fn,
-		typ:  typ,
-		obj:  obj,
+		//decl: fn,
+		typ: typ,
+		obj: obj,
 	}
 	l.file.Funcs = append(l.file.Funcs, &FuncInfo{info})
 	return nil
@@ -235,7 +235,7 @@ func (l *loader) methodInfo(pkg *packages.Package, meth *ast.FuncDecl) error {
 		Defs: defs,
 		obj:  obj,
 		typ:  typ,
-		decl: meth,
+		//decl: meth,
 	}
 	l.file.Methods = append(l.file.Methods, &MethodInfo{info})
 	return nil

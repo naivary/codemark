@@ -23,8 +23,8 @@ type Info struct {
 	obj  types.Object
 	expr ast.Expr
 	spec ast.Spec
-	decl ast.Decl
-	idn  *ast.Ident
+	//decl ast.Decl
+	idn *ast.Ident
 }
 
 // Converted markers to the given definitions. If multiple equal marker are
@@ -90,9 +90,9 @@ type MethodInfo struct {
 	Info *Info
 }
 
-func (m MethodInfo) funcDecl() *ast.FuncDecl {
+/*func (m MethodInfo) funcDecl() *ast.FuncDecl {
 	return m.Info.decl.(*ast.FuncDecl)
-}
+}*/
 
 func (m MethodInfo) Doc() string {
 	return m.Info.Doc
@@ -103,6 +103,10 @@ func (m MethodInfo) Defs() Definitions {
 }
 
 func (m MethodInfo) Name() string {
+	return "unknown"
+}
+
+/*func (m MethodInfo) Name() string {
 	return m.funcDecl().Name.Name
 }
 
@@ -124,7 +128,7 @@ func (m MethodInfo) Params() *ast.FieldList {
 
 func (m MethodInfo) Returns() *ast.FieldList {
 	return m.funcDecl().Type.Results
-}
+}*/
 
 var _ info = (*FuncInfo)(nil)
 
@@ -132,9 +136,9 @@ type FuncInfo struct {
 	Info *Info
 }
 
-func (f FuncInfo) funcDecl() *ast.FuncDecl {
+/*func (f FuncInfo) funcDecl() *ast.FuncDecl {
 	return f.Info.decl.(*ast.FuncDecl)
-}
+}*/
 
 func (f FuncInfo) Doc() string {
 	return f.Info.Doc
@@ -145,6 +149,10 @@ func (f FuncInfo) Defs() Definitions {
 }
 
 func (f FuncInfo) Name() string {
+	return "unknown"
+}
+
+/*func (f FuncInfo) Name() string {
 	return f.funcDecl().Name.Name
 }
 
@@ -154,7 +162,7 @@ func (f FuncInfo) Params() *ast.FieldList {
 
 func (f FuncInfo) Returns() *ast.FieldList {
 	return f.funcDecl().Type.Results
-}
+}*/
 
 var _ info = (*ConstInfo)(nil)
 
