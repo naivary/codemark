@@ -61,6 +61,10 @@ func (d Definitions) IsUnique(idn string) (any, bool) {
 	return nil, false
 }
 
+func (d Definitions) IsEmpty() bool {
+	return len(d) == 0
+}
+
 var _ info = (*PackageInfo)(nil)
 
 type PackageInfo struct {
