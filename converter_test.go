@@ -206,8 +206,8 @@ func TestConverter_Convert(t *testing.T) {
 				t.Log(v)
 				def := reg.Get(marker.Ident())
 				typ := reflect.TypeOf(v)
-				if typ != def.Output {
-					t.Fatalf("conversion to definition type did not work. Expected: %v. Got: %v", def.Output, typ)
+				if typ != def.output {
+					t.Fatalf("conversion to definition type did not work. Expected: %v. Got: %v", def.output, typ)
 				}
 			}
 

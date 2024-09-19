@@ -147,7 +147,7 @@ func isSliceElemPtr(def *Definition) bool {
 }
 
 func isNonSlicePtr(def *Definition) bool {
-	return def.Output.Kind() == reflect.Pointer && def.kind != reflect.Slice
+	return def.output.Kind() == reflect.Pointer && def.kind != reflect.Slice
 }
 
 func valueOf[T any](val T, def *Definition) reflect.Value {
@@ -161,10 +161,10 @@ func valueOf[T any](val T, def *Definition) reflect.Value {
 }
 
 func toOutput(value reflect.Value, def *Definition) (any, error) {
-	if !value.CanConvert(def.Output) {
-		return nil, fmt.Errorf("conversion from `%v` to `%v` is not possible", value.Type(), def.Output)
+	if !value.CanConvert(def.output) {
+		return nil, fmt.Errorf("conversion from `%v` to `%v` is not possible", value.Type(), def.output)
 	}
-	output := value.Convert(def.Output)
+	output := value.Convert(def.output)
 	return output.Interface(), nil
 }
 

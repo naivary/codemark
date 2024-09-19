@@ -8,7 +8,7 @@ func MakeDef(idn string, t Target, output reflect.Type) *Definition {
 	def := &Definition{
 		Ident:      idn,
 		Target:     t,
-		Output:     output,
+		output:     output,
 		underlying: underlying(output),
 	}
 	def.kind = def.nonPtrKind()
@@ -28,7 +28,7 @@ type Definition struct {
 
 	// The output type to which the value
 	// of the marker will be converted to
-	Output reflect.Type
+	output reflect.Type
 
 	// TargetType defines on which type of
 	// target it can be applied e.g. constants,
@@ -74,18 +74,18 @@ func (d *Definition) nonPtrType() reflect.Type {
 }
 
 func (d *Definition) nonPtrKind() reflect.Kind {
-	kind := d.Output.Kind()
+	kind := d.output.Kind()
 	if kind != reflect.Pointer {
 		return kind
 	}
-	return d.Output.Elem().Kind()
+	return d.output.Elem().Kind()
 }
 
 func (d *Definition) sliceType() reflect.Type {
 	if d.kind != reflect.Slice {
 		return nil
 	}
-	typ := d.Output.Elem()
+	typ := d.output.Elem()
 	if typ.Kind() == reflect.Slice {
 		return typ.Elem()
 	}
