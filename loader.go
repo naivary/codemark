@@ -214,9 +214,9 @@ func (l *loader) funcInfo(pkg *packages.Package, fn *ast.FuncDecl) error {
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		Decl: fn,
-		Type: typ,
-		Obj:  obj,
+		decl: fn,
+		typ:  typ,
+		obj:  obj,
 	}
 	l.file.Funcs = append(l.file.Funcs, &FuncInfo{info})
 	return nil
@@ -233,9 +233,9 @@ func (l *loader) methodInfo(pkg *packages.Package, meth *ast.FuncDecl) error {
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		Obj:  obj,
-		Type: typ,
-		Decl: meth,
+		obj:  obj,
+		typ:  typ,
+		decl: meth,
 	}
 	l.file.Methods = append(l.file.Methods, &MethodInfo{info})
 	return nil
@@ -259,11 +259,11 @@ func (l *loader) constInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 			info := &Info{
 				Doc:  doc,
 				Defs: defs,
-				Idn:  idn,
-				Type: typ,
-				Obj:  obj,
-				Expr: value,
-				Spec: spec,
+				idn:  idn,
+				typ:  typ,
+				obj:  obj,
+				expr: value,
+				spec: spec,
 			}
 			l.file.Consts = append(l.file.Consts, &ConstInfo{info})
 		}
@@ -289,11 +289,11 @@ func (l *loader) varInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 			info := &Info{
 				Doc:  doc,
 				Defs: defs,
-				Idn:  idn,
-				Type: typ,
-				Obj:  obj,
-				Expr: value,
-				Spec: spec,
+				idn:  idn,
+				typ:  typ,
+				obj:  obj,
+				expr: value,
+				spec: spec,
 			}
 			l.file.Vars = append(l.file.Vars, &VarInfo{info})
 		}
@@ -312,9 +312,9 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 		Info: &Info{
 			Doc:  doc,
 			Defs: defs,
-			Type: strct,
-			Obj:  pkg.TypesInfo.ObjectOf(spec.Name),
-			Spec: spec,
+			typ:  strct,
+			obj:  pkg.TypesInfo.ObjectOf(spec.Name),
+			spec: spec,
 		},
 		Fields: make([]*FieldInfo, 0, len(structType.Fields.List)),
 	}
@@ -350,11 +350,11 @@ func (l *loader) newFieldInfo(pkg *packages.Package, idn *ast.Ident, field *ast.
 	}
 	info := &Info{
 		Doc:  doc,
-		Type: typ,
-		Obj:  obj,
 		Defs: defs,
-		Idn:  idn,
-		Expr: field.Type,
+		typ:  typ,
+		obj:  obj,
+		idn:  idn,
+		expr: field.Type,
 	}
 	return &FieldInfo{info}, nil
 }
@@ -372,9 +372,9 @@ func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *t
 		Info: &Info{
 			Doc:  doc,
 			Defs: defs,
-			Type: typ,
-			Obj:  obj,
-			Spec: spec,
+			typ:  typ,
+			obj:  obj,
+			spec: spec,
 		},
 		Signatures: make([]*SignatureInfo, 0, iface.NumMethods()+iface.NumEmbeddeds()),
 	}
@@ -404,9 +404,9 @@ func (l *loader) newSignatureInfo(pkg *packages.Package, meth *ast.Field) (*Sign
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		Idn:  name,
-		Type: typ,
-		Obj:  obj,
+		idn:  name,
+		typ:  typ,
+		obj:  obj,
 	}
 	return &SignatureInfo{Info: info}, nil
 }
@@ -424,9 +424,9 @@ func (l *loader) newEmbeddedSignatureInfo(pkg *packages.Package, meth *ast.Field
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		Type: embeddedIface,
-		Obj:  obj,
-		Idn:  idn,
+		typ:  embeddedIface,
+		obj:  obj,
+		idn:  idn,
 	}
 	return &SignatureInfo{Info: info, IsEmbedded: true}, nil
 }
@@ -442,9 +442,9 @@ func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		Type: typ,
-		Obj:  obj,
-		Idn:  spec.Name,
+		typ:  typ,
+		obj:  obj,
+		idn:  spec.Name,
 	}
 	l.file.Aliases = append(l.file.Aliases, &AliasInfo{info})
 	return nil
@@ -474,7 +474,7 @@ func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
 			Info: &Info{
 				Doc:  doc,
 				Defs: defs,
-				Spec: spec,
+				spec: spec,
 			},
 		}
 		info.Pkgs = append(info.Pkgs, importedPkgInfo)
@@ -493,8 +493,8 @@ func (l *loader) typeInfo(pkg *packages.Package, gen *ast.GenDecl, typ types.Typ
 	info := &Info{
 		Doc:  doc,
 		Defs: defs,
-		Type: typ,
-		Obj:  obj,
+		typ:  typ,
+		obj:  obj,
 	}
 	l.file.Types = append(l.file.Types, &TypeInfo{info})
 	return nil
