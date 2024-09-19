@@ -36,8 +36,12 @@ func (f File) Name() string {
 
 func NewFile() *File {
 	return &File{
-		Package: &PackageInfo{},
-		Import:  &ImportInfo{},
+		Package: &PackageInfo{
+			Info: &Info{},
+		},
+		Import: &ImportInfo{
+			Info: &Info{},
+		},
 	}
 }
 
