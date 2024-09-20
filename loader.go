@@ -310,11 +310,12 @@ func (l *loader) structInfo(pkg *packages.Package, gen *ast.GenDecl, strct *type
 	}
 	info := &StructInfo{
 		Info: &Info{
-			Doc:  doc,
-			Defs: defs,
-			Type: strct,
-			Obj:  pkg.TypesInfo.ObjectOf(spec.Name),
-			Spec: spec,
+			Doc:   doc,
+			Defs:  defs,
+			Type:  strct,
+			Obj:   pkg.TypesInfo.ObjectOf(spec.Name),
+			Spec:  spec,
+			Ident: spec.Name,
 		},
 		Fields: make([]*FieldInfo, 0, len(structType.Fields.List)),
 	}

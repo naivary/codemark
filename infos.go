@@ -342,7 +342,7 @@ func (i ImportInfo) Defs() Definitions {
 }
 
 func (i ImportInfo) Name() string {
-	return ""
+	return "IMPORT_STMT"
 }
 
 var _ info = (*ImportedPackageInfo)(nil)
