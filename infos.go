@@ -126,6 +126,10 @@ func (m MethodInfo) Returns() *ast.FieldList {
 	return m.funcDecl().Type.Results
 }
 
+func (m MethodInfo) Decl() *ast.FuncDecl {
+	return m.Info.decl.(*ast.FuncDecl)
+}
+
 var _ info = (*FuncInfo)(nil)
 
 type FuncInfo struct {
