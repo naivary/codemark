@@ -17,14 +17,14 @@ type info interface {
 }
 
 type Info struct {
-	Doc  string
-	Defs Definitions
-	typ  types.Type
-	obj  types.Object
-	expr ast.Expr
-	spec ast.Spec
-	decl ast.Decl
-	idn  *ast.Ident
+	Doc   string
+	Defs  Definitions
+	Type  types.Type
+	Obj   types.Object
+	Expr  ast.Expr
+	Spec  ast.Spec
+	Decl  ast.Decl
+	Ident *ast.Ident
 }
 
 // Converted markers to the given definitions. If multiple equal marker are
@@ -91,7 +91,7 @@ type MethodInfo struct {
 }
 
 func (m MethodInfo) funcDecl() *ast.FuncDecl {
-	return m.Info.decl.(*ast.FuncDecl)
+	return m.Info.Decl.(*ast.FuncDecl)
 }
 
 func (m MethodInfo) Doc() string {
@@ -127,7 +127,7 @@ func (m MethodInfo) Returns() *ast.FieldList {
 }
 
 func (m MethodInfo) Decl() *ast.FuncDecl {
-	return m.Info.decl.(*ast.FuncDecl)
+	return m.Info.Decl.(*ast.FuncDecl)
 }
 
 var _ info = (*FuncInfo)(nil)
@@ -137,7 +137,7 @@ type FuncInfo struct {
 }
 
 func (f FuncInfo) funcDecl() *ast.FuncDecl {
-	return f.Info.decl.(*ast.FuncDecl)
+	return f.Info.Decl.(*ast.FuncDecl)
 }
 
 func (f FuncInfo) Doc() string {
@@ -175,7 +175,7 @@ func (c ConstInfo) Defs() Definitions {
 }
 
 func (c ConstInfo) Name() string {
-	return c.Info.idn.Name
+	return c.Info.Ident.Name
 }
 
 var _ info = (*VarInfo)(nil)
@@ -193,7 +193,7 @@ func (v VarInfo) Defs() Definitions {
 }
 
 func (v VarInfo) Name() string {
-	return v.Info.idn.Name
+	return v.Info.Ident.Name
 }
 
 var _ info = (*StructInfo)(nil)
@@ -212,7 +212,7 @@ func (s StructInfo) Defs() Definitions {
 }
 
 func (s StructInfo) Name() string {
-	return s.Info.idn.Name
+	return s.Info.Ident.Name
 }
 
 var _ info = (*FieldInfo)(nil)
@@ -230,11 +230,11 @@ func (f FieldInfo) Defs() Definitions {
 }
 
 func (f FieldInfo) IsEmbedded() bool {
-	return f.Info.idn == nil
+	return f.Info.Ident == nil
 }
 
 func (f FieldInfo) Name() string {
-	return f.Info.idn.Name
+	return f.Info.Ident.Name
 }
 
 var _ info = (*InterfaceInfo)(nil)
@@ -253,7 +253,7 @@ func (i InterfaceInfo) Defs() Definitions {
 }
 
 func (i InterfaceInfo) Name() string {
-	return i.Info.idn.Name
+	return i.Info.Ident.Name
 }
 
 type SignatureInfo struct {
@@ -284,11 +284,11 @@ func (t TypeInfo) Defs() Definitions {
 }
 
 func (t TypeInfo) Name() string {
-	return t.Info.idn.Name
+	return t.Info.Ident.Name
 }
 
 func (t TypeInfo) IsPointer() *types.Pointer {
-	pointer, isPointer := t.Info.typ.(*types.Pointer)
+	pointer, isPointer := t.Info.Type.(*types.Pointer)
 	if !isPointer {
 		return nil
 	}
@@ -296,7 +296,7 @@ func (t TypeInfo) IsPointer() *types.Pointer {
 }
 
 func (t TypeInfo) IsBasic() *types.Basic {
-	basic, isBasic := t.Info.typ.(*types.Basic)
+	basic, isBasic := t.Info.Type.(*types.Basic)
 	if !isBasic {
 		return nil
 	}
@@ -318,11 +318,11 @@ func (a AliasInfo) Defs() Definitions {
 }
 
 func (a AliasInfo) Name() string {
-	return a.Info.idn.Name
+	return a.Info.Ident.Name
 }
 
 func (a AliasInfo) Rhs() types.Type {
-	alias := a.Info.typ.(*types.Alias)
+	alias := a.Info.Type.(*types.Alias)
 	return alias.Rhs()
 }
 
@@ -360,6 +360,6 @@ func (i ImportedPackageInfo) Defs() Definitions {
 }
 
 func (i ImportedPackageInfo) Name() string {
-	spec := i.Info.spec.(*ast.ImportSpec)
+	spec := i.Info.Spec.(*ast.ImportSpec)
 	return spec.Name.Name
 }
