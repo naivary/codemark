@@ -199,7 +199,7 @@ func (l *loader) packageInfo(pkg *packages.Package, file *ast.File) error {
 	}
 	l.file.Package.Info.Doc = doc
 	l.file.Package.Info.Defs = defs
-	l.file.Package.file = file
+	l.file.Package.File = file
 	return nil
 }
 

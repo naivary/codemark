@@ -69,7 +69,7 @@ var _ info = (*PackageInfo)(nil)
 
 type PackageInfo struct {
 	Info *Info
-	file *ast.File
+	File *ast.File
 }
 
 func (p *PackageInfo) Doc() string {
@@ -81,7 +81,7 @@ func (p *PackageInfo) Defs() Definitions {
 }
 
 func (p *PackageInfo) Name() string {
-	return p.file.Name.Name
+	return p.File.Name.Name
 }
 
 var _ info = (*MethodInfo)(nil)
