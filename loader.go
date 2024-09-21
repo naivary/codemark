@@ -357,7 +357,7 @@ func (l *loader) newFieldInfo(pkg *packages.Package, idn *ast.Ident, field *ast.
 		Ident: idn,
 		Expr:  field.Type,
 	}
-	return &FieldInfo{info}, nil
+	return &FieldInfo{Info: info, Field: field}, nil
 }
 
 func (l *loader) interfaceInfo(pkg *packages.Package, gen *ast.GenDecl, iface *types.Interface, spec *ast.TypeSpec) error {

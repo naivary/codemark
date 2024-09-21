@@ -218,7 +218,8 @@ func (s StructInfo) Name() string {
 var _ info = (*FieldInfo)(nil)
 
 type FieldInfo struct {
-	Info *Info
+	Info  *Info
+	Field *ast.Field
 }
 
 func (f FieldInfo) Doc() string {
