@@ -71,6 +71,8 @@ type runeSlicePtr *[]rune
 type boolean bool
 type boolPtr *bool
 
+type anySlice []any
+
 func TestConverter_Convert(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -170,6 +172,7 @@ func TestConverter_Convert(t *testing.T) {
 				MakeDef("jsonschema:validation:intdoubleptr", TargetConst, reflect.TypeOf(iSliceDoublePtr(new([]*int)))),
 				MakeDef("jsonschema:validation:intsptr", TargetConst, reflect.TypeOf(iSlicePtr(new([]int)))),
 				MakeDef("jsonschema:validation:bytes", TargetConst, reflect.TypeOf(byteSlice([]byte{}))),
+				MakeDef("jsonschema:validation:anys", TargetConst, reflect.TypeOf(anySlice([]any{}))),
 			},
 			markers: []marker.Marker{
 				marker.NewDefault("jsonschema:validation:stringsdoubleptr", reflect.Slice, reflect.ValueOf([]any{"first", "onemore", "again"})),
@@ -182,6 +185,8 @@ func TestConverter_Convert(t *testing.T) {
 				marker.NewDefault("jsonschema:validation:intdoubleptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:intsptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:bytes", reflect.Slice, reflect.ValueOf([]any{"s", "d", "a"})),
+				marker.NewDefault("jsonschema:validation:anys", reflect.Slice, reflect.ValueOf([]any{86, 3, 2})),
+				marker.NewDefault("jsonschema:validation:anys", reflect.Slice, reflect.ValueOf([]any{86, "str", 2})),
 			},
 		},
 	}

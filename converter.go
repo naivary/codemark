@@ -85,6 +85,9 @@ func convString(s string, def *Definition) (reflect.Value, error) {
 		r := rune(s[0])
 		return valueFor[rune](r, def)
 	}
+	if kind == reflect.Interface {
+		return valueFor(s, def)
+	}
 	return empty, fmt.Errorf("not convertiable to kind `%v`", kind)
 }
 
@@ -128,6 +131,10 @@ func convertInteger(m marker.Marker, def *Definition) (any, error) {
 
 func convInt(i int64, def *Definition) (reflect.Value, error) {
 	typ := def.nonPtrType()
+	if typ.Kind() == reflect.Interface {
+		return valueFor(i, def)
+	}
+
 	if typ.OverflowInt(i) {
 		return reflect.Value{}, errors.New("overflow will occur")
 	}
@@ -136,6 +143,9 @@ func convInt(i int64, def *Definition) (reflect.Value, error) {
 
 func convUint(i uint64, def *Definition) (reflect.Value, error) {
 	typ := def.nonPtrType()
+	if typ.Kind() == reflect.Interface {
+		return valueFor(i, def)
+	}
 	if typ.OverflowUint(i) {
 		return reflect.Value{}, errors.New("overflow will occur")
 	}
@@ -157,6 +167,9 @@ func convertDecimal(m marker.Marker, def *Definition) (any, error) {
 func convFloat(f float64, def *Definition) (reflect.Value, error) {
 	var empty reflect.Value
 	typ := def.nonPtrType()
+	if typ.Kind() == reflect.Interface {
+		return valueFor(f, def)
+	}
 	if typ.OverflowFloat(f) {
 		return empty, errors.New("overflow will occur")
 	}
@@ -177,6 +190,9 @@ func convertComplex(m marker.Marker, def *Definition) (any, error) {
 
 func convComplex(c complex128, def *Definition) (reflect.Value, error) {
 	typ := def.nonPtrType()
+	if typ.Kind() == reflect.Interface {
+		return valueFor(c, def)
+	}
 	if typ.OverflowComplex(c) {
 		return reflect.Value{}, errors.New("overflow will occur")
 	}
