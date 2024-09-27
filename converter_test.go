@@ -186,7 +186,7 @@ func TestConverter_Convert(t *testing.T) {
 				marker.NewDefault("jsonschema:validation:intsptr", reflect.Slice, reflect.ValueOf([]any{2, 3, 0x321})),
 				marker.NewDefault("jsonschema:validation:bytes", reflect.Slice, reflect.ValueOf([]any{"s", "d", "a"})),
 				marker.NewDefault("jsonschema:validation:anys", reflect.Slice, reflect.ValueOf([]any{86, 3, 2})),
-				marker.NewDefault("jsonschema:validation:anys", reflect.Slice, reflect.ValueOf([]any{86, "str", 2})),
+				marker.NewDefault("jsonschema:validation:anys", reflect.Slice, reflect.ValueOf([]any{86, "str", true})),
 			},
 		},
 	}

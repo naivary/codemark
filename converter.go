@@ -105,7 +105,11 @@ func convertBool(m marker.Marker, def *Definition) (any, error) {
 
 func convBool(b bool, def *Definition) (reflect.Value, error) {
 	var empty reflect.Value
-	if def.kind == reflect.Bool {
+	kind := def.kind
+	if kind == reflect.Slice {
+		kind = def.sliceKind()
+	}
+	if kind == reflect.Bool || kind == reflect.Interface {
 		return valueFor(b, def)
 	}
 	return empty, fmt.Errorf("not convertiable to kind `%v`", def.kind)
@@ -222,6 +226,9 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		if isUint(kind) {
 			v, err = convUint(elem.Elem().Uint(), def)
 		}
+        if kind == reflect.Bool {
+            v, err = convBool(elem.Elem().Bool(), def)
+        }
 		if err != nil {
 			return nil, err
 		}
