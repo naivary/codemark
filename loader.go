@@ -432,7 +432,7 @@ func (l *loader) newEmbeddedSignatureInfo(pkg *packages.Package, meth *ast.Field
 	return &SignatureInfo{Info: info, IsEmbedded: true}, nil
 }
 
-func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types.Alias, spec *ast.TypeSpec) error {
+func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, _ *types.Alias, spec *ast.TypeSpec) error {
 	typ := pkg.TypesInfo.TypeOf(spec.Type)
 	obj := pkg.TypesInfo.ObjectOf(spec.Name)
 	doc := gen.Doc.Text() + spec.Doc.Text()
@@ -451,7 +451,7 @@ func (l *loader) aliasInfo(pkg *packages.Package, gen *ast.GenDecl, alias *types
 	return nil
 }
 
-func (l *loader) importInfo(pkg *packages.Package, gen *ast.GenDecl) error {
+func (l *loader) importInfo(_ *packages.Package, gen *ast.GenDecl) error {
 	// TODO: Missing Type and Obj, spec etc.
 	specs := convertSpecs[*ast.ImportSpec](gen.Specs)
 	importDoc := gen.Doc.Text()

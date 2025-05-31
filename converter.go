@@ -3,6 +3,7 @@ package codemark
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"reflect"
 
 	"github.com/naivary/codemark/marker"
@@ -35,6 +36,9 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	def := c.reg.Get(idn)
 	if def == nil {
 		return nil, fmt.Errorf("marker `%s` is not defined in the registry", idn)
+	}
+	if inFavorOf, isDepcrecated := def.IsDeprecated(); isDepcrecated {
+		slog.Warn("MARKER IS DEPRECATED", "marker_idn", marker.Ident(), "use_instead", *inFavorOf)
 	}
 	if target != def.Target {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)

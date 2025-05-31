@@ -25,6 +25,7 @@ func openAPIDefs() []*codemark.Definition {
 func run() error {
 	reg := codemark.NewRegistry()
 	for _, def := range openAPIDefs() {
+		def.DeprecateInFavorOf("openapi:validation:required_more")
 		if err := reg.Define(def); err != nil {
 			return err
 		}
@@ -38,12 +39,6 @@ func run() error {
 	if err != nil {
 		return err
 	}
-
-	structs := files["github.com/naivary/codemark/testdata"][0].Structs
-	for _, strc := range structs {
-		for _, field := range strc.Fields {
-			fmt.Printf("name: %s | defs: %v\n", field.Name(), field.Defs())
-		}
-	}
+	_ = files
 	return nil
 }

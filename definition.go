@@ -56,7 +56,7 @@ func (d *Definition) DeprecateInFavorOf(marker string) {
 }
 
 func (d *Definition) IsDeprecated() (*string, bool) {
-	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf == nil
+	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != nil
 }
 
 func (d *Definition) typ() reflect.Type {
