@@ -9,50 +9,30 @@ import (
 	"github.com/naivary/codemark/marker"
 )
 
-// string
-// +path:to:marker=string -> string|*string & []byte|[]*byte
-// +path:to:marker=s -> rune|*rune & byte|*byte & string|*string
-//
-// int
-// +path:to:marker=3 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
-// +path:to:marker=0x23ef -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
-// +path:to:marker=0o352 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
-//
-// float
-// +path:to:marker=3.0 -> float[32,64]|*float[32,64]
-//
-// complex
-// +path:to:marker=2+3i-> complex[64,128]|*complex[64,128]
-//
-// list/array
-// All conversion to `[]T` and `[]*T` where `T` is one of the above primitives are
-// possible. The conversion to `*[]T` is not possible.
 
 type Converter interface {
 	// Convert is converting the given marker to `Definition.output` iff the
 	// conversion is possible. A conversion is possible by the following rules:
 	//
-	// 1. An integer can be converted to any int type (e.g int8, int16 etc.) and
-	// to any Uint type (e.g. uin8, uint16)
+	// string
+	// +path:to:marker=string -> string|*string & []byte|[]*byte
+	// +path:to:marker=s -> rune|*rune & byte|*byte & string|*string
 	//
-	// 2. A float can be converted to float32 and float64 type
+	// int
+	// +path:to:marker=3 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+	// +path:to:marker=0x23ef -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+	// +path:to:marker=0o352 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
 	//
-	// 3. A boolean marker can be converted to bool and an empty struct
+	// float
+	// +path:to:marker=3.0 -> float[32,64]|*float[32,64]
 	//
-	// 4. A complex marker can be converted to complex64 or complex128
+	// complex
+	// +path:to:marker=2+3i-> complex[64,128]|*complex[64,128]
 	//
-	// 5. An list/array marker can be converted to non pointer arrays ([]) of the
-	// primitive types above (e.g. float, bool, int, string)
-	//
-	// 6. Any pointer type of the primitive types will be accepted (e.g.
-	// *string, *int etc.)
-	//
-	// 7. A conversion to a pointer slice is not possible (*[]) and arrays in
-	// general will not be accepted
-	//
-	// 8. A string marker can be converted to a string and if it has a length of
-	// 1 it can be converted to a byte or rune too. The conversion to `any` type
-	// is always possible
+	// list/array
+	// All conversions to `[]T` and `[]*T` where `T` is one of the above primitives are
+	// possible. The conversion to `*[]T` is not possible because it is bad practice
+	// in go to pass slices by pointers
 	Convert(marker marker.Marker, target Target) (any, error)
 }
 
@@ -258,7 +238,7 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 	if def.underlying.Kind() == reflect.Pointer {
 		slice = reflect.New(slice.Type())
 	}
-	for i := 0; i < m.Value().Len(); i++ {
+	for i := range m.Value().Len() {
 		elem := elems.Index(i)
 		kind := elem.Elem().Kind()
 		var v reflect.Value

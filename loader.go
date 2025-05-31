@@ -191,7 +191,7 @@ func (l *loader) typeDecl(pkg *packages.Package, gen *ast.GenDecl) error {
 	return nil
 }
 
-func (l *loader) packageInfo(pkg *packages.Package, file *ast.File) error {
+func (l *loader) packageInfo(_ *packages.Package, file *ast.File) error {
 	doc := file.Doc.Text()
 	defs, err := newDefinitions(doc, TargetPackage, l.conv)
 	if err != nil {
