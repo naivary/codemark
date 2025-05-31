@@ -218,8 +218,33 @@ this is the doc`,
 			isValid: true,
 		},
 		{
-			name:    "identifier is not allowed to end with underscore",
+			name:    "identifier is not allowed to end with underscore (end segment)",
 			input:   `+idn_v3.1:validation:required_`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with underscore (middle segment)",
+			input:   `+idn_v3.1:validation_:required`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with underscore (first segment)",
+			input:   `+idn_v3.1_:validation:required`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with dot (end segment)",
+			input:   `+idn_v3.1:validation:required.`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with dot (middle segment)",
+			input:   `+idn_v3.1:validation.:required`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with dot (first segment)",
+			input:   `+idn_v3.1.:validation:required`,
 			isValid: false,
 		},
 

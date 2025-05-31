@@ -1,11 +1,10 @@
 package lexer
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 )
-
-type validFunc func(rune) bool
 
 func ignoreSpace(l *Lexer) {
 	l.acceptFunc(isSpace)
@@ -88,9 +87,14 @@ func lexIdent(l *Lexer) stateFunc {
 	}
 	// TODO: split the idn by colons and check that every value of the path is
 	// not ending in underscore or dot
-	lastChar := idn[len(idn)-1]
-	if lastChar == _dot || lastChar == _underscore {
-		return l.errorf("identifier cannot end with an underscore `_` or dot `.`: %s\n", idn)
+	idnPath := strings.Split(idn, ":")
+	fmt.Println(idnPath)
+
+	for _, pathSegment := range idnPath {
+		lastChar := pathSegment[len(pathSegment)-1]
+		if lastChar == _dot || lastChar == _underscore {
+			return l.errorf("identifier cannot end with an underscore `_` or dot `.`: %s\n", idn)
+		}
 	}
 	l.emit(TokenKindIdent)
 
@@ -134,7 +138,7 @@ func lexBool(l *Lexer) stateFunc {
 	if r := l.peek(); r == 'f' {
 		spelling = "false"
 	}
-	for i := 0; i < len(spelling); i++ {
+	for i := range len(spelling) {
 		r := l.peek()
 		if r == rune(spelling[i]) {
 			l.next()
@@ -192,7 +196,7 @@ func lexBoolArrayValue(l *Lexer) stateFunc {
 	if r := l.peek(); r == 'f' {
 		spelling = "false"
 	}
-	for i := 0; i < len(spelling); i++ {
+	for i := range len(spelling) {
 		r := l.peek()
 		if r == rune(spelling[i]) {
 			l.next()

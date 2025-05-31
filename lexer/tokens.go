@@ -21,7 +21,7 @@ const (
 	TokenKindPlus
 	// e.g. `[`
 	TokenKindOpenSquareBracket
-	// e.g. `[`
+	// e.g. `]`
 	TokenKindCloseSquareBracket
 	// e.g. 1237123, 0x283f etc.
 	TokenKindInt

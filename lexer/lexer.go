@@ -119,7 +119,7 @@ func (l *Lexer) acceptRun(valid string) {
 	l.backup()
 }
 
-func (l *Lexer) acceptFunc(fn validFunc) {
+func (l *Lexer) acceptFunc(fn func(r rune) bool) {
 	for fn(l.next()) {
 	}
 	l.backup()
