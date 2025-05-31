@@ -59,18 +59,7 @@ func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
 }
 
 func isIntConvPossible(kind reflect.Kind) bool {
-	return anyOf(kind,
-		reflect.Int,
-		reflect.Int8,
-		reflect.Int16,
-		reflect.Int32,
-		reflect.Int64,
-		reflect.Uint,
-		reflect.Uint8,
-		reflect.Uint16,
-		reflect.Uint32,
-		reflect.Uint64,
-	)
+	return isInt(kind) || isUint(kind)
 }
 
 func isSliceConvPossible(kind reflect.Kind) bool {

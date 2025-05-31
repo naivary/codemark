@@ -27,22 +27,24 @@ type Definition struct {
 	// e.g. +path:to:mark
 	Ident string
 
-	// The output type to which the value
-	// of the marker will be converted to
-	output reflect.Type
-
-	// TargetType defines on which type of
-	// target it can be applied e.g. constants,
-	// functions, types, variables etc.
+	// Target defines on which type the Definition is appliable
+	// e.g. Struct, Package, Field, VAR, CONST etc.
 	Target Target
 
+	// Help provides user-defined documentation for the definition
 	Help *DefinitionHelp
 
+	// DeprecatedInFavorOf points to the marker identifier which should
+	// be used instead.
 	DeprecatedInFavorOf *string
 
 	underlying reflect.Type
 
 	kind reflect.Kind
+
+	// The output type to which the value
+	// of the marker will be converted to
+	output reflect.Type
 }
 
 type DefinitionHelp struct {

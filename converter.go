@@ -11,7 +11,25 @@ import (
 
 type Converter interface {
 	// Convert is converting the given marker to `Definition.output` iff the
-	// conversion is possible
+	// conversion is possible. A conversion is possible by the following rules:
+	//
+	// 1. An integer can be converted to any int type (e.g int8, int16 etc.) and
+	// to any Uint type (e.g. uin8, uint16)
+	//
+	// 2. A float can be converted to float32 and float64 type
+	//
+	// 3. A boolean marker can be converted to bool and an empty struct
+	//
+	// 4. A complex marker can be converted to complex64 or complex128
+	//
+	// 5. An list/array marker can be converted to non pointer arrays ([]) of the
+	// primitive types above (e.g. float, bool, int, string)
+	//
+	// 6. Any pointer type of the primitive types will be accepted (e.g.
+	// *string, *int etc.)
+	//
+	// 7. A conversion to a pointer slice is not possible (*[]) and arrays in
+	// general will not be accepted
 	Convert(marker marker.Marker, target Target) (any, error)
 }
 
