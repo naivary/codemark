@@ -85,11 +85,8 @@ func lexIdent(l *Lexer) stateFunc {
 	if colons < 2 {
 		return l.errorf("expected two colons in `%s` but got %d", idn, colons)
 	}
-	// TODO: split the idn by colons and check that every value of the path is
-	// not ending in underscore or dot
-	idnPath := strings.Split(idn, ":")
-	fmt.Println(idnPath)
 
+	idnPath := strings.Split(idn, ":")
 	for _, pathSegment := range idnPath {
 		lastChar := pathSegment[len(pathSegment)-1]
 		if lastChar == _dot || lastChar == _underscore {

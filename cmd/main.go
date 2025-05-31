@@ -42,7 +42,7 @@ func run() error {
 	structs := files["github.com/naivary/codemark/testdata"][0].Structs
 	for _, strc := range structs {
 		for _, field := range strc.Fields {
-			fmt.Println(field.Defs())
+			_ = field
 		}
 	}
 	return nil

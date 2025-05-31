@@ -38,7 +38,8 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 		return nil, fmt.Errorf("marker `%s` is not defined in the registry", idn)
 	}
 	if inFavorOf, isDepcrecated := def.IsDeprecated(); isDepcrecated {
-		slog.Warn("MARKER IS DEPRECATED", "marker_idn", marker.Ident(), "use_instead", *inFavorOf)
+		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, *inFavorOf)
+		slog.Warn(msg)
 	}
 	if target != def.Target {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
