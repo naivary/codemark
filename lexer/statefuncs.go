@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 )
@@ -38,6 +37,9 @@ func isAlphaNumeric(r rune) bool {
 }
 
 type stateFunc func(*Lexer) stateFunc
+
+// TODO: every marker has to be at the beginning of a comment line without any
+// characters before and after it
 
 func lexText(l *Lexer) stateFunc {
 	// check for the position 0

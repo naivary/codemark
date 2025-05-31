@@ -9,6 +9,25 @@ import (
 	"github.com/naivary/codemark/marker"
 )
 
+// string
+// +path:to:marker=string -> string|*string & []byte|[]*byte
+// +path:to:marker=s -> rune|*rune & byte|*byte & string|*string
+//
+// int
+// +path:to:marker=3 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+// +path:to:marker=0x23ef -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+// +path:to:marker=0o352 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+//
+// float
+// +path:to:marker=3.0 -> float[32,64]|*float[32,64]
+//
+// complex
+// +path:to:marker=2+3i-> complex[64,128]|*complex[64,128]
+//
+// list/array
+// All conversion to `[]T` and `[]*T` where `T` is one of the above primitives are
+// possible. The conversion to `*[]T` is not possible.
+
 type Converter interface {
 	// Convert is converting the given marker to `Definition.output` iff the
 	// conversion is possible. A conversion is possible by the following rules:
