@@ -79,11 +79,11 @@ func convString(s string, def *Definition) (reflect.Value, error) {
 	}
 	if kind == _byte && len(s) == 1 {
 		b := byte(s[0])
-		return valueFor[byte](b, def)
+		return valueFor(b, def)
 	}
 	if kind == _rune && len(s) == 1 {
 		r := rune(s[0])
-		return valueFor[rune](r, def)
+		return valueFor(r, def)
 	}
 	if kind == reflect.Interface {
 		return valueFor(s, def)
@@ -226,9 +226,9 @@ func convertSlice(m marker.Marker, def *Definition) (any, error) {
 		if isUint(kind) {
 			v, err = convUint(elem.Elem().Uint(), def)
 		}
-        if kind == reflect.Bool {
-            v, err = convBool(elem.Elem().Bool(), def)
-        }
+		if kind == reflect.Bool {
+			v, err = convBool(elem.Elem().Bool(), def)
+		}
 		if err != nil {
 			return nil, err
 		}

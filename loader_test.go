@@ -12,7 +12,7 @@ func TestLoader(t *testing.T) {
 	}{
 		{
 			name:  "single file",
-			paths: []string{"auth_req.go"},
+			paths: []string{"testdata/auth_req.go"},
 		},
 		{
 			name:  "recursive",
@@ -44,7 +44,7 @@ func TestLoader(t *testing.T) {
 			if err != nil {
 				t.Fatalf("error occured while loading package: %v\n", err)
 			}
-			_ = infos
+			t.Log(infos)
 		})
 	}
 }

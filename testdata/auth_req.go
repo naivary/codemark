@@ -1,5 +1,4 @@
 // this is thed ocumentation for the pkg
-// +path:to:pkg="something"
 package testdata
 
 // import docs
@@ -122,9 +121,11 @@ type AuthRequest struct {
 	Password string `json:"password,omitempty"`
 
 	// age and length do tell exactly that
+	// +openapi:validation:required
 	Age, Length int
 
-	// +path:to:field=31
+	// +openapi:validation:required
+	// +openapi:validation:required=false
 	Max int
 }
 
@@ -154,7 +155,6 @@ var StringMy = fmt.Sprintf("somethign")
 
 // NewAuthReq is creating a new
 // authentication request
-// +path:to:func=3
 func NewAuthReq() AuthRequest {
 	return AuthRequest{}
 }

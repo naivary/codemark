@@ -4,12 +4,13 @@ import (
 	"reflect"
 )
 
-func MakeDef(idn string, t Target, output reflect.Type) *Definition {
+func MakeDef(idn string, t Target, output any) *Definition {
+	outputType := reflect.TypeOf(output)
 	def := &Definition{
 		Ident:      idn,
 		Target:     t,
-		output:     output,
-		underlying: underlying(output),
+		output:     outputType,
+		underlying: underlying(outputType),
 	}
 	def.kind = def.nonPtrKind()
 	return def

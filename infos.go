@@ -49,7 +49,7 @@ func (d Definitions) Get(idn string) ([]any, bool) {
 }
 
 // IsUnique is returning the definition of the given `idn` iff the identifier is
-// associated with definition.
+// associated with one definition only.
 func (d Definitions) IsUnique(idn string) (any, bool) {
 	defs, ok := d[idn]
 	if !ok {

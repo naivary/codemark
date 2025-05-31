@@ -74,6 +74,8 @@ func lexPlus(l *Lexer) stateFunc {
 }
 
 func lexIdent(l *Lexer) stateFunc {
+	// TODO: make it possible to use numbers in the idn but not start wiht a
+	// number
 	valid := func(r rune) bool {
 		return (unicode.IsLetter(r) && unicode.IsLower(r)) || r == colon
 	}
