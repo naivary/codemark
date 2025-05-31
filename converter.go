@@ -30,6 +30,10 @@ type Converter interface {
 	//
 	// 7. A conversion to a pointer slice is not possible (*[]) and arrays in
 	// general will not be accepted
+	//
+	// 8. A string marker can be converted to a string and if it has a length of
+	// 1 it can be converted to a byte or rune too. The conversion to `any` type
+	// is always possible
 	Convert(marker marker.Marker, target Target) (any, error)
 }
 
