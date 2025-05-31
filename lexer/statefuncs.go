@@ -74,19 +74,23 @@ func lexPlus(l *Lexer) stateFunc {
 }
 
 func lexIdent(l *Lexer) stateFunc {
-	// TODO: make it possible to use numbers in the idn but not start wiht a
-	// number
 	if r := l.peek(); isDigit(r) {
 		return l.errorf("marker identifier cannot start with a digit: %d", r)
 	}
 	valid := func(r rune) bool {
-		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon || r == _underscore
+		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon || r == _underscore || r == _dot
 	}
 	l.acceptFunc(valid)
 	idn := l.currentValue()
 	colons := strings.Count(idn, string(_colon))
 	if colons < 2 {
 		return l.errorf("expected two colons in `%s` but got %d", idn, colons)
+	}
+	// TODO: split the idn by colons and check that every value of the path is
+	// not ending in underscore or dot
+	lastChar := idn[len(idn)-1]
+	if lastChar == _dot || lastChar == _underscore {
+		return l.errorf("identifier cannot end with an underscore `_` or dot `.`: %s\n", idn)
 	}
 	l.emit(TokenKindIdent)
 
@@ -145,7 +149,7 @@ func lexBool(l *Lexer) stateFunc {
 func lexNumber(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
-		return l.errorf(err.Error())
+		return l.errorf("error: %s\n", err.Error())
 	}
 	l.emit(kind)
 	return lexEndOfExpr
@@ -203,7 +207,7 @@ func lexBoolArrayValue(l *Lexer) stateFunc {
 func lexNumberArrayValue(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
-		return l.errorf(err.Error())
+		return l.errorf("error: %s\n", err.Error())
 	}
 	l.emit(kind)
 	return lexArraySequence

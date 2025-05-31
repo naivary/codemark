@@ -212,6 +212,17 @@ this is the doc`,
 			input:   `+idn_v3:validation:required`,
 			isValid: true,
 		},
+		{
+			name:    "identifier is allowed to include dots",
+			input:   `+idn_v3.1:validation:required`,
+			isValid: true,
+		},
+		{
+			name:    "identifier is not allowed to end with underscore",
+			input:   `+idn_v3.1:validation:required_`,
+			isValid: false,
+		},
+
 	}
 
 	for _, tc := range tests {

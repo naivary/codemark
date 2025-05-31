@@ -121,11 +121,11 @@ type AuthRequest struct {
 	Password string `json:"password,omitempty"`
 
 	// age and length do tell exactly that
-	// +openapi:validation:required
+	// +openapi_v3:validation:required
 	Age, Length int
 
-	// +openapi:validation:required
-	// +openapi:validation:required=false
+	// +openapi_v3:validation:required
+	// +openapi_v3:validation:required=false
 	Max int
 }
 

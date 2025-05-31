@@ -12,6 +12,7 @@ const (
 	_colon      = ':'
 	_newline    = '\n'
 	_underscore = '_'
+	_dot        = '.'
 )
 
 func Lex(input string) *Lexer {
