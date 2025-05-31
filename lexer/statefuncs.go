@@ -25,7 +25,7 @@ func isNewline(r rune) bool {
 }
 
 func hasPlusPrefix(input string, pos int) bool {
-	return strings.HasPrefix(input[pos:], plus)
+	return strings.HasPrefix(input[pos:], _plus)
 }
 
 // isAlphaLower checks if `r` is lower and a letter
@@ -47,7 +47,7 @@ func lexText(l *Lexer) stateFunc {
 	}
 	for {
 		r := l.next()
-		if r == eof {
+		if r == _eof {
 			break
 		}
 		if !isNewline(r) {
@@ -76,12 +76,15 @@ func lexPlus(l *Lexer) stateFunc {
 func lexIdent(l *Lexer) stateFunc {
 	// TODO: make it possible to use numbers in the idn but not start wiht a
 	// number
+	if r := l.peek(); isDigit(r) {
+		return l.errorf("marker identifier cannot start with a digit: %d", r)
+	}
 	valid := func(r rune) bool {
-		return (unicode.IsLetter(r) && unicode.IsLower(r)) || r == colon
+		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon || r == _underscore
 	}
 	l.acceptFunc(valid)
 	idn := l.currentValue()
-	colons := strings.Count(idn, string(colon))
+	colons := strings.Count(idn, string(_colon))
 	if colons < 2 {
 		return l.errorf("expected two colons in `%s` but got %d", idn, colons)
 	}
@@ -90,7 +93,7 @@ func lexIdent(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == '=':
 		return lexAssignment
-	case r == eof || r == newline:
+	case r == _eof || r == _newline:
 		return lexBoolWithoutAssignment
 	default:
 		return l.errorf("expected an assignment operator or a newline after the identifier `%s`", idn)
@@ -228,7 +231,7 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanString(l); err != nil {
-		return l.errorf(err.Error())
+		return l.errorf("error: %s\n", err.Error())
 	}
 	l.emit(TokenKindString)
 	switch r := l.peek(); {
@@ -249,7 +252,7 @@ func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanString(l); err != nil {
-		return l.errorf(err.Error())
+		return l.errorf("error: %s\n", err.Error())
 	}
 	l.emit(TokenKindString)
 	switch r := l.peek(); {
@@ -276,7 +279,7 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 	l.acceptFunc(isSpace)
 	l.ignore()
 	switch r := l.peek(); {
-	case isNewline(r) || r == eof:
+	case isNewline(r) || r == _eof:
 		return lexText
 	default:
 		return l.errorf("after a finished marker expression only a newline can follow")

@@ -197,6 +197,21 @@ this is a normal docs string`,
 this is the doc`,
 			isValid: true,
 		},
+		{
+			name:    "identifier is not allowed to start with a number",
+			input:   `+3idn:validation:required`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is allowed to include numbers",
+			input:   `+idn3:validation:required`,
+			isValid: true,
+		},
+		{
+			name:    "identifier is allowed to include underscore",
+			input:   `+idn_v3:validation:required`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {

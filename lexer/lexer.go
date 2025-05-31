@@ -7,10 +7,11 @@ import (
 )
 
 const (
-	eof     = -1
-	plus    = "+"
-	colon   = ':'
-	newline = '\n'
+	_eof        = -1
+	_plus       = "+"
+	_colon      = ':'
+	_newline    = '\n'
+	_underscore = '_'
 )
 
 func Lex(input string) *Lexer {
@@ -70,7 +71,7 @@ func (l *Lexer) next() rune {
 	var r rune
 	if l.pos >= len(l.input) {
 		l.width = 0
-		return eof
+		return _eof
 	}
 	r, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
 	l.pos += l.width

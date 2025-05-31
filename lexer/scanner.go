@@ -65,7 +65,7 @@ func scanNumber(l *Lexer) (TokenKind, error) {
 func scanString(l *Lexer) error {
 	const backslash = '\\'
 	v := func(r rune) bool {
-		if r != '"' && r != backslash && r != eof {
+		if r != '"' && r != backslash && r != _eof {
 			return true
 		}
 		if r == backslash {
