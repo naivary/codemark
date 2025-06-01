@@ -1,83 +1,24 @@
-package codemark
+package converter
 
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"reflect"
 
+	"github.com/naivary/codemark"
 	"github.com/naivary/codemark/marker"
 )
-
-// when is it valid to trigger the convert process of a coverter?
-// 1. Check if the conversion of the MarkerKind is possible to the output kind
-// of the definiton
-//
-// 2. Check if a converter is available for the conversion
-
-type converterManager struct {
-	converters map[ConverterType]Converter
-
-	reg Registry
-}
-
-func NewConvMngr(reg Registry, customConverters map[reflect.Kind]Converter) (*converterManager, error) {
-	if len(reg.All()) == 0 {
-		return nil, errors.New("registry is empty")
-	}
-	converters := map[ConverterType]Converter{
-		ConverterTypeString: &stringConverter{reg},
-	}
-	mngr := &converterManager{
-		reg:        reg,
-		converters: converters,
-	}
-	if len(customConverters) == 0 {
-		return mngr, nil
-	}
-	// TODO: merge customConverters to the default ones BUT do not allow an
-	// overwrite of the default ones
-
-	return mngr, nil
-}
-
-func (c *converterManager) Convert(marker marker.Marker, target Target) (any, error) {
-	idn := marker.Ident()
-	def := c.reg.Get(idn)
-	if def == nil {
-		return nil, fmt.Errorf("marker `%s` is not defined in the registry", idn)
-	}
-	if inFavorOf, isDepcrecated := def.IsDeprecated(); isDepcrecated {
-		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, *inFavorOf)
-		slog.Warn(msg)
-	}
-	if target != def.Target {
-		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
-	}
-}
 
 type Converter interface {
 	// IsPossible returns an error if the conversion of the `MarkerKind` is not
 	// possible to `def.Output()`
-	IsPossible(m marker.Marker, def *Definition) error
+	CanConvert(m marker.Marker, def *codemark.Definition) error
 
-	// Convert converts the marker to `def.Output()`
-	Convert(marker marker.Marker, target Target) (any, error)
+	//
+	Convert(marker marker.Marker, def *codemark.Definition) (any, error)
 }
 
-func convertString(m marker.Marker, def *Definition) (any, error) {
-	if !isStringConvPossible(def.kind) {
-		return nil, errors.New("string conversion not possible")
-	}
-	s := m.Value().String()
-	value, err := convString(s, def)
-	if err != nil {
-		return nil, err
-	}
-	return toOutput(value, def)
-}
-
-func convString(s string, def *Definition) (reflect.Value, error) {
+func convString(s string, def *codemark.Definition) (reflect.Value, error) {
 	var empty reflect.Value
 	kind := def.kind
 	if kind == reflect.Slice {

@@ -1,8 +1,9 @@
-package codemark
+package converter
 
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/naivary/codemark/marker"
 )
@@ -10,6 +11,8 @@ import (
 const (
 	_rune = reflect.Int32
 	_byte = reflect.Uint8
+
+	_undefined = "UNDEFINED"
 )
 
 func typeOfKind(k reflect.Kind) reflect.Type {
@@ -229,4 +232,41 @@ func isConversionPossible(m marker.Marker, def *Definition) bool {
 	}
 
 	return false
+}
+
+func stringFromStringer(s fmt.Stringer) string {
+	return s.String()
+}
+
+func kindPath(typ reflect.Type, builder *strings.Builder) (string, error) {
+	if typ == nil {
+		return builder.String(), nil
+	}
+	if len(builder.String()) > 0 {
+		builder.WriteString(".")
+	}
+	kind := typ.Kind()
+	if _, err := builder.WriteString(kind.String()); err != nil {
+		return _undefined, err
+	}
+	if kind == reflect.Pointer {
+		return kindPath(typ.Elem(), builder)
+	}
+	if kind == reflect.Slice {
+		return kindPath(typ.Elem(), builder)
+	}
+	if kind == reflect.Map {
+		var keyBuilder strings.Builder
+		key, _ := kindPath(typ.Key(), &keyBuilder)
+		mapfmt := fmt.Sprintf("[%s]", key)
+		builder.WriteString(mapfmt)
+		return kindPath(typ.Elem(), builder)
+	}
+	if kind == reflect.Chan {
+		return kindPath(typ.Elem(), builder)
+	}
+	if kind == reflect.Array {
+		return kindPath(typ.Elem(), builder)
+	}
+	return kindPath(nil, builder)
 }
