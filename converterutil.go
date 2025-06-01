@@ -3,6 +3,8 @@ package codemark
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/naivary/codemark/marker"
 )
 
 const (
@@ -185,4 +187,46 @@ func appendToSlice(slice reflect.Value, elem reflect.Value) reflect.Value {
 		return slice
 	}
 	return reflect.Append(slice, elem)
+}
+
+func isConversionPossible(m marker.Marker, def *Definition) bool {
+	// TODO: I think this is the responsiblity of the converter to check if the
+	// conversion is possible at all
+	var sliceElemKind reflect.Kind
+	markerKind := m.Kind()
+	outputKind := def.output.Kind()
+	if outputKind == reflect.Slice {
+		sliceElemKind = def.output.Elem().Kind()
+	}
+	if outputKind == reflect.Ptr {
+		outputKind = def.output.Elem().Kind()
+	}
+	// Marker: reflect.String
+	// +path:to:marker=string -> string|*string & []byte|[]*byte
+	// +path:to:marker=s -> rune|*rune & byte|*byte & string|*string
+	if markerKind == marker.String && anyOf(outputKind, reflect.String, _rune, _byte) || sliceElemKind == _byte {
+		return true
+	}
+
+	// Marker: reflect.Int64
+	// +path:to:marker=3 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+	// +path:to:marker=0x23ef -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+	// +path:to:marker=0o352 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
+	if markerKind == marker.Int && isInt(outputKind) || isUint(outputKind) {
+		return true
+	}
+
+	// Marker: reflect.Float64
+	// +path:to:marker=3.0 -> float[32,64]|*float[32,64]
+	if markerKind == marker.Float && anyOf(outputKind, reflect.Float32, reflect.Float64) {
+		return true
+	}
+
+	// reflect.Complex128
+	// +path:to:marker=2+3i-> complex[64,128]|*complex[64,128]
+	if markerKind == marker.Complex && anyOf(outputKind, reflect.Complex128, reflect.Complex64) {
+		return true
+	}
+
+	return false
 }

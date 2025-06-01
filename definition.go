@@ -5,14 +5,11 @@ import (
 )
 
 func MakeDef(idn string, t Target, output any) *Definition {
-	outputType := reflect.TypeOf(output)
 	def := &Definition{
-		Ident:      idn,
-		Target:     t,
-		output:     outputType,
-		underlying: underlying(outputType),
+		Ident:  idn,
+		Target: t,
+		output: reflect.TypeOf(output),
 	}
-	def.kind = def.nonPtrKind()
 	return def
 }
 
@@ -38,12 +35,6 @@ type Definition struct {
 	// be used instead.
 	DeprecatedInFavorOf *string
 
-	underlying reflect.Type
-
-	kind reflect.Kind
-
-	// The output type to which the value
-	// of the marker will be converted to
 	output reflect.Type
 }
 
@@ -53,52 +44,14 @@ type DefinitionHelp struct {
 	Description string
 }
 
+func (d *Definition) Output() reflect.Type {
+	return d.output
+}
+
 func (d *Definition) DeprecateInFavorOf(marker string) {
 	d.DeprecatedInFavorOf = &marker
 }
 
 func (d *Definition) IsDeprecated() (*string, bool) {
 	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != nil
-}
-
-func (d *Definition) typ() reflect.Type {
-	if d.sliceType() != nil {
-		return d.sliceType()
-	}
-	return d.underlying
-}
-
-func (d *Definition) nonPtrType() reflect.Type {
-	typ := d.typ()
-	if typ.Kind() == reflect.Pointer {
-		typ = typ.Elem()
-	}
-	return typ
-}
-
-func (d *Definition) nonPtrKind() reflect.Kind {
-	kind := d.output.Kind()
-	if kind != reflect.Pointer {
-		return kind
-	}
-	return d.output.Elem().Kind()
-}
-
-func (d *Definition) sliceType() reflect.Type {
-	if d.kind != reflect.Slice {
-		return nil
-	}
-	typ := d.output.Elem()
-	if typ.Kind() == reflect.Slice {
-		return typ.Elem()
-	}
-	return typ
-}
-
-func (d *Definition) sliceKind() reflect.Kind {
-	typ := d.sliceType()
-	if typ.Kind() == reflect.Pointer {
-		typ = typ.Elem()
-	}
-	return typ.Kind()
 }

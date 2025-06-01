@@ -9,50 +9,39 @@ import (
 	"github.com/naivary/codemark/marker"
 )
 
+// when is it valid to trigger the convert process of a coverter?
+// 1. Check if the conversion of the MarkerKind is possible to the output kind
+// of the definiton
+//
+// 2. Check if a converter is available for the conversion
 
-type Converter interface {
-	// Convert is converting the given marker to `Definition.output` iff the
-	// conversion is possible. A conversion is possible by the following rules:
-	//
-	// string
-	// +path:to:marker=string -> string|*string & []byte|[]*byte
-	// +path:to:marker=s -> rune|*rune & byte|*byte & string|*string
-	//
-	// int
-	// +path:to:marker=3 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
-	// +path:to:marker=0x23ef -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
-	// +path:to:marker=0o352 -> i[8,16,32,64]|*i[8,16,32,64] & uint[8,16,32,64]|*uint[8,16,32,64]
-	//
-	// float
-	// +path:to:marker=3.0 -> float[32,64]|*float[32,64]
-	//
-	// complex
-	// +path:to:marker=2+3i-> complex[64,128]|*complex[64,128]
-	//
-	// list/array
-	// All conversions to `[]T` and `[]*T` where `T` is one of the above primitives are
-	// possible. The conversion to `*[]T` is not possible because it is bad practice
-	// in go to pass slices by pointers
-	Convert(marker marker.Marker, target Target) (any, error)
-}
+type converterManager struct {
+	converters map[ConverterType]Converter
 
-func NewConverter(reg Registry) (Converter, error) {
-	if len(reg.All()) == 0 {
-		return nil, errors.New("registry is empty")
-	}
-	m := &converter{
-		reg: reg,
-	}
-	return m, nil
-}
-
-var _ Converter = (*converter)(nil)
-
-type converter struct {
 	reg Registry
 }
 
-func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
+func NewConvMngr(reg Registry, customConverters map[reflect.Kind]Converter) (*converterManager, error) {
+	if len(reg.All()) == 0 {
+		return nil, errors.New("registry is empty")
+	}
+	converters := map[ConverterType]Converter{
+		ConverterTypeString: &stringConverter{reg},
+	}
+	mngr := &converterManager{
+		reg:        reg,
+		converters: converters,
+	}
+	if len(customConverters) == 0 {
+		return mngr, nil
+	}
+	// TODO: merge customConverters to the default ones BUT do not allow an
+	// overwrite of the default ones
+
+	return mngr, nil
+}
+
+func (c *converterManager) Convert(marker marker.Marker, target Target) (any, error) {
 	idn := marker.Ident()
 	def := c.reg.Get(idn)
 	if def == nil {
@@ -65,21 +54,15 @@ func (c *converter) Convert(marker marker.Marker, target Target) (any, error) {
 	if target != def.Target {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
 	}
-	switch marker.Kind() {
-	case reflect.Int64:
-		return convertInteger(marker, def)
-	case reflect.Float64:
-		return convertDecimal(marker, def)
-	case reflect.Complex128:
-		return convertComplex(marker, def)
-	case reflect.Bool:
-		return convertBool(marker, def)
-	case reflect.String:
-		return convertString(marker, def)
-	case reflect.Slice:
-		return convertSlice(marker, def)
-	}
-	return nil, fmt.Errorf("invalid kind: `%s`", marker.Kind())
+}
+
+type Converter interface {
+	// IsPossible returns an error if the conversion of the `MarkerKind` is not
+	// possible to `def.Output()`
+	IsPossible(m marker.Marker, def *Definition) error
+
+	// Convert converts the marker to `def.Output()`
+	Convert(marker marker.Marker, target Target) (any, error)
 }
 
 func convertString(m marker.Marker, def *Definition) (any, error) {
