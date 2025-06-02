@@ -1,4 +1,4 @@
-package marker
+package parser
 
 import (
 	"reflect"
@@ -15,30 +15,30 @@ type Marker interface {
 	Value() reflect.Value
 }
 
-func NewDefault(ident string, kind MarkerKind, value reflect.Value) *Default {
-	return &Default{
+func NewDefault(ident string, kind MarkerKind, value reflect.Value) Marker {
+	return &marker{
 		Idn: ident,
 		K:   kind,
 		Val: value,
 	}
 }
 
-var _ Marker = (*Default)(nil)
+var _ Marker = (*marker)(nil)
 
-type Default struct {
+type marker struct {
 	Idn string
 	K   MarkerKind
 	Val reflect.Value
 }
 
-func (d *Default) Ident() string {
-	return d.Idn
+func (m *marker) Ident() string {
+	return m.Idn
 }
 
-func (d *Default) Kind() MarkerKind {
-	return d.K
+func (m *marker) Kind() MarkerKind {
+	return m.K
 }
 
-func (d *Default) Value() reflect.Value {
-	return d.Val
+func (m *marker) Value() reflect.Value {
+	return m.Val
 }

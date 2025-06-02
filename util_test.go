@@ -1,4 +1,4 @@
-package converter
+package codemark
 
 import (
 	"reflect"
@@ -21,10 +21,12 @@ func TestKindPath(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			var builder strings.Builder
-			path := kindPath(tc.input, builder)
-			if path != tc.expected {
-				t.Fatalf("expected: %s. got: %s", tc.expected, path)
+			var b strings.Builder
+			id, err := TypeID(tc.input, &b)
+			if err != nil {
+			}
+			if id != tc.expected {
+				t.Fatalf("expected: %s. got: %s", tc.expected, id)
 			}
 		})
 	}

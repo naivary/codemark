@@ -29,7 +29,7 @@ func run() error {
 			return err
 		}
 	}
-	conv, err := codemark.NewConverter(reg)
+	conv, err := codemark.NewConvMngr(reg)
 	if err != nil {
 		return err
 	}

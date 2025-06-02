@@ -1,4 +1,4 @@
-package converter
+package codemark
 
 import (
 	"math"
@@ -199,7 +199,7 @@ func TestConverter_Convert(t *testing.T) {
 					t.Error(err)
 				}
 			}
-			conv, err := NewConverter(reg)
+			conv, err := NewConvMngr(reg)
 			if err != nil {
 				t.Error(err)
 			}

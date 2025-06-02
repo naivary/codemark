@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/lexer"
-	"github.com/naivary/codemark/marker"
 )
 
 const (
@@ -43,13 +42,13 @@ func parseComplex128(v string) (complex128, error) {
 // should be passed instead
 type parseFunc func(*parser, lexer.Token) (parseFunc, bool)
 
-func Parse(input string) ([]marker.Marker, error) {
+func Parse(input string) ([]Marker, error) {
 	const minMarker = 1
 	p := &parser{
 		l:       lexer.Lex(input),
 		state:   parsePlus,
-		markers: make([]marker.Marker, 0, minMarker),
-		m:       &marker.Default{},
+		markers: make([]Marker, 0, minMarker),
+		m:       &marker{},
 	}
 	p.run()
 	return p.markers, p.err
@@ -60,9 +59,9 @@ type parser struct {
 
 	state parseFunc
 	// all the markers which have been built, including error markers
-	markers []marker.Marker
+	markers []Marker
 	// the current marker which is being build
-	m *marker.Default
+	m *marker
 
 	err error
 }
@@ -87,7 +86,7 @@ func (p *parser) run() {
 
 func (p *parser) emit() {
 	p.markers = append(p.markers, p.m)
-	p.m = &marker.Default{}
+	p.m = &marker{}
 }
 
 func (p *parser) errorf(format string, args ...any) (parseFunc, bool) {
@@ -135,13 +134,13 @@ func parseBool(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse boolean value: %s", t.Value)
 	}
-	p.m.K = marker.Bool
+	p.m.K = MarkerKindBool
 	p.m.Val = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
 func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.K = marker.String
+	p.m.K = MarkerKindString
 	p.m.Val = reflect.ValueOf(t.Value)
 	return parseEOF, _next
 }
@@ -151,7 +150,7 @@ func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse int value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.K = marker.Int
+	p.m.K = MarkerKindInt
 	p.m.Val = reflect.ValueOf(val)
 	return parseEOF, _next
 }
@@ -161,7 +160,7 @@ func parseFloat(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse float value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.K = marker.Float
+	p.m.K = MarkerKindFloat
 	p.m.Val = reflect.ValueOf(val)
 	return parseEOF, _next
 }
@@ -171,13 +170,13 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse complex value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.K = marker.Complex
+	p.m.K = MarkerKindComplex
 	p.m.Val = reflect.ValueOf(c)
 	return parseEOF, _next
 }
 
 func parseSliceStart(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.K = marker.List
+	p.m.K = MarkerKindList
 	rt := reflect.TypeOf([]any{})
 	p.m.Val = reflect.MakeSlice(rt, 0, 1)
 	return parseSliceElem, _next

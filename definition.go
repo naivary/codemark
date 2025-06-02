@@ -2,7 +2,6 @@ package codemark
 
 import (
 	"reflect"
-	"strings"
 )
 
 func MakeDef(idn string, t Target, output any) *Definition {
@@ -56,5 +55,3 @@ func (d *Definition) DeprecateInFavorOf(marker string) {
 func (d *Definition) IsDeprecated() (*string, bool) {
 	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != nil
 }
-
-
