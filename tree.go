@@ -29,27 +29,45 @@ type Tree struct {
 	root *node
 }
 
-func (t *Tree) add(n *node, q Queue[string]) {
+// difference between a convnode and a normal node is that a conv node has the
+// typeid as its value, converter is non-nil and it has no children
+func (t *Tree) add(current *node, convNode *node, q Queue[string]) {
 	seg, err := q.Pop()
 	if err != nil {
-		n.children = append(n.children, n)
+		current.children = append(current.children, convNode)
 		return
 	}
-	for _, child := range n.children {
-		if child.value == seg {
-			t.add(child, q)
+	for _, childNode := range current.children {
+		if childNode.value == seg {
+			t.add(childNode, convNode, q)
 		}
 	}
-
 	nn := &node{value: seg, children: []*node{}}
-	n.children = append(n.children, nn)
-	t.add(nn, q)
+	current.children = append(current.children, nn)
+	t.add(nn, convNode, q)
 }
 
-func (t *Tree) Add(n *node) {
-	typeID := n.value
+func (t *Tree) Add(convNode *node) error {
+	if convNode.conv == nil {
+		return errors.New("cannot add a node which does not define a converter")
+	}
+	typeID := convNode.value
 	q := Queue[string]{strings.Split(typeID, ".")}
-	t.add(n, q)
+
+	seg, err := q.Pop()
+	if err != nil {
+		return err
+	}
+	for _, childNode := range t.root.children {
+		if childNode.value == seg {
+			t.add(childNode, convNode, q)
+			return nil
+		}
+	}
+	nn := &node{value: seg, children: []*node{}}
+	t.root.children = append(t.root.children, nn)
+	t.add(nn, convNode, q)
+	return nil
 }
 
 func bfs(root *node, q Queue[string]) *node {
