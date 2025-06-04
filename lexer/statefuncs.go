@@ -38,9 +38,6 @@ func isAlphaNumeric(r rune) bool {
 
 type stateFunc func(*Lexer) stateFunc
 
-// TODO: every marker has to be at the beginning of a comment line without any
-// characters before and after it
-
 func lexText(l *Lexer) stateFunc {
 	// check for the position 0
 	if hasPlusPrefix(l.input, l.pos) {
@@ -54,6 +51,8 @@ func lexText(l *Lexer) stateFunc {
 		if !isNewline(r) {
 			continue
 		}
+		// TODO: should we enforce the best practice to not have any spaces
+		// before the marker?
 		l.acceptFunc(isSpace)
 		l.ignore()
 		if hasPlusPrefix(l.input, l.pos) {
