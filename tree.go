@@ -50,10 +50,10 @@ func (t *tree) add(current *node, convNode *node, q Queue[string]) {
 
 func (t *tree) Add(typeID string, conv Converter) error {
 	if conv == nil {
-		return errors.New("cannot add a node which does not define a converter")
+		return errors.New("conveter cannot be nil")
 	}
 	if typeID == "" {
-		return errors.New("empty type ID is not valid")
+		return errors.New("empty type id is not valid")
 	}
 	convNode := &node{value: typeID, conv: conv}
 	q := Queue[string]{strings.Split(typeID, ".")}
@@ -73,7 +73,7 @@ func (t *tree) Add(typeID string, conv Converter) error {
 	return nil
 }
 
-func (t *tree) find(n *node, q Queue[string]) Converter {
+func (t *tree) getConverter(n *node, q Queue[string]) Converter {
 	if len(n.children) == 0 {
 		return nil
 	}
@@ -83,7 +83,7 @@ func (t *tree) find(n *node, q Queue[string]) Converter {
 	}
 	for _, child := range n.children {
 		if child.value == segment {
-			return t.find(child, q)
+			return t.getConverter(child, q)
 		}
 	}
 	return nil
@@ -91,7 +91,7 @@ func (t *tree) find(n *node, q Queue[string]) Converter {
 
 func (t *tree) GetConverter(typeID string) (Converter, error) {
 	q := Queue[string]{strings.Split(typeID, ".")}
-	conv := t.find(t.root, q)
+	conv := t.getConverter(t.root, q)
 	if conv == nil {
 		return nil, fmt.Errorf("no converter found for type id `%s`", typeID)
 	}
