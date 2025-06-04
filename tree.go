@@ -2,6 +2,7 @@ package codemark
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 )
 
@@ -25,13 +26,13 @@ type node struct {
 	conv     Converter
 }
 
-type Tree struct {
+type tree struct {
 	root *node
 }
 
 // difference between a convnode and a normal node is that a conv node has the
 // typeid as its value, converter is non-nil and it has no children
-func (t *Tree) add(current *node, convNode *node, q Queue[string]) {
+func (t *tree) add(current *node, convNode *node, q Queue[string]) {
 	seg, err := q.Pop()
 	if err != nil {
 		current.children = append(current.children, convNode)
@@ -47,13 +48,15 @@ func (t *Tree) add(current *node, convNode *node, q Queue[string]) {
 	t.add(nn, convNode, q)
 }
 
-func (t *Tree) Add(convNode *node) error {
-	if convNode.conv == nil {
+func (t *tree) Add(typeID string, conv Converter) error {
+	if conv == nil {
 		return errors.New("cannot add a node which does not define a converter")
 	}
-	typeID := convNode.value
+	if typeID == "" {
+		return errors.New("empty type ID is not valid")
+	}
+	convNode := &node{value: typeID, conv: conv}
 	q := Queue[string]{strings.Split(typeID, ".")}
-
 	seg, err := q.Pop()
 	if err != nil {
 		return err
@@ -70,18 +73,27 @@ func (t *Tree) Add(convNode *node) error {
 	return nil
 }
 
-func bfs(root *node, q Queue[string]) *node {
-	if len(root.children) == 0 {
+func (t *tree) find(n *node, q Queue[string]) Converter {
+	if len(n.children) == 0 {
 		return nil
 	}
 	segment, err := q.Pop()
 	if err != nil {
-		return root
+		return n.conv
 	}
-	for _, child := range root.children {
+	for _, child := range n.children {
 		if child.value == segment {
-			return bfs(child, q)
+			return t.find(child, q)
 		}
 	}
 	return nil
+}
+
+func (t *tree) GetConverter(typeID string) (Converter, error) {
+	q := Queue[string]{strings.Split(typeID, ".")}
+	conv := t.find(t.root, q)
+	if conv == nil {
+		return nil, fmt.Errorf("no converter found for type id `%s`", typeID)
+	}
+	return conv, nil
 }
