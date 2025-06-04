@@ -60,38 +60,44 @@ func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
 	return false
 }
 
-func TypeID(typ reflect.Type, builder *strings.Builder) (string, error) {
-	if typ == nil {
-		return builder.String(), nil
-	}
-	if len(builder.String()) > 0 {
-		builder.WriteString(".")
+func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
+	if len(b.String()) > 0 {
+		b.WriteString(".")
 	}
 	kind := typ.Kind()
-	if _, err := builder.WriteString(kind.String()); err != nil {
+	if _, err := b.WriteString(kind.String()); err != nil {
 		return _undefined, err
 	}
 	if kind == reflect.Pointer {
-		return TypeID(typ.Elem(), builder)
+		return typeID(typ.Elem(), b)
 	}
 	if kind == reflect.Map {
 		var keyBuilder strings.Builder
-		key, _ := TypeID(typ.Key(), &keyBuilder)
-		builder.WriteString(".")
-		builder.WriteString(key)
-		return TypeID(typ.Elem(), builder)
+		key, _ := typeID(typ.Key(), &keyBuilder)
+		b.WriteString(".")
+		b.WriteString(key)
+		return typeID(typ.Elem(), b)
 	}
 	if kind == reflect.Slice {
-		return TypeID(typ.Elem(), builder)
+		return typeID(typ.Elem(), b)
 	}
 	if kind == reflect.Chan {
-		return TypeID(typ.Elem(), builder)
+		return typeID(typ.Elem(), b)
 	}
 	if kind == reflect.Array {
-		return TypeID(typ.Elem(), builder)
+		return typeID(typ.Elem(), b)
 	}
 	if kind == reflect.Interface {
-		return TypeID(nil, builder)
+		return typeID(nil, b)
 	}
-	return TypeID(nil, builder)
+	return typeID(nil, b)
+
+}
+
+func TypeID(typ reflect.Type) (string, error) {
+	if typ == nil {
+		return "", nil
+	}
+	var b strings.Builder
+	return typeID(typ, &b)
 }
