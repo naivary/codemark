@@ -3,8 +3,11 @@ package codemark
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"strings"
+)
+
+const (
+	_rootNodeValue = "ROOT_NODE"
 )
 
 type Queue[T any] struct {
@@ -58,42 +61,38 @@ func (t *tree) Add(convNode *node) error {
 		return errors.New("empty type id is not valid")
 	}
 	q := Queue[string]{strings.Split(typeID, ".")}
-	seg, err := q.Pop()
+	kind, err := q.Pop()
 	if err != nil {
 		return err
 	}
 	for _, childNode := range t.root.children {
-		if childNode.value == seg {
+		if childNode.value == kind {
 			t.add(childNode, convNode, q)
 			return nil
 		}
 	}
-	nn := &node{value: seg, children: []*node{}}
+	nn := &node{value: kind, children: []*node{}}
 	t.root.children = append(t.root.children, nn)
 	t.add(nn, convNode, q)
 	return nil
 }
 
 func (t *tree) getConverter(n *node, q Queue[string]) Converter {
-	if len(n.children) == 0 {
-		return nil
-	}
-	segment, err := q.Pop()
+	kind, err := q.Pop()
 	if err != nil {
-		return n.conv
+		return n.children[0].conv
 	}
 	for _, child := range n.children {
-		if child.value == segment {
+		if child.value == kind {
 			return t.getConverter(child, q)
 		}
 	}
 	return nil
 }
 
-func (t *tree) GetConverter(rtype reflect.Type) (Converter, error) {
-	typeID, err := TypeID(rtype)
-	if err != nil {
-		return nil, err
+func (t *tree) GetConverter(typeID string) (Converter, error) {
+	if typeID == "" {
+		return nil, errors.New("typeid cannot be empty")
 	}
 	q := Queue[string]{strings.Split(typeID, ".")}
 	conv := t.getConverter(t.root, q)

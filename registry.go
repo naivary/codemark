@@ -1,11 +1,13 @@
 package codemark
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Registry interface {
 	Define(def *Definition) error
 
-	Get(idn string) *Definition
+	Get(idn string) (*Definition, error)
 
 	All() map[string]*Definition
 }
@@ -31,8 +33,12 @@ func (r *registry) Define(d *Definition) error {
 	return nil
 }
 
-func (r *registry) Get(idn string) *Definition {
-	return r.defs[idn]
+func (r *registry) Get(idn string) (*Definition, error) {
+	def, found := r.defs[idn]
+	if found {
+		return def, nil
+	}
+	return nil, fmt.Errorf("definition not found: `%s`", idn)
 }
 
 func (r *registry) All() map[string]*Definition {

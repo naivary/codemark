@@ -2,6 +2,7 @@ package codemark
 
 import (
 	"reflect"
+	"slices"
 	"strings"
 )
 
@@ -52,15 +53,13 @@ func typeOfKind(k reflect.Kind) reflect.Type {
 }
 
 func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
-	for _, kind := range kinds {
-		if kind == k {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(kinds, k)
 }
 
 func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
+	if typ == nil {
+		return b.String(), nil
+	}
 	if len(b.String()) > 0 {
 		b.WriteString(".")
 	}
