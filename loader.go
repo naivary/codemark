@@ -8,10 +8,10 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-type Workspace struct{}
+type Project struct{}
 
 type Loader interface {
-	Load(patterns ...string) (*Workspace, error)
+	Load(patterns ...string) (*Project, error)
 }
 
 func NewLoader(mngr *ConverterManager, cfg *packages.Config) Loader {
@@ -34,7 +34,7 @@ type loader struct {
 	cfg  *packages.Config
 }
 
-func (l *loader) Load(patterns ...string) (*Workspace, error) {
+func (l *loader) Load(patterns ...string) (*Project, error) {
 	return nil, nil
 }
 
