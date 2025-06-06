@@ -4,6 +4,17 @@ import (
 	"reflect"
 )
 
+type MarkerKind int
+
+const (
+	MarkerKindList = iota + 1
+	MarkerKindFloat
+	MarkerKindInt
+	MarkerKindComplex
+	MarkerKindBool
+	MarkerKindString
+)
+
 type Marker interface {
 	// Ident is the identifier of the marker without `+`
 	Ident() string
