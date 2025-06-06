@@ -34,16 +34,10 @@ func run() error {
 		return err
 	}
 	l := codemark.NewLoader(conv, nil)
-	files, err := l.Load("./testdata")
+	workspace, err := l.Load("./testdata")
 	if err != nil {
 		return err
 	}
-
-	structs := files["github.com/naivary/codemark/testdata"][0].Structs
-	for _, strc := range structs {
-		for _, field := range strc.Fields {
-			_ = field
-		}
-	}
+	_ = workspace
 	return nil
 }

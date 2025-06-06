@@ -4,21 +4,7 @@ import (
 	"reflect"
 )
 
-func MakeDef(idn string, t Target, output any) *Definition {
-	def := &Definition{
-		Ident:  idn,
-		Target: t,
-		output: reflect.TypeOf(output),
-	}
-	return def
-}
-
-func MakeDefWithHelp(name string, t Target, output reflect.Type, help *DefinitionHelp) *Definition {
-	def := MakeDef(name, t, output)
-	def.Help = help
-	return def
-}
-
+// TODO: Make it possible to store a Definition in a database
 type Definition struct {
 	// Name of the definition in the correct format
 	// e.g. +path:to:mark
@@ -35,7 +21,24 @@ type Definition struct {
 	// be used instead.
 	DeprecatedInFavorOf *string
 
+	// output is the type to which parser.Marker has to be converted by a
+	// converter.
 	output reflect.Type
+}
+
+func MakeDef(idn string, t Target, output any) *Definition {
+	def := &Definition{
+		Ident:  idn,
+		Target: t,
+		output: reflect.TypeOf(output),
+	}
+	return def
+}
+
+func MakeDefWithHelp(name string, t Target, output reflect.Type, help *DefinitionHelp) *Definition {
+	def := MakeDef(name, t, output)
+	def.Help = help
+	return def
 }
 
 type DefinitionHelp struct {

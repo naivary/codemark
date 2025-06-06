@@ -8,23 +8,23 @@ import (
 	"github.com/naivary/codemark/parser"
 )
 
-type converterManager struct {
+type ConverterManager struct {
 	reg Registry
 
 	converters map[string]Converter
 }
 
-func NewConvMngr(reg Registry) (*converterManager, error) {
+func NewConvMngr(reg Registry) (*ConverterManager, error) {
 	if len(reg.All()) == 0 {
 		return nil, errors.New("registry is empty")
 	}
-	mngr := &converterManager{
+	mngr := &ConverterManager{
 		reg: reg,
 	}
 	return mngr, nil
 }
 
-func (c *converterManager) Convert(mrk parser.Marker, target Target) (any, error) {
+func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error) {
 	idn := mrk.Ident()
 	def := c.reg.Get(idn)
 	if def == nil {

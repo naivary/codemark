@@ -3,6 +3,7 @@ package codemark
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -48,14 +49,14 @@ func (t *tree) add(current *node, convNode *node, q Queue[string]) {
 	t.add(nn, convNode, q)
 }
 
-func (t *tree) Add(typeID string, conv Converter) error {
-	if conv == nil {
+func (t *tree) Add(convNode *node) error {
+	typeID := convNode.value
+	if convNode.conv == nil {
 		return errors.New("conveter cannot be nil")
 	}
 	if typeID == "" {
 		return errors.New("empty type id is not valid")
 	}
-	convNode := &node{value: typeID, conv: conv}
 	q := Queue[string]{strings.Split(typeID, ".")}
 	seg, err := q.Pop()
 	if err != nil {
@@ -89,7 +90,11 @@ func (t *tree) getConverter(n *node, q Queue[string]) Converter {
 	return nil
 }
 
-func (t *tree) GetConverter(typeID string) (Converter, error) {
+func (t *tree) GetConverter(rtype reflect.Type) (Converter, error) {
+	typeID, err := TypeID(rtype)
+	if err != nil {
+		return nil, err
+	}
 	q := Queue[string]{strings.Split(typeID, ".")}
 	conv := t.getConverter(t.root, q)
 	if conv == nil {
