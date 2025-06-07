@@ -71,6 +71,9 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 		return nil, err
 	}
 	conv, err := c.converters.GetConverter(typeID)
+	if err != nil {
+		return nil, err
+	}
 	if err := conv.CanConvert(mrk, def); err != nil {
 		return nil, err
 	}

@@ -26,7 +26,7 @@ type Marker interface {
 	Value() reflect.Value
 }
 
-func NewDefault(ident string, kind MarkerKind, value reflect.Value) Marker {
+func NewMarker(ident string, kind MarkerKind, value reflect.Value) Marker {
 	return &marker{
 		Idn: ident,
 		K:   kind,

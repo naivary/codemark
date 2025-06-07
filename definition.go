@@ -26,11 +26,11 @@ type Definition struct {
 	output reflect.Type
 }
 
-func MakeDef(idn string, t Target, output any) *Definition {
+func MakeDef(idn string, t Target, output reflect.Type) *Definition {
 	def := &Definition{
 		Ident:  idn,
 		Target: t,
-		output: reflect.TypeOf(output),
+		output: output,
 	}
 	return def
 }
