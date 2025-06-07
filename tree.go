@@ -34,6 +34,12 @@ type tree struct {
 	root *node
 }
 
+func newTree(children ...*node) *tree {
+	return &tree{
+		root: &node{value: _rootNodeValue, children: children},
+	}
+}
+
 func (t *tree) add(current *node, convNode *node, q Queue[string]) {
 	seg, err := q.Pop()
 	if err != nil {
@@ -58,7 +64,10 @@ func (t *tree) Add(convNode *node) error {
 	if typeID == "" {
 		return errors.New("empty type id is not valid")
 	}
-	q := Queue[string]{strings.Split(typeID, ".")}
+	q := Queue[string]{strings.Split(typeID, TypeIDSep)}
+	if len(q.items) == 0 {
+		return fmt.Errorf("typeid is not seperated using the correct seperator: %s\n", typeID)
+	}
 	kind, err := q.Pop()
 	if err != nil {
 		return err
@@ -93,6 +102,9 @@ func (t *tree) GetConverter(typeID string) (Converter, error) {
 		return nil, errors.New("typeid cannot be empty")
 	}
 	q := Queue[string]{strings.Split(typeID, ".")}
+	if len(q.items) == 0 {
+		return nil, fmt.Errorf("typeid is not seperated using the correct seperator: %s\n", typeID)
+	}
 	conv := t.getConverter(t.root, q)
 	if conv == nil {
 		return nil, fmt.Errorf("no converter found for type id `%s`", typeID)

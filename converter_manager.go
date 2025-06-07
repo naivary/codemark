@@ -19,10 +19,9 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 	if len(reg.All()) == 0 {
 		return nil, errors.New("registry is empty")
 	}
-	root := &node{value: _rootNodeValue, children: make([]*node, 0, len(convs))}
 	mngr := &ConverterManager{
 		reg:        reg,
-		converters: &tree{root},
+		converters: newTree(),
 	}
 	for _, conv := range convs {
 		if err := mngr.AddConverter(conv); err != nil {

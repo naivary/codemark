@@ -5,3 +5,4 @@
 3. Make the loader much easier by just using the high level variables but more
    methods in the interface so the interaction is easier.
 4. Variablen für marker.
+5. wildcards for typeid?

@@ -9,19 +9,20 @@ const (
 	_rune = reflect.Int32
 	_byte = reflect.Uint8
 
-	_undefined = "UNDEFINED"
+	TypeIDSep = "."
 )
 
 func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
 	if typ == nil {
 		return b.String(), nil
 	}
+	// write dot to seperate the incoming kind
 	if len(b.String()) > 0 {
-		b.WriteString(".")
+		b.WriteString(TypeIDSep)
 	}
 	kind := typ.Kind()
 	if _, err := b.WriteString(kind.String()); err != nil {
-		return _undefined, err
+		return "", err
 	}
 	if kind == reflect.Pointer {
 		return typeID(typ.Elem(), b)
@@ -29,7 +30,7 @@ func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
 	if kind == reflect.Map {
 		var keyBuilder strings.Builder
 		key, _ := typeID(typ.Key(), &keyBuilder)
-		b.WriteString(".")
+		b.WriteString(TypeIDSep)
 		b.WriteString(key)
 		return typeID(typ.Elem(), b)
 	}
@@ -42,11 +43,7 @@ func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
 	if kind == reflect.Array {
 		return typeID(typ.Elem(), b)
 	}
-	if kind == reflect.Interface {
-		return typeID(nil, b)
-	}
 	return typeID(nil, b)
-
 }
 
 func TypeID(typ reflect.Type) (string, error) {
