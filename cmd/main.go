@@ -23,7 +23,7 @@ func openAPIDefs() []*codemark.Definition {
 }
 
 func run() error {
-	reg := codemark.NewRegistry()
+	reg := codemark.NewInMemoryRegistry()
 	for _, def := range openAPIDefs() {
 		if err := reg.Define(def); err != nil {
 			return err

@@ -2,7 +2,6 @@ package codemark
 
 import (
 	"reflect"
-	"slices"
 	"strings"
 )
 
@@ -12,49 +11,6 @@ const (
 
 	_undefined = "UNDEFINED"
 )
-
-func typeOfKind(k reflect.Kind) reflect.Type {
-	switch k {
-	case reflect.Int:
-		return reflect.TypeOf(int(0))
-	case reflect.Int8:
-		return reflect.TypeOf(int8(0))
-	case reflect.Int16:
-		return reflect.TypeOf(int16(0))
-	case reflect.Int32:
-		return reflect.TypeOf(int32(0))
-	case reflect.Int64:
-		return reflect.TypeOf(int64(0))
-	case reflect.Uint:
-		return reflect.TypeOf(uint(0))
-	case reflect.Uint8:
-		return reflect.TypeOf(uint8(0))
-	case reflect.Uint16:
-		return reflect.TypeOf(uint16(0))
-	case reflect.Uint32:
-		return reflect.TypeOf(uint32(0))
-	case reflect.Uint64:
-		return reflect.TypeOf(uint64(0))
-	case reflect.Float32:
-		return reflect.TypeOf(float32(0.0))
-	case reflect.Float64:
-		return reflect.TypeOf(float64(0.0))
-	case reflect.Complex64:
-		return reflect.TypeOf(complex64(0 + 0i))
-	case reflect.Complex128:
-		return reflect.TypeOf(complex128(0 + 0i))
-	case reflect.String:
-		return reflect.TypeOf(string(""))
-	case reflect.Bool:
-		return reflect.TypeOf(bool(false))
-	default:
-		return nil
-	}
-}
-
-func anyOf(k reflect.Kind, kinds ...reflect.Kind) bool {
-	return slices.Contains(kinds, k)
-}
 
 func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
 	if typ == nil {

@@ -41,8 +41,7 @@ func (c *ConverterManager) GetConverter(rtype reflect.Type) (Converter, error) {
 }
 
 func (c *ConverterManager) AddConverter(conv Converter) error {
-	for _, typ := range conv.SupportedTypes() {
-		rtype := reflect.TypeOf(typ)
+	for _, rtype := range conv.SupportedTypes() {
 		typeID, err := TypeID(rtype)
 		if err != nil {
 			return err

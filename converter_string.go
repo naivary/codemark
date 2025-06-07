@@ -2,6 +2,7 @@ package codemark
 
 import (
 	"errors"
+	"reflect"
 
 	"github.com/naivary/codemark/parser"
 )
@@ -10,8 +11,8 @@ var _ Converter = (*stringConverter)(nil)
 
 type stringConverter struct{}
 
-func (s *stringConverter) SupportedTypes() []any {
-	return []any{
+func (s *stringConverter) SupportedTypes() []reflect.Type {
+	types := []any{
 		string(""),
 		rune(0),
 		byte(0),
@@ -22,6 +23,12 @@ func (s *stringConverter) SupportedTypes() []any {
 		new(byte),
 		[]*byte{},
 	}
+	supported := make([]reflect.Type, 0, len(types))
+	for _, typ := range types {
+		rtype := reflect.TypeOf(typ)
+		supported = append(supported, rtype)
+	}
+	return supported
 }
 
 func (s *stringConverter) CanConvert(m parser.Marker, def *Definition) error {

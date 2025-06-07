@@ -11,7 +11,7 @@ func TestNewConvMngr(t *testing.T) {
 	tests := []struct {
 		name  string
 		conv  Converter
-		types []any
+		types []reflect.Type
 	}{
 		{
 			name:  "adding converter",
@@ -20,19 +20,19 @@ func TestNewConvMngr(t *testing.T) {
 		},
 	}
 
-	reg := NewRegistry()
+	reg := NewInMemoryRegistry()
 	def := MakeDef("path:to:marker", TargetField, bool(false))
 	if err := reg.Define(def); err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
+
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			mngr, err := NewConvMngr(reg, tc.conv)
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			for _, typ := range tc.types {
-				rtype := reflect.TypeOf(typ)
+			for _, rtype := range tc.types {
 				typeID, err := TypeID(rtype)
 				if err != nil {
 					t.Errorf("err occured: %s\n", err)

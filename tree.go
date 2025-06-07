@@ -34,12 +34,10 @@ type tree struct {
 	root *node
 }
 
-// difference between a convnode and a normal node is that a conv node has the
-// typeid as its value, converter is non-nil and it has no children
 func (t *tree) add(current *node, convNode *node, q Queue[string]) {
 	seg, err := q.Pop()
 	if err != nil {
-		current.children = append(current.children, convNode)
+		current.conv = convNode.conv
 		return
 	}
 	for _, childNode := range current.children {
@@ -80,7 +78,7 @@ func (t *tree) Add(convNode *node) error {
 func (t *tree) getConverter(n *node, q Queue[string]) Converter {
 	kind, err := q.Pop()
 	if err != nil {
-		return n.children[0].conv
+		return n.conv
 	}
 	for _, child := range n.children {
 		if child.value == kind {
