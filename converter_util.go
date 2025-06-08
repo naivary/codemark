@@ -1,7 +1,6 @@
 package codemark
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 )
@@ -13,15 +12,19 @@ const (
 	TypeIDSep = "."
 )
 
-func toOutput(value reflect.Value, def *Definition, isPtr bool) (any, error) {
-	if !isPtr {
-		value = value.Elem()
+func toOutput(v reflect.Value, typ reflect.Type, isPtr bool) (reflect.Value, error) {
+	outputType := typ
+	// need to dereference type to create the correct variable using
+	// `reflect.New`. Otherwise .Set wont work.
+	if isPtr {
+		outputType = outputType.Elem()
 	}
-	if !value.CanConvert(def.output) {
-		return nil, fmt.Errorf("conversion from `%v` to `%v` is not possible", value.Type(), def.output)
+	out := reflect.New(outputType)
+	out.Elem().Set(v.Convert(outputType))
+	if isPtr {
+		return out.Convert(typ), nil
 	}
-	output := value.Convert(def.output)
-	return output.Interface(), nil
+	return out.Elem(), nil
 }
 
 func typeID(typ reflect.Type, b *strings.Builder) string {

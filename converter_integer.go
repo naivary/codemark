@@ -67,29 +67,38 @@ func (i *intConverter) Convert(m parser.Marker, def *Definition) (any, error) {
 
 func (i *intConverter) integer(m parser.Marker, def *Definition, isPtr bool) (any, error) {
 	n := m.Value().Int()
-	if i.isOverflowing(def.output, n) {
+	if i.isOverflowingInt(def.output, n) {
 		return nil, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-
-	outputType := def.output
-	if isPtr {
-		outputType = def.output.Elem()
+	out, err := toOutput(m.Value(), def.output, isPtr)
+	if err != nil {
+		return nil, err
 	}
-	out := reflect.New(outputType)
-	out.Elem().SetInt(n)
-	if isPtr {
-		return out.Convert(def.output).Interface(), nil
-	}
-	return out.Elem().Interface(), nil
+	return out.Interface(), nil
 }
 
 func (i *intConverter) uinteger(m parser.Marker, def *Definition, isPtr bool) (any, error) {
-	return nil, nil
+	n := m.Value().Int()
+	if i.isOverflowingUint(def.output, uint64(n)) {
+		return nil, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+	}
+	out, err := toOutput(m.Value(), def.output, isPtr)
+	if err != nil {
+		return nil, err
+	}
+	return out.Interface(), nil
 }
 
-func (i *intConverter) isOverflowing(out reflect.Type, n int64) bool {
+func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {
 	if out.Kind() == reflect.Pointer {
 		out = out.Elem()
 	}
 	return out.OverflowInt(n)
+}
+
+func (i *intConverter) isOverflowingUint(out reflect.Type, n uint64) bool {
+	if out.Kind() == reflect.Pointer {
+		out = out.Elem()
+	}
+	return out.OverflowUint(n)
 }

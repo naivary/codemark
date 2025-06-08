@@ -49,11 +49,11 @@ func intDefs(t *testing.T) Registry {
 		MakeDef("path:to:ptri32", TargetField, reflect.TypeOf(ptri32(new(int32)))),
 		MakeDef("path:to:ptri64", TargetField, reflect.TypeOf(ptri64(new(int64)))),
 		// uint
-		MakeDef("path:to:uint", TargetField, reflect.TypeOf(ui(0))),
-		MakeDef("path:to:uint8", TargetField, reflect.TypeOf(ui8(0))),
-		MakeDef("path:to:uint16", TargetField, reflect.TypeOf(ui16(0))),
-		MakeDef("path:to:uint32", TargetField, reflect.TypeOf(ui32(0))),
-		MakeDef("path:to:uint64", TargetField, reflect.TypeOf(ui64(0))),
+		MakeDef("path:to:ui", TargetField, reflect.TypeOf(ui(0))),
+		MakeDef("path:to:ui8", TargetField, reflect.TypeOf(ui8(0))),
+		MakeDef("path:to:ui16", TargetField, reflect.TypeOf(ui16(0))),
+		MakeDef("path:to:ui32", TargetField, reflect.TypeOf(ui32(0))),
+		MakeDef("path:to:ui64", TargetField, reflect.TypeOf(ui64(0))),
 		// ptr uint
 		MakeDef("path:to:ptrui", TargetField, reflect.TypeOf(ptrui(new(uint)))),
 		MakeDef("path:to:ptrui8", TargetField, reflect.TypeOf(ptrui8(new(uint8)))),
@@ -110,6 +110,17 @@ func TestIntConverter(t *testing.T) {
 			isValidValue: func(got reflect.Value) bool {
 				i := got.Interface().(ptri)
 				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to uint type",
+			mrk:     parser.NewMarker("path:to:ui", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ui(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ui)
+				return i == _intValue
 			},
 		},
 	}

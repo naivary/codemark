@@ -35,8 +35,6 @@ func (s *stringConverter) CanConvert(m parser.Marker, def *Definition) error {
 	if m.Kind() != parser.MarkerKindString {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), parser.MarkerKindString)
 	}
-	// NOTE: dont need to check if the def.output is supported because the converter
-	// will only be choosen if def.output is one of the supported types
 	return nil
 }
 
@@ -64,10 +62,11 @@ func (s *stringConverter) Convert(m parser.Marker, def *Definition) (any, error)
 }
 
 func (s *stringConverter) str(m parser.Marker, def *Definition, isPtr bool) (any, error) {
-	typ := reflect.TypeOf("")
-	v := reflect.New(typ)
-	v.Elem().SetString(m.Value().String())
-	return toOutput(v, def, isPtr)
+	out, err := toOutput(m.Value(), def.output, isPtr)
+	if err != nil {
+		return nil, err
+	}
+	return out.Interface(), nil
 }
 
 func (s *stringConverter) runee(m parser.Marker, def *Definition, isPtr bool) (any, error) {
@@ -75,11 +74,13 @@ func (s *stringConverter) runee(m parser.Marker, def *Definition, isPtr bool) (a
 	if len(markerValue) > 1 {
 		return nil, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
 	}
-	typ := reflect.TypeOf(rune(0))
-	r := reflect.New(typ)
 	rvalue := reflect.ValueOf(rune(markerValue[0]))
-	r.Elem().Set(rvalue)
-	return toOutput(r, def, isPtr)
+	out, err := toOutput(rvalue, def.output, isPtr)
+	if err != nil {
+		return nil, err
+	}
+	return out.Interface(), nil
+
 }
 
 func (s *stringConverter) bytee(m parser.Marker, def *Definition, isPtr bool) (any, error) {
@@ -87,31 +88,25 @@ func (s *stringConverter) bytee(m parser.Marker, def *Definition, isPtr bool) (a
 	if len(markerValue) > 1 {
 		return nil, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
 	}
-	typ := reflect.TypeOf(byte(0))
-	b := reflect.New(typ)
 	bvalue := reflect.ValueOf(byte(markerValue[0]))
-	b.Elem().Set(bvalue)
-	return toOutput(b, def, isPtr)
+	out, err := toOutput(bvalue, def.output, isPtr)
+	if err != nil {
+		return nil, err
+	}
+	return out.Interface(), nil
 }
 
 func (s *stringConverter) bytes(m parser.Marker, def *Definition, isPtr bool) (any, error) {
-	markerValue := m.Value().String()
-	elem := reflect.TypeOf(byte(0))
-	slice := reflect.TypeOf([]byte{})
-	if isPtr {
-		slice = reflect.TypeOf([]*byte{})
-	}
-	bytes := reflect.MakeSlice(slice, 0, len(markerValue))
-	for _, b := range []byte(markerValue) {
-		rbyte := reflect.New(elem)
+	v := m.Value()
+	bytes := reflect.MakeSlice(def.output, 0, len(v.String()))
+	elemType := def.output.Elem()
+	for _, b := range []byte(v.String()) {
 		rvalue := reflect.ValueOf(b)
-		rbyte.Elem().Set(rvalue)
-		if isPtr {
-			bytes = reflect.Append(bytes, rbyte)
-			continue
+		elem, err := toOutput(rvalue, elemType, isPtr)
+		if err != nil {
+			return nil, err
 		}
-		bytes = reflect.Append(bytes, rbyte.Elem())
+		bytes = reflect.Append(bytes, elem)
 	}
-	// isPtr is always true because you cannot dereference a slice
-	return toOutput(bytes, def, true)
+	return bytes.Interface(), nil
 }
