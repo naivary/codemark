@@ -1,7 +1,6 @@
 package codemark
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -42,38 +41,77 @@ func (s *stringConverter) CanConvert(m parser.Marker, def *Definition) error {
 }
 
 func (s *stringConverter) Convert(m parser.Marker, def *Definition) (any, error) {
-	typeID, err := TypeID(def.output)
-	if err != nil {
-		return nil, err
-	}
-	markerValue := m.Value()
-
+	typeID := TypeID(def.output)
 	switch typeID {
-	case "string":
-		return toOutput(markerValue, def)
-	case _rune.String():
-		return s.char(m, def)
-	case "ptr.string":
-		return s.ptrStr(m, def)
+	case TypeIDFromAny(string("")):
+		return s.str(m, def, false)
+	case TypeIDFromAny(new(string)):
+		return s.str(m, def, true)
+	case TypeIDFromAny(rune(0)):
+		return s.runee(m, def, false)
+	case TypeIDFromAny(new(rune)):
+		return s.runee(m, def, true)
+	case TypeIDFromAny(byte(0)):
+		return s.bytee(m, def, false)
+	case TypeIDFromAny(new(byte)):
+		return s.bytee(m, def, true)
+	case TypeIDFromAny([]byte{}):
+		return s.bytes(m, def, false)
+	case TypeIDFromAny([]*byte{}):
+		return s.bytes(m, def, true)
 	}
-	return nil, errors.New("conversionw as not possible")
+	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (s *stringConverter) ptrStr(m parser.Marker, def *Definition) (any, error) {
-	ptr := reflect.ValueOf(new(string))
-	val := ptr.Elem()
-	val.SetString(m.Value().String())
-	return toOutput(ptr, def)
+func (s *stringConverter) str(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+	typ := reflect.TypeOf("")
+	v := reflect.New(typ)
+	v.Elem().SetString(m.Value().String())
+	return toOutput(v, def, isPtr)
 }
 
-// char is named char because rune is taken
-func (s *stringConverter) char(m parser.Marker, def *Definition) (any, error) {
+func (s *stringConverter) runee(m parser.Marker, def *Definition, isPtr bool) (any, error) {
 	markerValue := m.Value().String()
-	if len(markerValue) != 1 {
-		return nil, fmt.Errorf("lenght of marker value is unequal to one, making the conversion to a rune impossible: %v\n", markerValue)
+	if len(markerValue) > 1 {
+		return nil, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
 	}
-	r := reflect.ValueOf(rune(0))
-	markerValueRune := reflect.ValueOf(rune(markerValue[0]))
-	r.Set(markerValueRune)
-	return toOutput(r, def)
+	typ := reflect.TypeOf(rune(0))
+	r := reflect.New(typ)
+	rvalue := reflect.ValueOf(rune(markerValue[0]))
+	r.Elem().Set(rvalue)
+	return toOutput(r, def, isPtr)
+}
+
+func (s *stringConverter) bytee(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+	markerValue := m.Value().String()
+	if len(markerValue) > 1 {
+		return nil, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
+	}
+	typ := reflect.TypeOf(byte(0))
+	b := reflect.New(typ)
+	bvalue := reflect.ValueOf(byte(markerValue[0]))
+	b.Elem().Set(bvalue)
+	return toOutput(b, def, isPtr)
+}
+
+func (s *stringConverter) bytes(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+	markerValue := m.Value().String()
+	elem := reflect.TypeOf(byte(0))
+	slice := reflect.TypeOf([]byte{})
+	if isPtr {
+		slice = reflect.TypeOf([]*byte{})
+	}
+	bytes := reflect.MakeSlice(slice, 0, len(markerValue))
+	for _, b := range []byte(markerValue) {
+		rbyte := reflect.New(elem)
+		rvalue := reflect.ValueOf(b)
+		rbyte.Elem().Set(rvalue)
+		if isPtr {
+			bytes = reflect.Append(bytes, rbyte)
+			continue
+		}
+		bytes = reflect.Append(bytes, rbyte.Elem())
+	}
+	// isPtr is always true because you cannot dereference a slice
+	return toOutput(bytes, def, true)
 }

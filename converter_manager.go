@@ -32,19 +32,13 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 }
 
 func (c *ConverterManager) GetConverter(rtype reflect.Type) (Converter, error) {
-	typeID, err := TypeID(rtype)
-	if err != nil {
-		return nil, err
-	}
+	typeID := TypeID(rtype)
 	return c.converters.GetConverter(typeID)
 }
 
 func (c *ConverterManager) AddConverter(conv Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
-		typeID, err := TypeID(rtype)
-		if err != nil {
-			return err
-		}
+		typeID := TypeID(rtype)
 		convNode := &node{value: typeID, conv: conv}
 		if err := c.converters.Add(convNode); err != nil {
 			return err
@@ -66,10 +60,7 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 	if target != def.Target {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
 	}
-	typeID, err := TypeID(def.output)
-	if err != nil {
-		return nil, err
-	}
+	typeID := TypeID(def.output)
 	conv, err := c.converters.GetConverter(typeID)
 	if err != nil {
 		return nil, err

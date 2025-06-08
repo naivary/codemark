@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-var strconv = &stringConverter{}
+var strConv = &stringConverter{}
 
 func TestNewConvMngr(t *testing.T) {
 	tests := []struct {
@@ -15,8 +15,8 @@ func TestNewConvMngr(t *testing.T) {
 	}{
 		{
 			name:  "adding converter",
-			conv:  strconv,
-			types: strconv.SupportedTypes(),
+			conv:  strConv,
+			types: strConv.SupportedTypes(),
 		},
 	}
 
@@ -33,15 +33,12 @@ func TestNewConvMngr(t *testing.T) {
 				t.Errorf("err occured: %s\n", err)
 			}
 			for _, rtype := range tc.types {
-				typeID, err := TypeID(rtype)
-				if err != nil {
-					t.Errorf("err occured: %s\n", err)
-				}
+				typeID := TypeID(rtype)
 				conv, err := mngr.GetConverter(rtype)
 				if err != nil {
 					t.Errorf("err occured: %s\n", err)
 				}
-				if conv == nil || conv != strconv {
+				if conv == nil || conv != strConv {
 					t.Fatalf("converter for type ID `%s` must exist but is not", typeID)
 				}
 			}

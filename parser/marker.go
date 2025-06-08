@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"reflect"
 )
 
@@ -35,6 +36,7 @@ func (m MarkerKind) String() string {
 }
 
 type Marker interface {
+	String() string
 	// Ident is the identifier of the marker without `+`
 	Ident() string
 
@@ -59,6 +61,10 @@ type marker struct {
 	Idn string
 	K   MarkerKind
 	Val reflect.Value
+}
+
+func (m *marker) String() string {
+	return fmt.Sprintf("%s:%v", m.Idn, m.Val)
 }
 
 func (m *marker) Ident() string {

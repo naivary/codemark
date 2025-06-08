@@ -13,7 +13,10 @@ const (
 	TypeIDSep = "."
 )
 
-func toOutput(value reflect.Value, def *Definition) (any, error) {
+func toOutput(value reflect.Value, def *Definition, isPtr bool) (any, error) {
+	if !isPtr {
+		value = value.Elem()
+	}
 	if !value.CanConvert(def.output) {
 		return nil, fmt.Errorf("conversion from `%v` to `%v` is not possible", value.Type(), def.output)
 	}
@@ -21,9 +24,9 @@ func toOutput(value reflect.Value, def *Definition) (any, error) {
 	return output.Interface(), nil
 }
 
-func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
+func typeID(typ reflect.Type, b *strings.Builder) string {
 	if typ == nil {
-		return b.String(), nil
+		return b.String()
 	}
 	// write dot to seperate the incoming kind
 	if len(b.String()) > 0 {
@@ -31,14 +34,14 @@ func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
 	}
 	kind := typ.Kind()
 	if _, err := b.WriteString(kind.String()); err != nil {
-		return "", err
+		panic(err)
 	}
 	if kind == reflect.Pointer {
 		return typeID(typ.Elem(), b)
 	}
 	if kind == reflect.Map {
 		var keyBuilder strings.Builder
-		key, _ := typeID(typ.Key(), &keyBuilder)
+		key := typeID(typ.Key(), &keyBuilder)
 		b.WriteString(TypeIDSep)
 		b.WriteString(key)
 		return typeID(typ.Elem(), b)
@@ -55,10 +58,19 @@ func typeID(typ reflect.Type, b *strings.Builder) (string, error) {
 	return typeID(nil, b)
 }
 
-func TypeID(typ reflect.Type) (string, error) {
+func TypeID(typ reflect.Type) string {
 	if typ == nil {
-		return "", nil
+		return ""
 	}
 	var b strings.Builder
 	return typeID(typ, &b)
+}
+
+func TypeIDFromAny(typ any) string {
+	if typ == nil {
+		return ""
+	}
+	var b strings.Builder
+	rtype := reflect.TypeOf(typ)
+	return typeID(rtype, &b)
 }

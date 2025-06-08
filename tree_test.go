@@ -30,7 +30,7 @@ func TestQueue(t *testing.T) {
 }
 
 func newConvNode(typ any, conv Converter) *node {
-	id, _ := TypeID(reflect.TypeOf(typ))
+	id := TypeID(reflect.TypeOf(typ))
 	return &node{
 		value: id,
 		conv:  conv,
