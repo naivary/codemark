@@ -7,13 +7,32 @@ import (
 type MarkerKind int
 
 const (
-	MarkerKindList = iota + 1
+	MarkerKindList MarkerKind = iota + 1
 	MarkerKindFloat
 	MarkerKindInt
 	MarkerKindComplex
 	MarkerKindBool
 	MarkerKindString
 )
+
+func (m MarkerKind) String() string {
+	switch m {
+	case MarkerKindList:
+		return "MarkerKindList"
+	case MarkerKindFloat:
+		return "MarkerKindFloat"
+	case MarkerKindInt:
+		return "MarkerKindInt"
+	case MarkerKindComplex:
+		return "MarkerKindComplex"
+	case MarkerKindBool:
+		return "MarkerKindBool"
+	case MarkerKindString:
+		return "MarkerKindString"
+	default:
+		return "MarkerKindUnknown"
+	}
+}
 
 type Marker interface {
 	// Ident is the identifier of the marker without `+`

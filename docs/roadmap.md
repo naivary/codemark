@@ -6,3 +6,4 @@
    methods in the interface so the interaction is easier.
 4. Variablen für marker.
 5. wildcards for typeid?
+6. sdk package for save public usage
