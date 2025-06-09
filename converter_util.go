@@ -13,6 +13,8 @@ const (
 )
 
 func toOutput(v reflect.Value, typ reflect.Type, isPtr bool) (reflect.Value, error) {
+	// have to create a new variable because the original type might be needed
+	// in case of a pointer.
 	outputType := typ
 	// need to dereference type to create the correct variable using
 	// `reflect.New`. Otherwise .Set wont work.

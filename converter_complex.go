@@ -1,0 +1,65 @@
+package codemark
+
+import (
+	"fmt"
+	"reflect"
+
+	"github.com/naivary/codemark/parser"
+)
+
+var _ Converter = (*complexConverter)(nil)
+
+type complexConverter struct{}
+
+func (c *complexConverter) SupportedTypes() []reflect.Type {
+	types := []any{
+		complex64(0 + 0i),
+		complex128(0 + 0i),
+		// pointer
+		new(complex64),
+		new(complex128),
+	}
+	supported := make([]reflect.Type, 0, len(types))
+	for _, typ := range types {
+		rtype := reflect.TypeOf(typ)
+		supported = append(supported, rtype)
+	}
+	return supported
+}
+
+func (c *complexConverter) CanConvert(m parser.Marker, def *Definition) error {
+	if m.Kind() != parser.MarkerKindComplex {
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), parser.MarkerKindComplex)
+	}
+	return nil
+}
+
+func (c *complexConverter) Convert(m parser.Marker, def *Definition) (any, error) {
+	typeID := TypeID(def.output)
+	switch typeID {
+	case TypeIDFromAny(complex64(0 + 0i)), TypeIDFromAny(complex128(0 + 0i)):
+		return c.complexx(m, def, false)
+	case TypeIDFromAny(new(complex64)), TypeIDFromAny(new(complex128)):
+		return c.complexx(m, def, true)
+	}
+	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+}
+
+func (c *complexConverter) complexx(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+	n := m.Value().Complex()
+	if c.isOverflowing(def.output, n) {
+		return nil, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+	}
+	out, err := toOutput(m.Value(), def.output, isPtr)
+	if err != nil {
+		return nil, err
+	}
+	return out.Interface(), nil
+}
+
+func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {
+	if out.Kind() == reflect.Pointer {
+		out = out.Elem()
+	}
+	return out.OverflowComplex(n)
+}

@@ -11,7 +11,7 @@ var _ Converter = (*listConverter)(nil)
 
 type listConverter struct{}
 
-func (s *listConverter) SupportedTypes() []reflect.Type {
+func (l *listConverter) SupportedTypes() []reflect.Type {
 	types := []any{}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
