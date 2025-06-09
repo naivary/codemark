@@ -12,6 +12,10 @@ const (
 	TypeIDSep = "."
 )
 
+var (
+	_rvzero = reflect.Value{}
+)
+
 func toOutput(v reflect.Value, typ reflect.Type, isPtr bool) (reflect.Value, error) {
 	// have to create a new variable because the original type might be needed
 	// in case of a pointer.

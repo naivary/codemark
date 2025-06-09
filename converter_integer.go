@@ -50,7 +50,7 @@ func (i *intConverter) CanConvert(m parser.Marker, def *Definition) error {
 	return nil
 }
 
-func (i *intConverter) Convert(m parser.Marker, def *Definition) (any, error) {
+func (i *intConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
 	typeID := TypeID(def.output)
 	switch typeID {
 	case TypeIDFromAny(int(0)), TypeIDFromAny(int8(0)), TypeIDFromAny(int16(0)), TypeIDFromAny(int32(0)), TypeIDFromAny(int64(0)):
@@ -62,31 +62,23 @@ func (i *intConverter) Convert(m parser.Marker, def *Definition) (any, error) {
 	case TypeIDFromAny(new(uint)), TypeIDFromAny(new(uint8)), TypeIDFromAny(new(uint16)), TypeIDFromAny(new(uint32)), TypeIDFromAny(new(uint64)):
 		return i.uinteger(m, def, true)
 	}
-	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (i *intConverter) integer(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (i *intConverter) integer(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	n := m.Value().Int()
 	if i.isOverflowingInt(def.output, n) {
-		return nil, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	out, err := toOutput(m.Value(), def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
+	return toOutput(m.Value(), def.output, isPtr)
 }
 
-func (i *intConverter) uinteger(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (i *intConverter) uinteger(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	n := m.Value().Int()
 	if i.isOverflowingUint(def.output, uint64(n)) {
-		return nil, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	out, err := toOutput(m.Value(), def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
+	return toOutput(m.Value(), def.output, isPtr)
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {

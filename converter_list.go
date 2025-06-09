@@ -34,6 +34,8 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		// singles
 		[]string{},
 		[]bool{},
+		[]byte{},
+		[]rune{},
 
 		// pointer
 		// int
@@ -57,6 +59,8 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		// singles
 		[]*string{},
 		[]*bool{},
+		[]*byte{},
+		[]*rune{},
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
@@ -73,18 +77,18 @@ func (l *listConverter) CanConvert(m parser.Marker, def *Definition) error {
 	return nil
 }
 
-func (l *listConverter) Convert(m parser.Marker, def *Definition) (any, error) {
+func (l *listConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
 	typeID := TypeID(def.output)
 	switch typeID {
-	case TypeIDFromAny([]string{}), TypeIDFromAny([]int{}):
-		return l.list(m, def, false)
+	case TypeIDFromAny([]string{}):
+		return l.str(m, def, false)
 	case TypeIDFromAny([]*string{}):
-		return l.list(m, def, true)
+		return l.str(m, def, true)
 	}
-	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (l *listConverter) list(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (l *listConverter) str(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	list := reflect.New(def.output).Elem()
 	elemType := def.output.Elem()
 	elems := m.Value().Interface().([]any)
@@ -92,9 +96,9 @@ func (l *listConverter) list(m parser.Marker, def *Definition, isPtr bool) (any,
 		rvalue := reflect.ValueOf(elem)
 		out, err := toOutput(rvalue, elemType, isPtr)
 		if err != nil {
-			return nil, err
+			return _rvzero, err
 		}
 		list = reflect.Append(list, out)
 	}
-	return list.Interface(), nil
+	return list, nil
 }

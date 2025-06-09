@@ -17,11 +17,13 @@ func (s *stringConverter) SupportedTypes() []reflect.Type {
 		rune(0),
 		byte(0),
 		[]byte{},
+		[]rune{},
 		// pointer
 		new(string),
 		new(rune),
 		new(byte),
 		[]*byte{},
+		[]*rune{},
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
@@ -38,7 +40,7 @@ func (s *stringConverter) CanConvert(m parser.Marker, def *Definition) error {
 	return nil
 }
 
-func (s *stringConverter) Convert(m parser.Marker, def *Definition) (any, error) {
+func (s *stringConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
 	typeID := TypeID(def.output)
 	switch typeID {
 	case TypeIDFromAny(string("")):
@@ -57,46 +59,52 @@ func (s *stringConverter) Convert(m parser.Marker, def *Definition) (any, error)
 		return s.bytes(m, def, false)
 	case TypeIDFromAny([]*byte{}):
 		return s.bytes(m, def, true)
+	case TypeIDFromAny([]rune{}):
+		return s.runes(m, def, false)
+	case TypeIDFromAny([]*rune{}):
+		return s.runes(m, def, true)
 	}
-	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (s *stringConverter) str(m parser.Marker, def *Definition, isPtr bool) (any, error) {
-	out, err := toOutput(m.Value(), def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
+func (s *stringConverter) str(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+	return toOutput(m.Value(), def.output, isPtr)
 }
 
-func (s *stringConverter) runee(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (s *stringConverter) runee(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	markerValue := m.Value().String()
 	if len(markerValue) > 1 {
-		return nil, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
+		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
 	}
 	rvalue := reflect.ValueOf(rune(markerValue[0]))
-	out, err := toOutput(rvalue, def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
-
+	return toOutput(rvalue, def.output, isPtr)
 }
 
-func (s *stringConverter) bytee(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (s *stringConverter) runes(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+	v := m.Value()
+	runes := reflect.MakeSlice(def.output, 0, len(v.String()))
+	elemType := def.output.Elem()
+	for _, b := range []rune(v.String()) {
+		rvalue := reflect.ValueOf(b)
+		elem, err := toOutput(rvalue, elemType, isPtr)
+		if err != nil {
+			return _rvzero, err
+		}
+		runes = reflect.Append(runes, elem)
+	}
+	return runes, nil
+}
+
+func (s *stringConverter) bytee(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	markerValue := m.Value().String()
 	if len(markerValue) > 1 {
-		return nil, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
+		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
 	}
 	bvalue := reflect.ValueOf(byte(markerValue[0]))
-	out, err := toOutput(bvalue, def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
+	return toOutput(bvalue, def.output, isPtr)
 }
 
-func (s *stringConverter) bytes(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (s *stringConverter) bytes(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	v := m.Value()
 	bytes := reflect.MakeSlice(def.output, 0, len(v.String()))
 	elemType := def.output.Elem()
@@ -104,9 +112,9 @@ func (s *stringConverter) bytes(m parser.Marker, def *Definition, isPtr bool) (a
 		rvalue := reflect.ValueOf(b)
 		elem, err := toOutput(rvalue, elemType, isPtr)
 		if err != nil {
-			return nil, err
+			return _rvzero, err
 		}
 		bytes = reflect.Append(bytes, elem)
 	}
-	return bytes.Interface(), nil
+	return bytes, nil
 }

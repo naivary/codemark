@@ -32,7 +32,7 @@ func (b *boolConverter) CanConvert(m parser.Marker, def *Definition) error {
 	return nil
 }
 
-func (b *boolConverter) Convert(m parser.Marker, def *Definition) (any, error) {
+func (b *boolConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
 	typeID := TypeID(def.output)
 	switch typeID {
 	case TypeIDFromAny(bool(false)):
@@ -40,13 +40,9 @@ func (b *boolConverter) Convert(m parser.Marker, def *Definition) (any, error) {
 	case TypeIDFromAny(new(bool)):
 		return b.boolean(m, def, true)
 	}
-	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (b *boolConverter) boolean(m parser.Marker, def *Definition, isPtr bool) (any, error) {
-	out, err := toOutput(m.Value(), def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
+func (b *boolConverter) boolean(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+	return toOutput(m.Value(), def.output, isPtr)
 }

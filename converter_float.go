@@ -34,7 +34,7 @@ func (f *floatConverter) CanConvert(m parser.Marker, def *Definition) error {
 	return nil
 }
 
-func (f *floatConverter) Convert(m parser.Marker, def *Definition) (any, error) {
+func (f *floatConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
 	typeID := TypeID(def.output)
 	switch typeID {
 	case TypeIDFromAny(float32(0.0)), TypeIDFromAny(float64(0.0)):
@@ -42,19 +42,15 @@ func (f *floatConverter) Convert(m parser.Marker, def *Definition) (any, error) 
 	case TypeIDFromAny(new(float32)), TypeIDFromAny(new(float64)):
 		return f.float(m, def, true)
 	}
-	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (f *floatConverter) float(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+func (f *floatConverter) float(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
 	n := m.Value().Float()
 	if f.isOverflowing(def.output, n) {
-		return nil, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	out, err := toOutput(m.Value(), def.output, isPtr)
-	if err != nil {
-		return nil, err
-	}
-	return out.Interface(), nil
+	return toOutput(m.Value(), def.output, isPtr)
 }
 
 func (f *floatConverter) isOverflowing(out reflect.Type, n float64) bool {

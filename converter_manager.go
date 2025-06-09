@@ -68,7 +68,11 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 	if err := conv.CanConvert(mrk, def); err != nil {
 		return nil, err
 	}
-	return conv.Convert(mrk, def)
+	out, err := conv.Convert(mrk, def)
+	if err != nil {
+		return nil, err
+	}
+	return out.Interface(), nil
 }
 
 func (c *ConverterManager) AllConverters() map[string]Converter {

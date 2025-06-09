@@ -16,5 +16,5 @@ type Converter interface {
 	CanConvert(m parser.Marker, def *Definition) error
 
 	// Convert converts the marker to `def.output`
-	Convert(m parser.Marker, def *Definition) (any, error)
+	Convert(m parser.Marker, def *Definition) (reflect.Value, error)
 }
