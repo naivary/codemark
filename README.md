@@ -7,4 +7,4 @@
    Maybe even allow multiple converters for one typeID if one fials the other
    will be tried
 5. generate valid test cases based on types given
-
+6. typeid alias

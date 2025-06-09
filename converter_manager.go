@@ -12,9 +12,7 @@ import (
 type ConverterManager struct {
 	reg Registry
 
-	converters *tree
-
-	converterList []Converter
+	convs map[string]Converter
 }
 
 func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
@@ -22,8 +20,8 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 		return nil, errors.New("registry is empty")
 	}
 	mngr := &ConverterManager{
-		reg:        reg,
-		converters: newTree(),
+		reg:   reg,
+		convs: make(map[string]Converter),
 	}
 	for _, conv := range convs {
 		if err := mngr.AddConverter(conv); err != nil {
@@ -35,16 +33,17 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 
 func (c *ConverterManager) GetConverter(rtype reflect.Type) (Converter, error) {
 	typeID := TypeID(rtype)
-	return c.converters.GetConverter(typeID)
+	conv, ok := c.convs[typeID]
+	if !ok {
+		return nil, fmt.Errorf("converter not found: %s\n", typeID)
+	}
+	return conv, nil
 }
 
 func (c *ConverterManager) AddConverter(conv Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		typeID := TypeID(rtype)
-		convNode := &node{value: typeID, conv: conv}
-		if err := c.converters.Add(convNode); err != nil {
-			return err
-		}
+		c.convs[typeID] = conv
 	}
 	return nil
 }
@@ -62,8 +61,7 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 	if target != def.Target {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
 	}
-	typeID := TypeID(def.output)
-	conv, err := c.converters.GetConverter(typeID)
+	conv, err := c.GetConverter(def.output)
 	if err != nil {
 		return nil, err
 	}
@@ -71,4 +69,8 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 		return nil, err
 	}
 	return conv.Convert(mrk, def)
+}
+
+func (c *ConverterManager) AllConverters() map[string]Converter {
+	return c.convs
 }
