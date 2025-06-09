@@ -79,6 +79,7 @@ func TestIntConverter(t *testing.T) {
 		isValid      bool
 		isValidValue func(got reflect.Value) bool
 	}{
+		// int
 		{
 			name:    "int marker to int type",
 			mrk:     parser.NewMarker("path:to:i", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
@@ -102,6 +103,96 @@ func TestIntConverter(t *testing.T) {
 			},
 		},
 		{
+			name:    "int marker to int16 type",
+			mrk:     parser.NewMarker("path:to:i16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(i16(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(i16)
+				return i == _intValue
+			},
+		},
+		{
+			name:    "int marker to int32 type",
+			mrk:     parser.NewMarker("path:to:i32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(i32(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(i32)
+				return i == _intValue
+			},
+		},
+		{
+			name:    "int marker to int64 type",
+			mrk:     parser.NewMarker("path:to:i64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(i64(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(i64)
+				return i == _intValue
+			},
+		},
+		// uint
+		{
+			name:    "int marker to uint type",
+			mrk:     parser.NewMarker("path:to:ui", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ui(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ui)
+				return i == _intValue
+			},
+		},
+		{
+			name:    "int marker to uint8 type",
+			mrk:     parser.NewMarker("path:to:ui8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ui8(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ui8)
+				return i == _intValue
+			},
+		},
+		{
+			name:    "int marker to uint16 type",
+			mrk:     parser.NewMarker("path:to:ui16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ui16(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ui16)
+				return i == _intValue
+			},
+		},
+		{
+			name:    "int marker to uint32 type",
+			mrk:     parser.NewMarker("path:to:ui32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ui32(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ui32)
+				return i == _intValue
+			},
+		},
+		{
+			name:    "int marker to uint64 type",
+			mrk:     parser.NewMarker("path:to:ui64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ui64(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ui64)
+				return i == _intValue
+			},
+		},
+		// ptr int
+		{
 			name:    "int marker to ptr int type",
 			mrk:     parser.NewMarker("path:to:ptri", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
 			t:       TargetField,
@@ -113,14 +204,103 @@ func TestIntConverter(t *testing.T) {
 			},
 		},
 		{
-			name:    "int marker to uint type",
-			mrk:     parser.NewMarker("path:to:ui", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			name:    "int marker to ptr int8 type",
+			mrk:     parser.NewMarker("path:to:ptri8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
 			t:       TargetField,
-			out:     reflect.TypeOf(ui(0)),
+			out:     reflect.TypeOf(ptri8(new(int8))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(ui)
-				return i == _intValue
+				i := got.Interface().(ptri8)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr int16 type",
+			mrk:     parser.NewMarker("path:to:ptri16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptri16(new(int16))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptri16)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr int32 type",
+			mrk:     parser.NewMarker("path:to:ptri32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptri32(new(int32))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptri32)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr int64 type",
+			mrk:     parser.NewMarker("path:to:ptri64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptri64(new(int64))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptri64)
+				return *i == _intValue
+			},
+		},
+		// ptr uint
+		{
+			name:    "int marker to ptr uint type",
+			mrk:     parser.NewMarker("path:to:ptrui", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrui(new(uint))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptrui)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr uint8 type",
+			mrk:     parser.NewMarker("path:to:ptrui8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrui8(new(uint8))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptrui8)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr uint16 type",
+			mrk:     parser.NewMarker("path:to:ptrui16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrui16(new(uint16))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptrui16)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr uint32 type",
+			mrk:     parser.NewMarker("path:to:ptrui32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrui32(new(uint32))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptrui32)
+				return *i == _intValue
+			},
+		},
+		{
+			name:    "int marker to ptr uint64 type",
+			mrk:     parser.NewMarker("path:to:ptrui64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrui64(new(uint64))),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				i := got.Interface().(ptrui64)
+				return *i == _intValue
 			},
 		},
 	}

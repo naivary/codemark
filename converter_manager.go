@@ -13,6 +13,8 @@ type ConverterManager struct {
 	reg Registry
 
 	converters *tree
+
+	converterList []Converter
 }
 
 func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
