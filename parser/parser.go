@@ -177,8 +177,8 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseSliceStart(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.K = MarkerKindList
-	rt := reflect.TypeOf([]any{})
-	p.m.Val = reflect.MakeSlice(rt, 0, 1)
+	rtype := reflect.TypeOf([]any{})
+	p.m.Val = reflect.MakeSlice(rtype, 0, 1)
 	return parseSliceElem, _next
 }
 
