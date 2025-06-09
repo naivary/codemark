@@ -89,7 +89,7 @@ func TestComplexConverter(t *testing.T) {
 		},
 	}
 	reg := complexDefs(t)
-	mngr, err := NewConvMngr(reg, &complexConverter{})
+	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

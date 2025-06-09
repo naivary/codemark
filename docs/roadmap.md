@@ -10,3 +10,5 @@
 7. Build a variable in which the marker themselves will be included so
    referenceing other marker values is possible in the future e.g.
    path:to:i=32 -> $path:to:i resolves to 32.
+8. Namespaces for typeid? e.g. builtin.string/default.string
+   default.slice.ptr.int etc. On first hrought it isnt much of a great idea

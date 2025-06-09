@@ -90,7 +90,7 @@ func TestFloatConverter(t *testing.T) {
 
 	}
 	reg := floatDefs(t)
-	mngr, err := NewConvMngr(reg, &floatConverter{})
+	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

@@ -62,7 +62,7 @@ func TestBoolConverter(t *testing.T) {
 		},
 	}
 	reg := boolDefs(t)
-	mngr, err := NewConvMngr(reg, &boolConverter{})
+	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

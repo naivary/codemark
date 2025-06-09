@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"reflect"
+	"slices"
 
 	"github.com/naivary/codemark/parser"
 )
@@ -23,10 +24,22 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 		reg:   reg,
 		convs: make(map[string]Converter),
 	}
+	defaultConvs := []Converter{
+		&stringConverter{},
+		&intConverter{},
+		&floatConverter{},
+		&boolConverter{},
+		&complexConverter{},
+	}
+	convs = slices.Concat(defaultConvs, convs)
 	for _, conv := range convs {
 		if err := mngr.AddConverter(conv); err != nil {
 			return nil, err
 		}
+	}
+	listConv := &listConverter{mngr}
+	if err := mngr.AddConverter(listConv); err != nil {
+		return nil, err
 	}
 	return mngr, nil
 }
@@ -43,6 +56,10 @@ func (c *ConverterManager) GetConverter(rtype reflect.Type) (Converter, error) {
 func (c *ConverterManager) AddConverter(conv Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		typeID := TypeID(rtype)
+		_, found := c.convs[typeID]
+		if found {
+			return fmt.Errorf("converter already exists: %s\n", typeID)
+		}
 		c.convs[typeID] = conv
 	}
 	return nil

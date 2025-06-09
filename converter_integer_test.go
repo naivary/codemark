@@ -12,16 +12,25 @@ const _intValue = 99
 type i int
 type i8 int8
 type i16 int16
+
+// byte=int32
+type b byte
 type i32 int32
 type i64 int64
 
 type ptri *int
 type ptri8 *int8
 type ptri16 *int16
+
+// *byte=*int32
+type ptrbyte *byte
 type ptri32 *int32
 type ptri64 *int64
 
 type ui uint
+
+// rune=uint8
+type r rune
 type ui8 uint8
 type ui16 uint16
 type ui32 uint32
@@ -29,6 +38,9 @@ type ui64 uint64
 
 type ptrui *uint
 type ptrui8 *uint8
+
+// *rune=*uint8
+type ptrrune *rune
 type ptrui16 *uint16
 type ptrui32 *uint32
 type ptrui64 *uint64
@@ -60,6 +72,12 @@ func intDefs(t *testing.T) Registry {
 		MakeDef("path:to:ptrui16", TargetField, reflect.TypeOf(ptrui16(new(uint16)))),
 		MakeDef("path:to:ptrui32", TargetField, reflect.TypeOf(ptrui32(new(uint32)))),
 		MakeDef("path:to:ptrui64", TargetField, reflect.TypeOf(ptrui64(new(uint64)))),
+		// byte and rune
+		MakeDef("path:to:byte", TargetField, reflect.TypeOf(b(byte(0)))),
+		MakeDef("path:to:rune", TargetField, reflect.TypeOf(r(rune(0)))),
+		// ptr byte and rune
+		MakeDef("path:to:ptrbyte", TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
+		MakeDef("path:to:ptrrune", TargetField, reflect.TypeOf(ptrrune(new(rune)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -303,9 +321,20 @@ func TestIntConverter(t *testing.T) {
 				return *i == _intValue
 			},
 		},
+		{
+			name:    "string marker to byte type",
+			mrk:     parser.NewMarker("path:to:byte", parser.MarkerKindString, reflect.ValueOf("c")),
+			t:       TargetField,
+			out:     reflect.TypeOf(b(0)),
+			isValid: true,
+			isValidValue: func(got reflect.Value) bool {
+				b := got.Interface().(b)
+				return b == 'c'
+			},
+		},
 	}
 	reg := intDefs(t)
-	mngr, err := NewConvMngr(reg, &intConverter{})
+	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
