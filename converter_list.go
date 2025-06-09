@@ -97,9 +97,6 @@ func (l *listConverter) list(m parser.Marker, def *Definition, isPtr bool) (refl
 	elemType := def.output.Elem()
 	elems := m.Value().Interface().([]any)
 	for _, elem := range elems {
-		// TODO: Get the converter needed to converter rvalue to elemType. I
-		// think changing the Convert signature to Convert(v reflect.Value, to reflect.Type, isPtr bool)
-		// should make it possible
 		elemValue, err := l.elem(elem, elemType)
 		if err != nil {
 			return _rvzero, err
@@ -115,7 +112,9 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	if err != nil {
 		return _rvzero, err
 	}
-	// TODO: Need a reflect.Kind to MarkerKind
+	// TODO: Need a reflect.Kind to MarkerKind to dynamically asses which
+	// parser.MarkerKindString to use and pass the `CanConvert` assertions of
+	// the converter
 	fakeMarker := parser.NewMarker("", parser.MarkerKindString, rvalue)
 	fakeDef := MakeDef("", TargetField, typ)
 	return conv.Convert(fakeMarker, fakeDef)
