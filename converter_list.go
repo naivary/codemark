@@ -34,7 +34,7 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		// singles
 		[]string{},
 		[]bool{},
-		
+
 		// pointer
 		// int
 		[]*int{},
@@ -57,7 +57,6 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		// singles
 		[]*string{},
 		[]*bool{},
-
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
@@ -77,6 +76,25 @@ func (l *listConverter) CanConvert(m parser.Marker, def *Definition) error {
 func (l *listConverter) Convert(m parser.Marker, def *Definition) (any, error) {
 	typeID := TypeID(def.output)
 	switch typeID {
+	case TypeIDFromAny([]string{}), TypeIDFromAny([]int{}):
+		return l.list(m, def, false)
+	case TypeIDFromAny([]*string{}):
+		return l.list(m, def, true)
 	}
 	return nil, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+}
+
+func (l *listConverter) list(m parser.Marker, def *Definition, isPtr bool) (any, error) {
+	list := reflect.New(def.output).Elem()
+	elemType := def.output.Elem()
+	elems := m.Value().Interface().([]any)
+	for _, elem := range elems {
+		rvalue := reflect.ValueOf(elem)
+		out, err := toOutput(rvalue, elemType, isPtr)
+		if err != nil {
+			return nil, err
+		}
+		list = reflect.Append(list, out)
+	}
+	return list.Interface(), nil
 }
