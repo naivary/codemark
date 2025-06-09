@@ -60,7 +60,8 @@ type parser struct {
 	state parseFunc
 	// all the markers which have been built, including error markers
 	markers []Marker
-	// the current marker which is being build
+
+	// the current marker which is being built
 	m *marker
 
 	err error
@@ -177,6 +178,8 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseSliceStart(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.K = MarkerKindList
+	// slice of type any because the choosen output type of the user might be
+	// []any.
 	rtype := reflect.TypeOf([]any{})
 	p.m.Val = reflect.MakeSlice(rtype, 0, 1)
 	return parseSliceElem, _next

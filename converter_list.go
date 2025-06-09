@@ -36,6 +36,28 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		[]bool{},
 		
 		// pointer
+		// int
+		[]*int{},
+		[]*int8{},
+		[]*int16{},
+		[]*int32{},
+		[]*int64{},
+		// uint
+		[]*uint{},
+		[]*uint8{},
+		[]*uint16{},
+		[]*uint32{},
+		[]*uint64{},
+		// float
+		[]*float32{},
+		[]*float64{},
+		// complex
+		[]*complex64{},
+		[]*complex128{},
+		// singles
+		[]*string{},
+		[]*bool{},
+
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
