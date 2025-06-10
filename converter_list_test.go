@@ -184,7 +184,17 @@ func TestListConverter(t *testing.T) {
 				return true
 			},
 		},
-
+		{
+			name:    "string list marker to rune list wrong length",
+			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "ma"})),
+			t:       TargetField,
+			out:     reflect.TypeOf(runeList([]rune{})),
+			value:   nil,
+			isValid: false,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				return expected != nil
+			},
+		},
 		// pointer
 		{
 			name:    "list marker to ptr string list",
@@ -213,8 +223,11 @@ func TestListConverter(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			v, err := mngr.Convert(tc.mrk, tc.t)
-			if err != nil {
+			if err != nil && tc.isValid {
 				t.Errorf("err occured: %s\n", err)
+			}
+			if err != nil && !tc.isValid {
+				t.Skipf("wanted err occured: %v\n", err)
 			}
 			rtype := reflect.TypeOf(v)
 			if rtype != tc.out {
