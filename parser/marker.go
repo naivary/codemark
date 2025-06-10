@@ -32,31 +32,28 @@ func MarkerKindOf(typ reflect.Type) MarkerKind {
 type MarkerKind int
 
 const (
-	MarkerKindList MarkerKind = iota + 1
+	MarkerKindString MarkerKind = iota + 1
 	MarkerKindFloat
 	MarkerKindInt
 	MarkerKindComplex
 	MarkerKindBool
-	MarkerKindString
+	MarkerKindList
 )
 
+var markerNames = map[MarkerKind]string{
+	MarkerKindString:  "MarkerKindString",
+	MarkerKindFloat:   "MarkerKindFloat",
+	MarkerKindInt:     "MarkerKindInt",
+	MarkerKindComplex: "MarkerKindComplex",
+	MarkerKindBool:    "MarkerKindBool",
+	MarkerKindList:    "MarkerKindList",
+}
+
 func (m MarkerKind) String() string {
-	switch m {
-	case MarkerKindList:
-		return "MarkerKindList"
-	case MarkerKindFloat:
-		return "MarkerKindFloat"
-	case MarkerKindInt:
-		return "MarkerKindInt"
-	case MarkerKindComplex:
-		return "MarkerKindComplex"
-	case MarkerKindBool:
-		return "MarkerKindBool"
-	case MarkerKindString:
-		return "MarkerKindString"
-	default:
-		return "MarkerKindUnknown"
+	if name, ok := markerNames[m]; ok {
+		return name
 	}
+	return fmt.Sprintf("MarkerKind<%d>", m)
 }
 
 type Marker interface {
