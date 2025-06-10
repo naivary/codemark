@@ -1,7 +1,6 @@
 package codemark
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"reflect"
@@ -19,7 +18,7 @@ type ConverterManager struct {
 
 func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, error) {
 	if len(reg.All()) == 0 {
-		return nil, errors.New("registry is empty")
+		return nil, sdk.ErrRegistryEmpty
 	}
 	mngr := &ConverterManager{
 		reg:   reg,

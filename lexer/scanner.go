@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 )
@@ -42,7 +41,7 @@ func scanNumber(l *Lexer) (TokenKind, error) {
 	}
 	if l.accept("i") {
 		if l.accept("+-") {
-			return TokenKindError, errors.New("real part of a complex number has to be defined before the imaginary part e.g. `3+2i` not `2i+3`")
+			return TokenKindError, ErrRealBeforeComplex
 		}
 		kind = TokenKindComplex
 	}
@@ -50,12 +49,12 @@ func scanNumber(l *Lexer) (TokenKind, error) {
 	// Next thing mustn't be alphanumeric.
 	if isAlphaNumeric(r) {
 		l.next()
-		return TokenKindError, errors.New("bad syntax for number")
+		return TokenKindError, ErrBadSyntaxForNumber
 	}
 	if l.accept("+-") {
 		_, err = scanRealNumber(l)
 		if !l.accept("i") {
-			return TokenKindError, errors.New("missing imaginary symbol `i`")
+			return TokenKindError, ErrImagMissing
 		}
 		kind = TokenKindComplex
 	}
