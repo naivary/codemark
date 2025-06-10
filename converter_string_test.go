@@ -5,20 +5,21 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 )
 
 type str string
 type ptrstr *string
 
-func strDefs(t *testing.T) Registry {
+func strDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
-	defs := []*Definition{
-		MakeDef("path:to:str", TargetField, reflect.TypeOf(str(""))),
-		MakeDef("path:to:ptrstr", TargetField, reflect.TypeOf(ptrstr(new(string)))),
-		MakeDef("path:to:rune", TargetField, reflect.TypeOf(r(0))),
-		MakeDef("path:to:ptrrune", TargetField, reflect.TypeOf(ptrrune(new(rune)))),
-		MakeDef("path:to:byte", TargetField, reflect.TypeOf(b(0))),
-		MakeDef("path:to:ptrbyte", TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
+	defs := []*sdk.Definition{
+		MakeDef("path:to:str", sdk.TargetField, reflect.TypeOf(str(""))),
+		MakeDef("path:to:ptrstr", sdk.TargetField, reflect.TypeOf(ptrstr(new(string)))),
+		MakeDef("path:to:rune", sdk.TargetField, reflect.TypeOf(r(0))),
+		MakeDef("path:to:ptrrune", sdk.TargetField, reflect.TypeOf(ptrrune(new(rune)))),
+		MakeDef("path:to:byte", sdk.TargetField, reflect.TypeOf(b(0))),
+		MakeDef("path:to:ptrbyte", sdk.TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -33,7 +34,7 @@ func TestStringConverter(t *testing.T) {
 	tests := []struct {
 		name          string
 		mrk           parser.Marker
-		t             Target
+		t             sdk.Target
 		out           reflect.Type
 		expectedValue any
 		isValid       bool
@@ -42,7 +43,7 @@ func TestStringConverter(t *testing.T) {
 		{
 			name:          "string marker to string type",
 			mrk:           parser.NewMarker("path:to:str", parser.MarkerKindString, reflect.ValueOf(string("codemark"))),
-			t:             TargetField,
+			t:             sdk.TargetField,
 			out:           reflect.TypeOf(str("")),
 			isValid:       true,
 			expectedValue: "codemark",
@@ -54,7 +55,7 @@ func TestStringConverter(t *testing.T) {
 		{
 			name:          "string marker to ptr string type",
 			mrk:           parser.NewMarker("path:to:ptrstr", parser.MarkerKindString, reflect.ValueOf(string("codemark"))),
-			t:             TargetField,
+			t:             sdk.TargetField,
 			out:           reflect.TypeOf(ptrstr(new(string))),
 			expectedValue: "codemark",
 			isValid:       true,

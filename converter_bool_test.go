@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 )
 
 const _boolValue = true
@@ -12,13 +13,13 @@ const _boolValue = true
 type boolean bool
 type ptrboolean *bool
 
-func boolDefs(t *testing.T) Registry {
+func boolDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
-	defs := []*Definition{
+	defs := []*sdk.Definition{
 		// bool
-		MakeDef("path:to:bool", TargetField, reflect.TypeOf(boolean(false))),
+		MakeDef("path:to:bool", sdk.TargetField, reflect.TypeOf(boolean(false))),
 		// ptr bool
-		MakeDef("path:to:ptrbool", TargetField, reflect.TypeOf(ptrboolean(new(bool)))),
+		MakeDef("path:to:ptrbool", sdk.TargetField, reflect.TypeOf(ptrboolean(new(bool)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -33,7 +34,7 @@ func TestBoolConverter(t *testing.T) {
 	tests := []struct {
 		name         string
 		mrk          parser.Marker
-		t            Target
+		t            sdk.Target
 		out          reflect.Type
 		isValid      bool
 		isValidValue func(got reflect.Value) bool
@@ -41,7 +42,7 @@ func TestBoolConverter(t *testing.T) {
 		{
 			name:    "bool marker to bool type",
 			mrk:     parser.NewMarker("path:to:bool", parser.MarkerKindBool, reflect.ValueOf(_boolValue)),
-			t:       TargetField,
+			t:       sdk.TargetField,
 			out:     reflect.TypeOf(boolean(false)),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
@@ -52,7 +53,7 @@ func TestBoolConverter(t *testing.T) {
 		{
 			name:    "bool marker to ptr bool type",
 			mrk:     parser.NewMarker("path:to:ptrbool", parser.MarkerKindBool, reflect.ValueOf(_boolValue)),
-			t:       TargetField,
+			t:       sdk.TargetField,
 			out:     reflect.TypeOf(ptrboolean(new(bool))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {

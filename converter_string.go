@@ -5,9 +5,10 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 )
 
-var _ Converter = (*stringConverter)(nil)
+var _ sdk.Converter = (*stringConverter)(nil)
 
 type stringConverter struct{}
 
@@ -25,17 +26,17 @@ func (s *stringConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (s *stringConverter) CanConvert(m parser.Marker, def *Definition) error {
+func (s *stringConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
 	if m.Kind() != parser.MarkerKindString {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), parser.MarkerKindString)
 	}
 	return nil
 }
 
-func (s *stringConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
+func (s *stringConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	return s.str(m, def)
 }
 
-func (s *stringConverter) str(m parser.Marker, def *Definition) (reflect.Value, error) {
-	return toOutput(m.Value(), def.output)
+func (s *stringConverter) str(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
+	return toOutput(m.Value(), def.Output)
 }

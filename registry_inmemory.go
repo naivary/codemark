@@ -1,20 +1,24 @@
 package codemark
 
-import "fmt"
+import (
+	"fmt"
 
-func NewInMemoryRegistry() Registry {
+	"github.com/naivary/codemark/sdk"
+)
+
+func NewInMemoryRegistry() sdk.Registry {
 	return &inmemoryRegistry{
-		defs: make(map[string]*Definition),
+		defs: make(map[string]*sdk.Definition),
 	}
 }
 
-var _ Registry = (*inmemoryRegistry)(nil)
+var _ sdk.Registry = (*inmemoryRegistry)(nil)
 
 type inmemoryRegistry struct {
-	defs map[string]*Definition
+	defs map[string]*sdk.Definition
 }
 
-func (mem *inmemoryRegistry) Define(d *Definition) error {
+func (mem *inmemoryRegistry) Define(d *sdk.Definition) error {
 	def, isDefined := mem.defs[d.Ident]
 	if isDefined {
 		return fmt.Errorf("definition is already defined: %s", def.Ident)
@@ -23,7 +27,7 @@ func (mem *inmemoryRegistry) Define(d *Definition) error {
 	return nil
 }
 
-func (mem *inmemoryRegistry) Get(idn string) (*Definition, error) {
+func (mem *inmemoryRegistry) Get(idn string) (*sdk.Definition, error) {
 	def, found := mem.defs[idn]
 	if found {
 		return def, nil
@@ -31,6 +35,6 @@ func (mem *inmemoryRegistry) Get(idn string) (*Definition, error) {
 	return nil, fmt.Errorf("definition not found: `%s`", idn)
 }
 
-func (mem *inmemoryRegistry) All() map[string]*Definition {
+func (mem *inmemoryRegistry) All() map[string]*sdk.Definition {
 	return mem.defs
 }

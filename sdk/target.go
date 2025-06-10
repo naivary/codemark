@@ -1,4 +1,4 @@
-package codemark
+package sdk
 
 import "fmt"
 

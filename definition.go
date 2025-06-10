@@ -2,59 +2,21 @@ package codemark
 
 import (
 	"reflect"
+
+	"github.com/naivary/codemark/sdk"
 )
 
-// TODO: Make it possible to store a Definition in a database
-type Definition struct {
-	// Name of the definition in the correct format
-	// e.g. +path:to:mark
-	Ident string
-
-	// Target defines on which type the Definition is appliable
-	// e.g. Struct, Package, Field, VAR, CONST etc.
-	Target Target
-
-	// Help provides user-defined documentation for the definition
-	Help *DefinitionHelp
-
-	// DeprecatedInFavorOf points to the marker identifier which should
-	// be used instead.
-	DeprecatedInFavorOf *string
-
-	// output is the type to which parser.Marker has to be converted by a
-	// converter.
-	output reflect.Type
-}
-
-func MakeDef(idn string, t Target, output reflect.Type) *Definition {
-	def := &Definition{
+func MakeDef(idn string, t sdk.Target, output reflect.Type) *sdk.Definition {
+	def := &sdk.Definition{
 		Ident:  idn,
 		Target: t,
-		output: output,
+		Output: output,
 	}
 	return def
 }
 
-func MakeDefWithHelp(name string, t Target, output reflect.Type, help *DefinitionHelp) *Definition {
+func MakeDefWithHelp(name string, t sdk.Target, output reflect.Type, help *sdk.DefinitionHelp) *sdk.Definition {
 	def := MakeDef(name, t, output)
 	def.Help = help
 	return def
-}
-
-type DefinitionHelp struct {
-	Category string
-
-	Description string
-}
-
-func (d *Definition) Output() reflect.Type {
-	return d.output
-}
-
-func (d *Definition) DeprecateInFavorOf(marker string) {
-	d.DeprecatedInFavorOf = &marker
-}
-
-func (d *Definition) IsDeprecated() (*string, bool) {
-	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != nil
 }

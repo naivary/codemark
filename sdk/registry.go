@@ -1,4 +1,4 @@
-package codemark
+package sdk
 
 type Registry interface {
 	// Define the definition in the registry for future retrieval. It's

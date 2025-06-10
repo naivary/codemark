@@ -5,17 +5,12 @@ import (
 	"go/parser"
 	"go/token"
 
+	"github.com/naivary/codemark/sdk"
 	"golang.org/x/tools/go/packages"
 )
 
-type Project struct{}
-
-type Loader interface {
-	Load(patterns ...string) (*Project, error)
-}
-
-func NewLoader(mngr *ConverterManager, cfg *packages.Config) Loader {
-	l := &loader{
+func NewLocalLoader(mngr *ConverterManager, cfg *packages.Config) sdk.Loader {
+	l := &localLoader{
 		mngr: mngr,
 	}
 	if cfg == nil {
@@ -27,18 +22,18 @@ func NewLoader(mngr *ConverterManager, cfg *packages.Config) Loader {
 	return l
 }
 
-var _ Loader = (*loader)(nil)
+var _ sdk.Loader = (*localLoader)(nil)
 
-type loader struct {
+type localLoader struct {
 	mngr *ConverterManager
 	cfg  *packages.Config
 }
 
-func (l *loader) Load(patterns ...string) (*Project, error) {
+func (l *localLoader) Load(patterns ...string) (*sdk.Project, error) {
 	return nil, nil
 }
 
-func (l *loader) defaultConfig() *packages.Config {
+func (l *localLoader) defaultConfig() *packages.Config {
 	return &packages.Config{
 		Mode: packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes,
 	}

@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 )
 
 const _floatValue = 99.99
@@ -15,15 +16,15 @@ type f64 float64
 type ptrf32 *float32
 type ptrf64 *float64
 
-func floatDefs(t *testing.T) Registry {
+func floatDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
-	defs := []*Definition{
+	defs := []*sdk.Definition{
 		// float
-		MakeDef("path:to:f32", TargetField, reflect.TypeOf(f32(0.0))),
-		MakeDef("path:to:f64", TargetField, reflect.TypeOf(f64(0.0))),
+		MakeDef("path:to:f32", sdk.TargetField, reflect.TypeOf(f32(0.0))),
+		MakeDef("path:to:f64", sdk.TargetField, reflect.TypeOf(f64(0.0))),
 		// ptr float
-		MakeDef("path:to:ptrf32", TargetField, reflect.TypeOf(ptrf32(new(float32)))),
-		MakeDef("path:to:ptrf64", TargetField, reflect.TypeOf(ptrf64(new(float64)))),
+		MakeDef("path:to:ptrf32", sdk.TargetField, reflect.TypeOf(ptrf32(new(float32)))),
+		MakeDef("path:to:ptrf64", sdk.TargetField, reflect.TypeOf(ptrf64(new(float64)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -38,7 +39,7 @@ func TestFloatConverter(t *testing.T) {
 	tests := []struct {
 		name         string
 		mrk          parser.Marker
-		t            Target
+		t            sdk.Target
 		out          reflect.Type
 		isValid      bool
 		isValidValue func(got reflect.Value) bool
@@ -46,7 +47,7 @@ func TestFloatConverter(t *testing.T) {
 		{
 			name:    "float marker to f32 type",
 			mrk:     parser.NewMarker("path:to:f32", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       TargetField,
+			t:       sdk.TargetField,
 			out:     reflect.TypeOf(f32(0.0)),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
@@ -57,7 +58,7 @@ func TestFloatConverter(t *testing.T) {
 		{
 			name:    "float marker to f64 type",
 			mrk:     parser.NewMarker("path:to:f64", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       TargetField,
+			t:       sdk.TargetField,
 			out:     reflect.TypeOf(f64(0.0)),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
@@ -68,7 +69,7 @@ func TestFloatConverter(t *testing.T) {
 		{
 			name:    "float marker to ptr f32 type",
 			mrk:     parser.NewMarker("path:to:ptrf32", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       TargetField,
+			t:       sdk.TargetField,
 			out:     reflect.TypeOf(ptrf32(new(float32))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
@@ -79,7 +80,7 @@ func TestFloatConverter(t *testing.T) {
 		{
 			name:    "float marker to ptr f64 type",
 			mrk:     parser.NewMarker("path:to:ptrf64", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       TargetField,
+			t:       sdk.TargetField,
 			out:     reflect.TypeOf(ptrf64(new(float64))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
@@ -87,7 +88,6 @@ func TestFloatConverter(t *testing.T) {
 				return *f == _floatValue
 			},
 		},
-
 	}
 	reg := floatDefs(t)
 	mngr, err := NewConvMngr(reg)

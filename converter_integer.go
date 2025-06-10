@@ -6,9 +6,10 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 )
 
-var _ Converter = (*intConverter)(nil)
+var _ sdk.Converter = (*intConverter)(nil)
 
 type intConverter struct{}
 
@@ -48,9 +49,9 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (i *intConverter) CanConvert(m parser.Marker, def *Definition) error {
+func (i *intConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
 	mkind := m.Kind()
-	out := deref(def.output)
+	out := deref(def.Output)
 	if mkind == parser.MarkerKindInt {
 		return nil
 	}
@@ -60,8 +61,8 @@ func (i *intConverter) CanConvert(m parser.Marker, def *Definition) error {
 	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s\n", m.Kind(), parser.MarkerKindInt, parser.MarkerKindString)
 }
 
-func (i *intConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
-	typeID := TypeID(def.output)
+func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
+	typeID := TypeID(def.Output)
 	markerKind := m.Kind()
 	if i.isInteger(typeID, markerKind) {
 		return i.integer(m, def)
@@ -77,38 +78,38 @@ func (i *intConverter) Convert(m parser.Marker, def *Definition) (reflect.Value,
 	return i.runee(m, def)
 }
 
-func (i *intConverter) integer(m parser.Marker, def *Definition) (reflect.Value, error) {
+func (i *intConverter) integer(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	n := m.Value().Int()
-	if i.isOverflowingInt(def.output, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+	if i.isOverflowingInt(def.Output, n) {
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
 	}
-	return toOutput(m.Value(), def.output)
+	return toOutput(m.Value(), def.Output)
 }
 
-func (i *intConverter) uinteger(m parser.Marker, def *Definition) (reflect.Value, error) {
+func (i *intConverter) uinteger(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	n := m.Value().Int()
-	if i.isOverflowingUint(def.output, uint64(n)) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
+	if i.isOverflowingUint(def.Output, uint64(n)) {
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
 	}
-	return toOutput(m.Value(), def.output)
+	return toOutput(m.Value(), def.Output)
 }
 
-func (i *intConverter) runee(m parser.Marker, def *Definition) (reflect.Value, error) {
+func (i *intConverter) runee(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	markerValue := m.Value().String()
 	if len(markerValue) > 1 {
 		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
 	}
 	rvalue := reflect.ValueOf(rune(markerValue[0]))
-	return toOutput(rvalue, def.output)
+	return toOutput(rvalue, def.Output)
 }
 
-func (i *intConverter) bytee(m parser.Marker, def *Definition) (reflect.Value, error) {
+func (i *intConverter) bytee(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	markerValue := m.Value().String()
 	if len(markerValue) > 1 {
 		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
 	}
 	bvalue := reflect.ValueOf(byte(markerValue[0]))
-	return toOutput(bvalue, def.output)
+	return toOutput(bvalue, def.Output)
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {

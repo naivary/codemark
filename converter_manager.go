@@ -8,23 +8,24 @@ import (
 	"slices"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 )
 
 type ConverterManager struct {
-	reg Registry
+	reg sdk.Registry
 
-	convs map[string]Converter
+	convs map[string]sdk.Converter
 }
 
-func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
+func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, error) {
 	if len(reg.All()) == 0 {
 		return nil, errors.New("registry is empty")
 	}
 	mngr := &ConverterManager{
 		reg:   reg,
-		convs: make(map[string]Converter),
+		convs: make(map[string]sdk.Converter),
 	}
-	defaultConvs := []Converter{
+	defaultConvs := []sdk.Converter{
 		&stringConverter{},
 		&intConverter{},
 		&floatConverter{},
@@ -45,7 +46,7 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 	return mngr, nil
 }
 
-func (c *ConverterManager) GetConverter(rtype reflect.Type) (Converter, error) {
+func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 	typeID := TypeID(rtype)
 	conv, ok := c.convs[typeID]
 	if !ok {
@@ -54,7 +55,7 @@ func (c *ConverterManager) GetConverter(rtype reflect.Type) (Converter, error) {
 	return conv, nil
 }
 
-func (c *ConverterManager) AddConverter(conv Converter) error {
+func (c *ConverterManager) AddConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		typeID := TypeID(rtype)
 		_, found := c.convs[typeID]
@@ -66,7 +67,7 @@ func (c *ConverterManager) AddConverter(conv Converter) error {
 	return nil
 }
 
-func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error) {
+func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
 	idn := mrk.Ident()
 	def, err := c.reg.Get(idn)
 	if err != nil {
@@ -79,7 +80,7 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 	if target != def.Target {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
 	}
-	conv, err := c.GetConverter(def.output)
+	conv, err := c.GetConverter(def.Output)
 	if err != nil {
 		return nil, err
 	}
@@ -93,6 +94,6 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target Target) (any, error
 	return out.Interface(), nil
 }
 
-func (c *ConverterManager) AllConverters() map[string]Converter {
+func (c *ConverterManager) AllConverters() map[string]sdk.Converter {
 	return c.convs
 }
