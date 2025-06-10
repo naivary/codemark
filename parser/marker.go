@@ -5,6 +5,30 @@ import (
 	"reflect"
 )
 
+func MarkerKindOf(typ reflect.Type) MarkerKind {
+	kind := typ.Kind()
+	if kind == reflect.Ptr {
+		kind = typ.Elem().Kind()
+	}
+	switch kind {
+	case reflect.Slice:
+		return MarkerKindList
+	// rune=uint8 & byte=int32
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return MarkerKindInt
+	case reflect.Float32, reflect.Float64:
+		return MarkerKindFloat
+	case reflect.Complex64, reflect.Complex128:
+		return MarkerKindComplex
+	case reflect.Bool:
+		return MarkerKindBool
+	case reflect.String:
+		return MarkerKindString
+	}
+	return 0
+}
+
 type MarkerKind int
 
 const (

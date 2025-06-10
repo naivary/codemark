@@ -115,7 +115,8 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	// TODO: Need a reflect.Kind to MarkerKind to dynamically asses which
 	// parser.MarkerKindString to use and pass the `CanConvert` assertions of
 	// the converter
-	fakeMarker := parser.NewMarker("", parser.MarkerKindString, rvalue)
+	markerKind := parser.MarkerKindOf(rvalue.Type())
+	fakeMarker := parser.NewMarker("", markerKind, rvalue)
 	fakeDef := MakeDef("", TargetField, typ)
 	return conv.Convert(fakeMarker, fakeDef)
 }

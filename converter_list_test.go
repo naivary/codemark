@@ -148,6 +148,42 @@ func TestListConverter(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name:    "string list marker to rune list",
+			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
+			t:       TargetField,
+			out:     reflect.TypeOf(runeList([]rune{})),
+			value:   []any{rune('p'), rune('t'), rune('m')},
+			isValid: true,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				list := got.Interface().(runeList)
+				for i, el := range list {
+					expectedElem := expected[i].(rune)
+					if expectedElem != el {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			name:    "int list marker to rune list",
+			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
+			t:       TargetField,
+			out:     reflect.TypeOf(runeList([]rune{})),
+			value:   []any{rune(3), rune(2), rune(2)},
+			isValid: true,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				list := got.Interface().(runeList)
+				for i, el := range list {
+					expectedElem := expected[i].(rune)
+					if expectedElem != el {
+						return false
+					}
+				}
+				return true
+			},
+		},
 
 		// pointer
 		{

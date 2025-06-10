@@ -12,3 +12,5 @@
    path:to:i=32 -> $path:to:i resolves to 32.
 8. Namespaces for typeid? e.g. builtin.string/default.string
    default.slice.ptr.int etc. On first hrought it isnt much of a great idea
+9. Maybe have cudedicated Byte and Rune Tokens?
+
