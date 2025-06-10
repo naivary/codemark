@@ -3,6 +3,7 @@ package codemark
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/naivary/codemark/parser"
 )
@@ -22,6 +23,7 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		// =[]byte
 		[]int32{},
 		[]int64{},
+
 		// uint
 		[]uint{},
 		// =[]rune
@@ -29,38 +31,44 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		[]uint16{},
 		[]uint32{},
 		[]uint64{},
+
 		//float
 		[]float32{},
 		[]float64{},
+
 		//complex
 		[]complex64{},
 		[]complex128{},
+
 		// singles
 		[]string{},
 		[]bool{},
 
-		// pointer
-		// int
+		// ptr int
 		[]*int{},
 		[]*int8{},
 		[]*int16{},
 		// []*byte
 		[]*int32{},
 		[]*int64{},
-		// uint
+
+		// ptr uint
 		[]*uint{},
 		// []*rune
 		[]*uint8{},
 		[]*uint16{},
 		[]*uint32{},
 		[]*uint64{},
-		// float
+
+		// ptr float
 		[]*float32{},
 		[]*float64{},
-		// complex
+
+		// ptr complex
 		[]*complex64{},
 		[]*complex128{},
-		// singles
+
+		// ptr singles
 		[]*string{},
 		[]*bool{},
 	}
@@ -83,13 +91,10 @@ func (l *listConverter) CanConvert(m parser.Marker, def *Definition) error {
 
 func (l *listConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
 	typeID := TypeID(def.output)
-	switch typeID {
-	case TypeIDFromAny([]string{}), TypeIDFromAny([]rune{}):
-		return l.list(m, def, false)
-	case TypeIDFromAny([]*string{}):
+	if strings.HasPrefix(typeID, "slice.ptr") {
 		return l.list(m, def, true)
 	}
-	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return l.list(m, def, false)
 }
 
 func (l *listConverter) list(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {

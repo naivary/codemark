@@ -113,7 +113,7 @@ func TestListConverter(t *testing.T) {
 		isValidValue func(got reflect.Value, expected []any) bool
 	}{
 		{
-			name:    "list marker to string list",
+			name:    "string list marker to string list",
 			mrk:     parser.NewMarker("path:to:stringlist", parser.MarkerKindList, reflect.ValueOf([]any{"path", "to", "marker"})),
 			t:       TargetField,
 			out:     reflect.TypeOf(strList([]string{})),
@@ -167,19 +167,27 @@ func TestListConverter(t *testing.T) {
 			},
 		},
 		{
-			name:    "string list marker to rune list wrong length",
-			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "ma"})),
+			name:    "string list marker to byte list",
+			mrk:     parser.NewMarker("path:to:bytelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
 			t:       TargetField,
-			out:     reflect.TypeOf(runeList([]rune{})),
-			value:   nil,
-			isValid: false,
+			out:     reflect.TypeOf(byteList([]byte{})),
+			value:   []any{byte('p'), byte('t'), byte('m')},
+			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				return expected != nil
+				list := got.Interface().(byteList)
+				for i, el := range list {
+					expectedElem := expected[i].(byte)
+					if expectedElem != el {
+						return false
+					}
+				}
+				return true
 			},
 		},
+
 		// pointer
 		{
-			name:    "list marker to ptr string list",
+			name:    "string list marker to ptr string list",
 			mrk:     parser.NewMarker("path:to:ptrstringlist", parser.MarkerKindList, reflect.ValueOf([]any{"path", "to", "marker"})),
 			t:       TargetField,
 			out:     reflect.TypeOf(ptrstrList([]*string{})),
@@ -194,6 +202,18 @@ func TestListConverter(t *testing.T) {
 					}
 				}
 				return true
+			},
+		},
+		// invalid test cases
+		{
+			name:    "string list marker to rune list wrong length",
+			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "ma"})),
+			t:       TargetField,
+			out:     reflect.TypeOf(runeList([]rune{})),
+			value:   nil,
+			isValid: false,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				return expected != nil
 			},
 		},
 	}
