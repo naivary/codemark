@@ -47,8 +47,5 @@ func (c *complexConverter) complexx(m parser.Marker, def *Definition) (reflect.V
 }
 
 func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {
-	if out.Kind() == reflect.Pointer {
-		out = out.Elem()
-	}
-	return out.OverflowComplex(n)
+	return deref(out).OverflowComplex(n)
 }

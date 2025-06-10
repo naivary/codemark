@@ -50,10 +50,7 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 
 func (i *intConverter) CanConvert(m parser.Marker, def *Definition) error {
 	mkind := m.Kind()
-	out := def.output
-	if out.Kind() == reflect.Pointer {
-		out = def.output.Elem()
-	}
+	out := deref(def.output)
 	if mkind == parser.MarkerKindInt {
 		return nil
 	}
@@ -115,17 +112,11 @@ func (i *intConverter) bytee(m parser.Marker, def *Definition) (reflect.Value, e
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {
-	if out.Kind() == reflect.Pointer {
-		out = out.Elem()
-	}
-	return out.OverflowInt(n)
+	return deref(out).OverflowInt(n)
 }
 
 func (i *intConverter) isOverflowingUint(out reflect.Type, n uint64) bool {
-	if out.Kind() == reflect.Pointer {
-		out = out.Elem()
-	}
-	return out.OverflowUint(n)
+	return deref(out).OverflowUint(n)
 }
 
 func (i *intConverter) isInteger(typeID string, mkind parser.MarkerKind) bool {

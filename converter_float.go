@@ -47,8 +47,5 @@ func (f *floatConverter) float(m parser.Marker, def *Definition) (reflect.Value,
 }
 
 func (f *floatConverter) isOverflowing(out reflect.Type, n float64) bool {
-	if out.Kind() == reflect.Pointer {
-		out = out.Elem()
-	}
-	return out.OverflowFloat(n)
+	return deref(out).OverflowFloat(n)
 }

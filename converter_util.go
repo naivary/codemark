@@ -16,6 +16,13 @@ var (
 	_rvzero = reflect.Value{}
 )
 
+func deref(typ reflect.Type) reflect.Type {
+	if isPointer(typ) {
+		typ = typ.Elem()
+	}
+	return typ
+}
+
 func isPointer(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Pointer
 }
