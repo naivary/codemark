@@ -207,6 +207,42 @@ func TestListConverter(t *testing.T) {
 			},
 		},
 		{
+			name:    "string list marker to ptr rune list",
+			mrk:     parser.NewMarker("path:to:ptrrunelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrruneList([]*rune{})),
+			value:   []any{rune('p'), rune('t'), rune('m')},
+			isValid: true,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				list := got.Interface().(ptrruneList)
+				for i, el := range list {
+					expectedElem := expected[i].(rune)
+					if expectedElem != *el {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
+			name:    "int list marker to ptr rune list",
+			mrk:     parser.NewMarker("path:to:ptrrunelist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrruneList([]*rune{})),
+			value:   []any{rune(3), rune(2), rune(2)},
+			isValid: true,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				list := got.Interface().(ptrruneList)
+				for i, el := range list {
+					expectedElem := expected[i].(rune)
+					if expectedElem != *el {
+						return false
+					}
+				}
+				return true
+			},
+		},
+		{
 			name:    "string list marker to ptr byte list",
 			mrk:     parser.NewMarker("path:to:ptrbytelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
 			t:       TargetField,
@@ -224,7 +260,6 @@ func TestListConverter(t *testing.T) {
 				return true
 			},
 		},
-
 		// invalid test cases
 		{
 			name:    "string list marker to rune list wrong length",
