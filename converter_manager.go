@@ -30,6 +30,7 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 		&floatConverter{},
 		&boolConverter{},
 		&complexConverter{},
+		&listConverter{mngr},
 	}
 	convs = slices.Concat(defaultConvs, convs)
 	for _, conv := range convs {
@@ -37,10 +38,10 @@ func NewConvMngr(reg Registry, convs ...Converter) (*ConverterManager, error) {
 			return nil, err
 		}
 	}
-	listConv := &listConverter{mngr}
-	if err := mngr.AddConverter(listConv); err != nil {
-		return nil, err
-	}
+	// listConv := &listConverter{mngr}
+	// if err := mngr.AddConverter(listConv); err != nil {
+	// 	return nil, err
+	// }
 	return mngr, nil
 }
 

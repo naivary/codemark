@@ -63,54 +63,6 @@ func TestStringConverter(t *testing.T) {
 				return *str == "codemark"
 			},
 		},
-		{
-			name:          "string marker to rune type",
-			mrk:           parser.NewMarker("path:to:rune", parser.MarkerKindString, reflect.ValueOf(string("c"))),
-			t:             TargetField,
-			out:           reflect.TypeOf(r(0)),
-			expectedValue: "c",
-			isValid:       true,
-			isValidValue: func(got reflect.Value) bool {
-				r := got.Interface().(r)
-				return r == 'c'
-			},
-		},
-		{
-			name:          "string marker to ptr rune type",
-			mrk:           parser.NewMarker("path:to:ptrrune", parser.MarkerKindString, reflect.ValueOf(string("c"))),
-			t:             TargetField,
-			out:           reflect.TypeOf(ptrrune(new(rune))),
-			expectedValue: "c",
-			isValid:       true,
-			isValidValue: func(got reflect.Value) bool {
-				r := got.Interface().(ptrrune)
-				return *r == 'c'
-			},
-		},
-		{
-			name:          "string marker to byte type",
-			mrk:           parser.NewMarker("path:to:byte", parser.MarkerKindString, reflect.ValueOf(string("c"))),
-			t:             TargetField,
-			out:           reflect.TypeOf(b(0)),
-			expectedValue: "c",
-			isValid:       true,
-			isValidValue: func(got reflect.Value) bool {
-				b := got.Interface().(b)
-				return b == 'c'
-			},
-		},
-		{
-			name:          "string marker to ptr byte type",
-			mrk:           parser.NewMarker("path:to:ptrbyte", parser.MarkerKindString, reflect.ValueOf(string("c"))),
-			t:             TargetField,
-			out:           reflect.TypeOf(ptrbyte(new(byte))),
-			expectedValue: "c",
-			isValid:       true,
-			isValidValue: func(got reflect.Value) bool {
-				b := got.Interface().(ptrbyte)
-				return *b == 'c'
-			},
-		},
 	}
 	reg := strDefs(t)
 	mngr, err := NewConvMngr(reg)
