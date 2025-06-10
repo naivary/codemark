@@ -3,6 +3,7 @@ package codemark
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/naivary/codemark/parser"
 )
@@ -48,59 +49,35 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 }
 
 func (i *intConverter) CanConvert(m parser.Marker, def *Definition) error {
-	k := m.Kind()
+	mkind := m.Kind()
 	out := def.output
 	if out.Kind() == reflect.Pointer {
 		out = def.output.Elem()
 	}
-	if k == parser.MarkerKindInt {
+	if mkind == parser.MarkerKindInt {
 		return nil
 	}
-	if k == parser.MarkerKindString && out.Kind() == _byte || out.Kind() == _rune {
+	if mkind == parser.MarkerKindString && out.Kind() == _byte || out.Kind() == _rune {
 		return nil
 	}
-	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid option is: %s\n", m.Kind(), parser.MarkerKindInt)
+	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s\n", m.Kind(), parser.MarkerKindInt, parser.MarkerKindString)
 }
 
 func (i *intConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
-	// TODO: find a better way instead of the if chains
 	typeID := TypeID(def.output)
-	switch typeID {
-	case TypeIDFromAny(int(0)), TypeIDFromAny(int8(0)), TypeIDFromAny(int16(0)), TypeIDFromAny(int64(0)),
-		TypeIDFromAny(new(int)), TypeIDFromAny(new(int8)), TypeIDFromAny(new(int16)), TypeIDFromAny(new(int64)):
-		return i.integer(m, def)
-	case TypeIDFromAny(uint(0)), TypeIDFromAny(uint16(0)), TypeIDFromAny(uint32(0)), TypeIDFromAny(uint64(0)),
-		TypeIDFromAny(new(uint)), TypeIDFromAny(new(uint16)), TypeIDFromAny(new(uint32)), TypeIDFromAny(new(uint64)):
-		return i.uinteger(m, def)
-	}
-
-	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(int32(0)) {
+	markerKind := m.Kind()
+	if i.isInteger(typeID, markerKind) {
 		return i.integer(m, def)
 	}
-	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(new(int32)) {
-		return i.integer(m, def)
-	}
-	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(uint8(0)) {
+	if i.isUint(typeID, markerKind) {
 		return i.uinteger(m, def)
 	}
-	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(new(uint8)) {
-		return i.uinteger(m, def)
-	}
-
-	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(int32(0)) {
+	if i.isByte(typeID, markerKind) {
 		return i.bytee(m, def)
 	}
-	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(new(int32)) {
-		return i.bytee(m, def)
-	}
-	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(uint8(0)) {
-		return i.runee(m, def)
-	}
-	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(new(uint8)) {
-		return i.runee(m, def)
-	}
-
-	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	// something has to be true because the manager is choosing the converter
+	// always correctly.
+	return i.runee(m, def)
 }
 
 func (i *intConverter) integer(m parser.Marker, def *Definition) (reflect.Value, error) {
@@ -149,4 +126,16 @@ func (i *intConverter) isOverflowingUint(out reflect.Type, n uint64) bool {
 		out = out.Elem()
 	}
 	return out.OverflowUint(n)
+}
+
+func (i *intConverter) isInteger(typeID string, mkind parser.MarkerKind) bool {
+	return (strings.HasPrefix(typeID, "int") || strings.HasPrefix(typeID, "ptr.int")) && mkind == parser.MarkerKindInt
+}
+
+func (i *intConverter) isUint(typeID string, mkind parser.MarkerKind) bool {
+	return (strings.HasPrefix(typeID, "uint") || strings.HasPrefix(typeID, "ptr.uint")) && mkind == parser.MarkerKindInt
+}
+
+func (i *intConverter) isByte(typeID string, mkind parser.MarkerKind) bool {
+	return (strings.HasPrefix(typeID, "ptr.int32") || strings.HasPrefix(typeID, "int32")) && mkind == parser.MarkerKindString
 }

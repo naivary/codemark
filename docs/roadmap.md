@@ -13,4 +13,6 @@
 8. Namespaces for typeid? e.g. builtin.string/default.string
    default.slice.ptr.int etc. On first hrought it isnt much of a great idea
 9. Maybe have cudedicated Byte and Rune Tokens?
+10. Querys on typeid e.g. slice.*.int
+
 
