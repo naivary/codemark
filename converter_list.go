@@ -3,7 +3,6 @@ package codemark
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/naivary/codemark/parser"
 )
@@ -84,20 +83,14 @@ func (l *listConverter) CanConvert(m parser.Marker, def *Definition) error {
 	if m.Kind() != parser.MarkerKindList {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), parser.MarkerKindString)
 	}
-	// TODO: also accept parser.MarkerKindString for []bytes and []rune
-	// conversion
 	return nil
 }
 
 func (l *listConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
-	typeID := TypeID(def.output)
-	if strings.HasPrefix(typeID, "slice.ptr") {
-		return l.list(m, def, true)
-	}
-	return l.list(m, def, false)
+	return l.list(m, def)
 }
 
-func (l *listConverter) list(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (l *listConverter) list(m parser.Marker, def *Definition) (reflect.Value, error) {
 	list := reflect.New(def.output).Elem()
 	elemType := def.output.Elem()
 	elems := m.Value().Interface().([]any)
@@ -117,9 +110,6 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	if err != nil {
 		return _rvzero, err
 	}
-	// TODO: Need a reflect.Kind to MarkerKind to dynamically asses which
-	// parser.MarkerKindString to use and pass the `CanConvert` assertions of
-	// the converter
 	markerKind := parser.MarkerKindOf(rvalue.Type())
 	fakeMarker := parser.NewMarker("", markerKind, rvalue)
 	fakeDef := MakeDef("", TargetField, typ)

@@ -16,7 +16,12 @@ var (
 	_rvzero = reflect.Value{}
 )
 
-func toOutput(v reflect.Value, typ reflect.Type, isPtr bool) (reflect.Value, error) {
+func isPointer(typ reflect.Type) bool {
+	return typ.Kind() == reflect.Pointer
+}
+
+func toOutput(v reflect.Value, typ reflect.Type) (reflect.Value, error) {
+	isPtr := isPointer(typ)
 	// have to create a new variable because the original type might be needed
 	// in case of a pointer.
 	outputType := typ

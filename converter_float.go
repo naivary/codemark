@@ -35,22 +35,15 @@ func (f *floatConverter) CanConvert(m parser.Marker, def *Definition) error {
 }
 
 func (f *floatConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
-	typeID := TypeID(def.output)
-	switch typeID {
-	case TypeIDFromAny(float32(0.0)), TypeIDFromAny(float64(0.0)):
-		return f.float(m, def, false)
-	case TypeIDFromAny(new(float32)), TypeIDFromAny(new(float64)):
-		return f.float(m, def, true)
-	}
-	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return f.float(m, def)
 }
 
-func (f *floatConverter) float(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (f *floatConverter) float(m parser.Marker, def *Definition) (reflect.Value, error) {
 	n := m.Value().Float()
 	if f.isOverflowing(def.output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	return toOutput(m.Value(), def.output, isPtr)
+	return toOutput(m.Value(), def.output)
 }
 
 func (f *floatConverter) isOverflowing(out reflect.Type, n float64) bool {

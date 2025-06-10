@@ -9,4 +9,5 @@
 8. umstellen der funktion Convert für die condition nach _list
 9. _string converter has repetitive code
 10. Write a function which always returns the actual type even if pointer is
-    passed in e.g *byte -> byte
+    passed in e.g *byte -> byte and cleant he mess with the `isPtr`.
+

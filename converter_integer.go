@@ -66,77 +66,75 @@ func (i *intConverter) Convert(m parser.Marker, def *Definition) (reflect.Value,
 	// TODO: find a better way instead of the if chains
 	typeID := TypeID(def.output)
 	switch typeID {
-	case TypeIDFromAny(int(0)), TypeIDFromAny(int8(0)), TypeIDFromAny(int16(0)), TypeIDFromAny(int64(0)):
-		return i.integer(m, def, false)
-	case TypeIDFromAny(new(int)), TypeIDFromAny(new(int8)), TypeIDFromAny(new(int16)), TypeIDFromAny(new(int64)):
-		return i.integer(m, def, true)
-	case TypeIDFromAny(uint(0)), TypeIDFromAny(uint16(0)), TypeIDFromAny(uint32(0)), TypeIDFromAny(uint64(0)):
-		return i.uinteger(m, def, false)
-	case TypeIDFromAny(new(uint)), TypeIDFromAny(new(uint16)), TypeIDFromAny(new(uint32)), TypeIDFromAny(new(uint64)):
-		return i.uinteger(m, def, true)
+	case TypeIDFromAny(int(0)), TypeIDFromAny(int8(0)), TypeIDFromAny(int16(0)), TypeIDFromAny(int64(0)),
+		TypeIDFromAny(new(int)), TypeIDFromAny(new(int8)), TypeIDFromAny(new(int16)), TypeIDFromAny(new(int64)):
+		return i.integer(m, def)
+	case TypeIDFromAny(uint(0)), TypeIDFromAny(uint16(0)), TypeIDFromAny(uint32(0)), TypeIDFromAny(uint64(0)),
+		TypeIDFromAny(new(uint)), TypeIDFromAny(new(uint16)), TypeIDFromAny(new(uint32)), TypeIDFromAny(new(uint64)):
+		return i.uinteger(m, def)
 	}
 
 	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(int32(0)) {
-		return i.integer(m, def, false)
+		return i.integer(m, def)
 	}
 	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(new(int32)) {
-		return i.integer(m, def, true)
+		return i.integer(m, def)
 	}
 	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(uint8(0)) {
-		return i.uinteger(m, def, false)
+		return i.uinteger(m, def)
 	}
 	if m.Kind() == parser.MarkerKindInt && typeID == TypeIDFromAny(new(uint8)) {
-		return i.uinteger(m, def, true)
+		return i.uinteger(m, def)
 	}
 
 	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(int32(0)) {
-		return i.bytee(m, def, false)
+		return i.bytee(m, def)
 	}
 	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(new(int32)) {
-		return i.bytee(m, def, true)
+		return i.bytee(m, def)
 	}
 	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(uint8(0)) {
-		return i.runee(m, def, false)
+		return i.runee(m, def)
 	}
 	if m.Kind() == parser.MarkerKindString && typeID == TypeIDFromAny(new(uint8)) {
-		return i.runee(m, def, true)
+		return i.runee(m, def)
 	}
 
 	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
 }
 
-func (i *intConverter) integer(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (i *intConverter) integer(m parser.Marker, def *Definition) (reflect.Value, error) {
 	n := m.Value().Int()
 	if i.isOverflowingInt(def.output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	return toOutput(m.Value(), def.output, isPtr)
+	return toOutput(m.Value(), def.output)
 }
 
-func (i *intConverter) uinteger(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (i *intConverter) uinteger(m parser.Marker, def *Definition) (reflect.Value, error) {
 	n := m.Value().Int()
 	if i.isOverflowingUint(def.output, uint64(n)) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	return toOutput(m.Value(), def.output, isPtr)
+	return toOutput(m.Value(), def.output)
 }
 
-func (i *intConverter) runee(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (i *intConverter) runee(m parser.Marker, def *Definition) (reflect.Value, error) {
 	markerValue := m.Value().String()
 	if len(markerValue) > 1 {
 		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
 	}
 	rvalue := reflect.ValueOf(rune(markerValue[0]))
-	return toOutput(rvalue, def.output, isPtr)
+	return toOutput(rvalue, def.output)
 }
 
-func (i *intConverter) bytee(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (i *intConverter) bytee(m parser.Marker, def *Definition) (reflect.Value, error) {
 	markerValue := m.Value().String()
 	if len(markerValue) > 1 {
 		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
 	}
 	bvalue := reflect.ValueOf(byte(markerValue[0]))
-	return toOutput(bvalue, def.output, isPtr)
+	return toOutput(bvalue, def.output)
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {

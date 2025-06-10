@@ -35,22 +35,15 @@ func (c *complexConverter) CanConvert(m parser.Marker, def *Definition) error {
 }
 
 func (c *complexConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
-	typeID := TypeID(def.output)
-	switch typeID {
-	case TypeIDFromAny(complex64(0 + 0i)), TypeIDFromAny(complex128(0 + 0i)):
-		return c.complexx(m, def, false)
-	case TypeIDFromAny(new(complex64)), TypeIDFromAny(new(complex128)):
-		return c.complexx(m, def, true)
-	}
-	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return c.complexx(m, def)
 }
 
-func (c *complexConverter) complexx(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
+func (c *complexConverter) complexx(m parser.Marker, def *Definition) (reflect.Value, error) {
 	n := m.Value().Complex()
 	if c.isOverflowing(def.output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.output)
 	}
-	return toOutput(m.Value(), def.output, isPtr)
+	return toOutput(m.Value(), def.output)
 }
 
 func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {

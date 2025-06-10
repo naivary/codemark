@@ -33,18 +33,9 @@ func (s *stringConverter) CanConvert(m parser.Marker, def *Definition) error {
 }
 
 func (s *stringConverter) Convert(m parser.Marker, def *Definition) (reflect.Value, error) {
-	typeID := TypeID(def.output)
-	switch typeID {
-	case TypeIDFromAny(string("")):
-		return s.str(m, def, false)
-	case TypeIDFromAny(new(string)):
-		return s.str(m, def, true)
-	}
-	return _rvzero, fmt.Errorf("conversion of `%s` to `%s` is not possible", m.Ident(), def.output)
+	return s.str(m, def)
 }
 
-func (s *stringConverter) str(m parser.Marker, def *Definition, isPtr bool) (reflect.Value, error) {
-	return toOutput(m.Value(), def.output, isPtr)
+func (s *stringConverter) str(m parser.Marker, def *Definition) (reflect.Value, error) {
+	return toOutput(m.Value(), def.output)
 }
-
-
