@@ -70,7 +70,7 @@ type ptrc64List []*complex64
 type ptrc128List []*complex128
 
 // ptr bytes
-type ptrbytesList []*byte
+type ptrbyteList []*byte
 
 // ptr rune
 type ptrruneList []*rune
@@ -92,6 +92,8 @@ func listDefs(t *testing.T) Registry {
 		// ptr
 		MakeDef("path:to:ptrstringlist", TargetField, reflect.TypeOf(ptrstrList([]*string{}))),
 		MakeDef("path:to:ptrintlist", TargetField, reflect.TypeOf(ptrintList([]*int{}))),
+		MakeDef("path:to:ptrrunelist", TargetField, reflect.TypeOf(ptrruneList([]*rune{}))),
+		MakeDef("path:to:ptrbytelist", TargetField, reflect.TypeOf(ptrbyteList([]*byte{}))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -204,6 +206,25 @@ func TestListConverter(t *testing.T) {
 				return true
 			},
 		},
+		{
+			name:    "string list marker to ptr byte list",
+			mrk:     parser.NewMarker("path:to:ptrbytelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
+			t:       TargetField,
+			out:     reflect.TypeOf(ptrbyteList([]*byte{})),
+			value:   []any{byte('p'), byte('t'), byte('m')},
+			isValid: true,
+			isValidValue: func(got reflect.Value, expected []any) bool {
+				list := got.Interface().(ptrbyteList)
+				for i, el := range list {
+					expectedElem := expected[i].(byte)
+					if expectedElem != *el {
+						return false
+					}
+				}
+				return true
+			},
+		},
+
 		// invalid test cases
 		{
 			name:    "string list marker to rune list wrong length",
