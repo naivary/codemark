@@ -55,7 +55,6 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 			if err := l.extractPkgInfo(pkg, file); err != nil {
 				return nil, err
 			}
-
 			for _, struc := range l.proj.Structs {
 				name := struc.Spec.Name.Name
 				struc.Methods = l.methods[name]

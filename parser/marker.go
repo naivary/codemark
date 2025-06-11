@@ -3,13 +3,12 @@ package parser
 import (
 	"fmt"
 	"reflect"
+
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 func MarkerKindOf(typ reflect.Type) MarkerKind {
-	kind := typ.Kind()
-	if kind == reflect.Ptr {
-		kind = typ.Elem().Kind()
-	}
+	kind := sdkutil.Deref(typ).Kind()
 	switch kind {
 	case reflect.Slice:
 		return MarkerKindList

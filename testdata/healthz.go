@@ -1,11 +1,9 @@
 // docs for package
-package testdata
+package pkgs
 
-// import keyword
 import (
-	// fmt package
+	// something
 	"fmt"
-	// strings package
 	"strings"
 )
 
@@ -43,11 +41,7 @@ type healthzResponse struct {
 
 // isvalid is validating the requst
 func (h HealthzRequest) IsValid() bool {
-	return false
-}
-
-// func doc
-func P() {
-	strings.HasPrefix("", "")
 	fmt.Println("codemark")
+	hasPrefix := strings.HasPrefix("ptr.int", "ptr")
+	return hasPrefix
 }
