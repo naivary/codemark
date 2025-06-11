@@ -6,6 +6,7 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 var _ sdk.Converter = (*boolConverter)(nil)
@@ -38,5 +39,5 @@ func (b *boolConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.V
 }
 
 func (b *boolConverter) boolean(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
-	return toOutput(m.Value(), def.Output)
+	return sdkutil.ToType(m.Value(), def.Output)
 }

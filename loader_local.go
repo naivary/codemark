@@ -7,6 +7,7 @@ import (
 	"go/types"
 
 	"github.com/naivary/codemark/sdk"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -80,7 +81,7 @@ func (l *localLoader) defaultConfig() *packages.Config {
 
 func (l *localLoader) addMethod(info sdk.FuncInfo) {
 	expr := info.Decl.Recv.List[0].Type
-	name := exprName(expr)
+	name := sdkutil.ExprName(expr)
 	infos, ok := l.methods[name]
 	if ok {
 		l.methods[name] = append(infos, info)
@@ -106,7 +107,7 @@ func (l *localLoader) extractInfosFromFile(pkg *packages.Package, file *ast.File
 }
 
 func (l *localLoader) funcDecl(pkg *packages.Package, decl *ast.FuncDecl) error {
-	if isMethod(decl) {
+	if sdkutil.IsMethod(decl) {
 		return l.extractMethodInfo(pkg, decl)
 	}
 	return l.extractFuncInfo(pkg, decl)
@@ -128,7 +129,7 @@ func (l *localLoader) genDecl(pkg *packages.Package, decl *ast.GenDecl) error {
 }
 
 func (l *localLoader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := convertSpecs[*ast.TypeSpec](decl.Specs)
+	specs := sdkutil.ConvertSpecs[*ast.TypeSpec](decl.Specs)
 	for _, spec := range specs {
 		var err error
 		typ := pkg.TypesInfo.TypeOf(spec.Name)
@@ -195,7 +196,7 @@ func (l *localLoader) extractPkgInfo(pkg *packages.Package, file *ast.File) erro
 }
 
 func (l *localLoader) extractImportInfo(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
+	specs := sdkutil.ConvertSpecs[*ast.ImportSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		defs, err := l.mngr.ParseDefs(doc, sdk.TargetImport)
@@ -214,7 +215,7 @@ func (l *localLoader) extractImportInfo(pkg *packages.Package, decl *ast.GenDecl
 }
 
 func (l *localLoader) extractVarInfo(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
+	specs := sdkutil.ConvertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		defs, err := l.mngr.ParseDefs(doc, sdk.TargetVar)
@@ -233,7 +234,7 @@ func (l *localLoader) extractVarInfo(pkg *packages.Package, decl *ast.GenDecl) e
 }
 
 func (l *localLoader) extractConstInfo(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
+	specs := sdkutil.ConvertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		defs, err := l.mngr.ParseDefs(doc, sdk.TargetConst)
@@ -352,7 +353,7 @@ func (l *localLoader) extractFieldInfo(spec *ast.StructType) ([]sdk.FieldInfo, e
 	infos := make([]sdk.FieldInfo, 0, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
-		if isEmbedded(field) {
+		if sdkutil.IsEmbedded(field) {
 			continue
 		}
 		doc := field.Doc.Text()

@@ -1,4 +1,4 @@
-package codemark
+package utils
 
 import (
 	"reflect"

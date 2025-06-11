@@ -8,6 +8,7 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 type ConverterManager struct {
@@ -46,7 +47,7 @@ func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, e
 }
 
 func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
-	typeID := TypeID(rtype)
+	typeID := sdkutil.TypeID(rtype)
 	conv, ok := c.convs[typeID]
 	if !ok {
 		return nil, fmt.Errorf("converter not found: %s\n", typeID)
@@ -56,7 +57,7 @@ func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, erro
 
 func (c *ConverterManager) AddConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
-		typeID := TypeID(rtype)
+		typeID := sdkutil.TypeID(rtype)
 		_, found := c.convs[typeID]
 		if found {
 			return fmt.Errorf("converter already exists: %s\n", typeID)
