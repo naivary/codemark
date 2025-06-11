@@ -15,11 +15,11 @@ func isDigit(r rune) bool {
 }
 
 func isSpace(r rune) bool {
-	return r == ' ' || r == '\t'
+	return r == _whitespace || r == _tab
 }
 
 func isNewline(r rune) bool {
-	return r == '\n' || r == '\r'
+	return r == _newline || r == '\r'
 }
 
 func hasPlusPrefix(input string, pos int) bool {
@@ -33,7 +33,7 @@ func isAlphaLower(r rune) bool {
 
 // isAlphaNumeric is checking if the rune is a letter, digit or underscore
 func isAlphaNumeric(r rune) bool {
-	return r == '_' || unicode.IsLetter(r) || unicode.IsDigit(r)
+	return r == _underscore || unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
 type stateFunc func(*Lexer) stateFunc
@@ -51,8 +51,7 @@ func lexText(l *Lexer) stateFunc {
 		if !isNewline(r) {
 			continue
 		}
-		// TODO: should we enforce the best practice to not have any spaces
-		// before the marker?
+		// accept any amount of whitespace
 		l.acceptFunc(isSpace)
 		l.ignore()
 		if hasPlusPrefix(l.input, l.pos) {
