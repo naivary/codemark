@@ -16,3 +16,4 @@
 10. Querys on typeid e.g. slice.*.int
 11. multiline strings
 12. one defiitionf or multiple targets
+13. tokens pkg und Token umbennen zu Expr?
