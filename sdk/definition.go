@@ -15,7 +15,7 @@ type Definition struct {
 
 	// Target defines on which type the Definition is appliable
 	// e.g. Struct, Package, Field, VAR, CONST etc.
-	Target Target
+	Targets []Target
 
 	// Help provides user-defined documentation for the definition
 	Help *DefinitionHelp

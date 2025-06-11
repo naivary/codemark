@@ -68,7 +68,7 @@ func listDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
 		// string
-		MustMakeDef("path:to:stringlist", sdk.TargetField, reflect.TypeOf(strList([]string{}))),
+		MustMakeDef("path:to:stringlist", reflect.TypeOf(strList([]string{})), sdk.TargetField),
 		// int
 		MustMakeDef("path:to:intlist", sdk.TargetField, reflect.TypeOf(intList([]int{}))),
 		MustMakeDef("path:to:i8list", sdk.TargetField, reflect.TypeOf(i8List([]int8{}))),

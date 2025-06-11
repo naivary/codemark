@@ -77,8 +77,8 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, e
 		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, *inFavorOf)
 		slog.Warn(msg)
 	}
-	if target != def.Target {
-		return nil, fmt.Errorf("marker `%s` is appliable to `%s`. Was applied to `%s`", idn, def.Target, target)
+	if !slices.Contains(def.Targets, target) {
+		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, def.Targets, target)
 	}
 	conv, err := c.GetConverter(def.Output)
 	if err != nil {
@@ -115,7 +115,7 @@ func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any
 			defs[midn] = []any{def}
 			continue
 		}
-		defs[midn] = append(defss, def)
+	defs[midn] = append(defss, def)
 	}
 	return defs, nil
 }
