@@ -1,6 +1,7 @@
 package codemark
 
 import (
+	"fmt"
 	"go/ast"
 )
 
@@ -22,4 +23,17 @@ func isEmbedded(field *ast.Field) bool {
 
 func isMethod(fn *ast.FuncDecl) bool {
 	return fn.Recv != nil
+}
+
+func exprName(expr ast.Expr) string {
+	switch t := expr.(type) {
+	case *ast.Ident:
+		return t.Name
+	case *ast.StarExpr:
+		return exprName(t.X)
+	case *ast.SelectorExpr:
+		return fmt.Sprintf("%s.%s", t.X, t.Sel.Name)
+	default:
+		return ""
+	}
 }

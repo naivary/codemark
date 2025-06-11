@@ -44,13 +44,13 @@ func TestLocalLoader(t *testing.T) {
 	l := NewLocalLoader(mngr, nil)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			proj, err := l.Load(tc.pattern)
+			projs, err := l.Load(tc.pattern)
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			for _, struc := range proj.Structs {
-				for _, field := range struc.Fields {
-					fmt.Println(field.Defs)
+			for _, proj := range projs {
+				for _, s := range proj.Structs {
+					fmt.Println(s.Methods)
 				}
 			}
 		})

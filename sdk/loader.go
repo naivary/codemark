@@ -12,17 +12,83 @@ var (
 )
 
 type Project struct {
-	Structs []StructInfo
+	Structs []*StructInfo
+	Ifaces  []IfaceInfo
+	Aliases []AliasInfo
+	Named   []*NamedInfo
+	Consts  []ConstInfo
+	Vars    []VarInfo
+	Imports []ImportInfo
+	Funcs   []FuncInfo
+	Pkgs    []PkgInfo
 }
 
 type Loader interface {
-	Load(patterns ...string) (*Project, error)
+	Load(patterns ...string) ([]*Project, error)
 }
 
-type FieldInfo struct {
-	Field *ast.Field
-	Idn   *ast.Ident
-	Defs  map[string][]any
+type FuncInfo struct {
+	Decl *ast.FuncDecl
+	Pkg  *packages.Package
+	Defs map[string][]any
+}
+
+type PkgInfo struct {
+	Pkg  *packages.Package
+	File *ast.File
+	Defs map[string][]any
+}
+
+type ImportInfo struct {
+	Decl *ast.GenDecl
+	Spec *ast.ImportSpec
+	Pkg  *packages.Package
+	Defs map[string][]any
+}
+
+type VarInfo struct {
+	Decl *ast.GenDecl
+	Spec *ast.ValueSpec
+	Pkg  *packages.Package
+	Defs map[string][]any
+}
+
+type ConstInfo struct {
+	Decl *ast.GenDecl
+	Spec *ast.ValueSpec
+	Pkg  *packages.Package
+	Defs map[string][]any
+}
+
+type NamedInfo struct {
+	Decl *ast.GenDecl
+	Spec *ast.TypeSpec
+	Pkg  *packages.Package
+	Defs map[string][]any
+
+	Methods []FuncInfo
+}
+
+type AliasInfo struct {
+	Decl *ast.GenDecl
+	Spec *ast.TypeSpec
+	Pkg  *packages.Package
+	Defs map[string][]any
+}
+
+type IfaceInfo struct {
+	Decl *ast.GenDecl
+	Spec *ast.TypeSpec
+	Pkg  *packages.Package
+	Defs map[string][]any
+
+	Signatures []SignatureInfo
+}
+
+type SignatureInfo struct {
+	Method *ast.Field
+	Idn    *ast.Ident
+	Defs   map[string][]any
 }
 
 type StructInfo struct {
@@ -31,14 +97,12 @@ type StructInfo struct {
 	Pkg  *packages.Package
 	Defs map[string][]any
 
-	Fields []FieldInfo
+	Fields  []FieldInfo
+	Methods []FuncInfo
 }
 
-func (s *StructInfo) String() string {
-	return s.Name()
-}
-
-func (s *StructInfo) Name() string {
-	// return the name
-	return ""
+type FieldInfo struct {
+	Field *ast.Field
+	Idn   *ast.Ident
+	Defs  map[string][]any
 }

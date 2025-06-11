@@ -104,17 +104,17 @@ func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any
 	}
 	defs := make(map[string][]any, len(markers))
 	for _, marker := range markers {
-		out, err := c.Convert(marker, t)
+		def, err := c.Convert(marker, t)
 		if err != nil {
 			return nil, err
 		}
 		midn := marker.Ident()
 		defss, ok := defs[midn]
 		if !ok {
-			defs[midn] = []any{out}
+			defs[midn] = []any{def}
 			continue
 		}
-		defs[midn] = append(defss, out)
+		defs[midn] = append(defss, def)
 	}
 	return defs, nil
 }

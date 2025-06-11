@@ -16,7 +16,6 @@ const (
 	TargetMethod
 	TargetInterface
 	TargetImport
-	TargetImportedPackage
 	TargetAlias
 	TargetInterfaceSignature
 	TargetStruct
@@ -32,7 +31,6 @@ var targetNames = map[Target]string{
 	TargetMethod:             "TargetMethod",
 	TargetInterface:          "TargetInterface",
 	TargetImport:             "TargetImport",
-	TargetImportedPackage:    "TargetImportedPackage",
 	TargetAlias:              "TargetAlias",
 	TargetInterfaceSignature: "TargetInterfaceSignature",
 	TargetStruct:             "TargetStruct",
