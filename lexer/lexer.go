@@ -8,7 +8,7 @@ import (
 
 const (
 	_eof        = -1
-	_plus       = "+"
+	_plus       = '+'
 	_colon      = ':'
 	_newline    = '\n'
 	_underscore = '_'

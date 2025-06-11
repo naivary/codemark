@@ -103,7 +103,7 @@ func parsePlus(p *parser, t lexer.Token) (parseFunc, bool) {
 }
 
 func parseIdent(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.Idn = t.Value
+	p.m.ident = t.Value
 	return parseAssignment, _next
 }
 
@@ -124,7 +124,7 @@ func parseValue(p *parser, t lexer.Token) (parseFunc, bool) {
 	case lexer.TokenKindBool:
 		return parseBool, _keep
 	case lexer.TokenKindOpenSquareBracket:
-		return parseSliceStart, _keep
+		return parseListStart, _keep
 	default:
 		return p.errorf("A wrong kind is passed as a TokenKind from the lexer. This should usually never happen! Found kind is: `%s`", t)
 	}
@@ -135,14 +135,14 @@ func parseBool(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse boolean value: %s", t.Value)
 	}
-	p.m.K = MarkerKindBool
-	p.m.Val = reflect.ValueOf(val)
+	p.m.kind = MarkerKindBool
+	p.m.value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
 func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.K = MarkerKindString
-	p.m.Val = reflect.ValueOf(t.Value)
+	p.m.kind = MarkerKindString
+	p.m.value = reflect.ValueOf(t.Value)
 	return parseEOF, _next
 }
 
@@ -151,8 +151,8 @@ func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse int value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.K = MarkerKindInt
-	p.m.Val = reflect.ValueOf(val)
+	p.m.kind = MarkerKindInt
+	p.m.value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
@@ -161,8 +161,8 @@ func parseFloat(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse float value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.K = MarkerKindFloat
-	p.m.Val = reflect.ValueOf(val)
+	p.m.kind = MarkerKindFloat
+	p.m.value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
@@ -171,80 +171,80 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse complex value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.K = MarkerKindComplex
-	p.m.Val = reflect.ValueOf(c)
+	p.m.kind = MarkerKindComplex
+	p.m.value = reflect.ValueOf(c)
 	return parseEOF, _next
 }
 
-func parseSliceStart(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.K = MarkerKindList
+func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
+	p.m.kind = MarkerKindList
 	// slice of type any because the choosen output type of the user might be
 	// []any.
 	rtype := reflect.TypeOf([]any{})
-	p.m.Val = reflect.MakeSlice(rtype, 0, 1)
-	return parseSliceElem, _next
+	p.m.value = reflect.MakeSlice(rtype, 0, 1)
+	return parseListElem, _next
 }
 
-func parseSliceElem(p *parser, t lexer.Token) (parseFunc, bool) {
+func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
 	case lexer.TokenKindString:
-		return parseSliceStringElem, _keep
+		return parseListStringElem, _keep
 	case lexer.TokenKindInt:
-		return parseSliceIntElem, _keep
+		return parseListIntElem, _keep
 	case lexer.TokenKindFloat:
-		return parseSliceFloatElem, _keep
+		return parseListFloatElem, _keep
 	case lexer.TokenKindComplex:
-		return parseSliceComplexElem, _keep
+		return parseListComplexElem, _keep
 	case lexer.TokenKindBool:
-		return parseSliceBoolElem, _keep
+		return parseListBoolElem, _keep
 	default:
-		return parseSliceEnd, _keep
+		return parseListEnd, _keep
 	}
 }
 
-func parseSliceBoolElem(p *parser, t lexer.Token) (parseFunc, bool) {
+func parseListBoolElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	val := reflect.ValueOf(t.Value)
-	p.m.Val = reflect.Append(p.m.Val, val)
-	return parseSliceElem, _next
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseListElem, _next
 }
 
-func parseSliceStringElem(p *parser, t lexer.Token) (parseFunc, bool) {
+func parseListStringElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	val := reflect.ValueOf(t.Value)
-	p.m.Val = reflect.Append(p.m.Val, val)
-	return parseSliceElem, _next
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseListElem, _next
 }
 
-func parseSliceIntElem(p *parser, t lexer.Token) (parseFunc, bool) {
+func parseListIntElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	i, err := parseInt64(t.Value)
 	if err != nil {
 		return p.errorf("couldn't parse int value `%s` in array. Err: %v", t.Value, err)
 	}
 	val := reflect.ValueOf(i)
-	p.m.Val = reflect.Append(p.m.Val, val)
-	return parseSliceElem, _next
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseListElem, _next
 }
 
-func parseSliceFloatElem(p *parser, t lexer.Token) (parseFunc, bool) {
+func parseListFloatElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	f, err := parseFloat64(t.Value)
 	if err != nil {
 		return p.errorf("couldn't parse float value `%s` in array. Err: %v", t.Value, err)
 	}
 	val := reflect.ValueOf(f)
-	p.m.Val = reflect.Append(p.m.Val, val)
-	return parseSliceElem, _next
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseListElem, _next
 }
 
-func parseSliceComplexElem(p *parser, t lexer.Token) (parseFunc, bool) {
+func parseListComplexElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	c, err := parseComplex128(t.Value)
 	if err != nil {
 		return p.errorf("couldn't parse complex value `%s` in array. Err: %v", t.Value, err)
 	}
 	val := reflect.ValueOf(c)
-	p.m.Val = reflect.Append(p.m.Val, val)
-	return parseSliceElem, _next
+	p.m.value = reflect.Append(p.m.value, val)
+	return parseListElem, _next
 }
 
-func parseSliceEnd(p *parser, _ lexer.Token) (parseFunc, bool) {
+func parseListEnd(p *parser, _ lexer.Token) (parseFunc, bool) {
 	return parseEOF, _next
 }
 

@@ -1,7 +1,10 @@
 package sdk
 
 import (
+	"fmt"
 	"reflect"
+
+	"github.com/naivary/codemark/lexer"
 )
 
 // TODO: Make it possible to store a Definition in a database
@@ -38,4 +41,14 @@ func (d *Definition) DeprecateInFavorOf(marker string) {
 
 func (d *Definition) IsDeprecated() (*string, bool) {
 	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != nil
+}
+
+func (d *Definition) IsValid() error {
+	if err := lexer.IsValidIdent(d.Ident); err != nil {
+		return err
+	}
+	if d.Output == nil {
+		return fmt.Errorf("output type cannot be nil: %s\n", d.Ident)
+	}
+	return nil
 }

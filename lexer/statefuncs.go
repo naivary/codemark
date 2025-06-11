@@ -23,7 +23,7 @@ func isNewline(r rune) bool {
 }
 
 func hasPlusPrefix(input string, pos int) bool {
-	return strings.HasPrefix(input[pos:], _plus)
+	return strings.HasPrefix(input[pos:], string(_plus))
 }
 
 // isAlphaLower checks if `r` is lower and a letter
@@ -33,7 +33,7 @@ func isAlphaLower(r rune) bool {
 
 // isAlphaNumeric is checking if the rune is a letter, digit or underscore
 func isAlphaNumeric(r rune) bool {
-	return r == _underscore || unicode.IsLetter(r) || unicode.IsDigit(r)
+	return unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
 type stateFunc func(*Lexer) stateFunc
@@ -58,7 +58,6 @@ func lexText(l *Lexer) stateFunc {
 			return lexPlus
 		}
 	}
-	l.emit(TokenKindEOF)
 	return nil
 }
 
@@ -80,28 +79,18 @@ func lexIdent(l *Lexer) stateFunc {
 		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon || r == _underscore || r == _dot
 	}
 	l.acceptFunc(valid)
-	idn := l.currentValue()
-	colons := strings.Count(idn, string(_colon))
-	if colons < 2 {
-		return l.errorf("expected two colons in `%s` but got %d", idn, colons)
-	}
-
-	idnPath := strings.Split(idn, ":")
-	for _, pathSegment := range idnPath {
-		lastChar := pathSegment[len(pathSegment)-1]
-		if lastChar == _dot || lastChar == _underscore {
-			return l.errorf("identifier cannot end with an underscore `_` or dot `.`: %s\n", idn)
-		}
+	ident := l.currentValue()
+	if err := IsValidIdent(ident); err != nil {
+		return l.errorf("err: %s\n", err.Error())
 	}
 	l.emit(TokenKindIdent)
-
 	switch r := l.peek(); {
 	case r == '=':
 		return lexAssignment
 	case r == _eof || r == _newline:
 		return lexBoolWithoutAssignment
 	default:
-		return l.errorf("expected an assignment operator or a newline after the identifier `%s`", idn)
+		return l.errorf("expected an assignment operator or a newline after the identifier `%s`", ident)
 	}
 }
 
@@ -284,9 +273,16 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 	l.acceptFunc(isSpace)
 	l.ignore()
 	switch r := l.peek(); {
-	case isNewline(r) || r == _eof:
+	case isNewline(r):
 		return lexText
+	case r == _eof:
+		return lexEOF
 	default:
 		return l.errorf("after a finished marker expression only a newline can follow")
 	}
+}
+
+func lexEOF(l *Lexer) stateFunc {
+	l.emit(TokenKindEOF)
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/lexer"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
@@ -68,33 +69,38 @@ type Marker interface {
 }
 
 func NewMarker(ident string, kind MarkerKind, value reflect.Value) Marker {
-	return &marker{
-		Idn: ident,
-		K:   kind,
-		Val: value,
+	m := &marker{
+		ident: ident,
+		kind:  kind,
+		value: value,
 	}
+	return m
 }
 
 var _ Marker = (*marker)(nil)
 
 type marker struct {
-	Idn string
-	K   MarkerKind
-	Val reflect.Value
+	ident string
+	kind  MarkerKind
+	value reflect.Value
 }
 
 func (m *marker) String() string {
-	return fmt.Sprintf("%s:%v", m.Idn, m.Val)
+	return fmt.Sprintf("%s:%v", m.ident, m.value)
 }
 
 func (m *marker) Ident() string {
-	return m.Idn
+	return m.ident
 }
 
 func (m *marker) Kind() MarkerKind {
-	return m.K
+	return m.kind
 }
 
 func (m *marker) Value() reflect.Value {
-	return m.Val
+	return m.value
+}
+
+func (m *marker) IsValid() error {
+	return lexer.IsValidIdent(m.ident)
 }
