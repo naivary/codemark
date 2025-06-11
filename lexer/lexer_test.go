@@ -247,7 +247,12 @@ this is the doc`,
 			input:   `+idn_v3.1.:validation:required`,
 			isValid: false,
 		},
-
+		{
+			name: "newline followed by EOF",
+			input: `+idn_v3.1:validation:required
+`,
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {

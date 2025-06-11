@@ -18,7 +18,7 @@ func IsValidIdent(ident string) error {
 	for pathSegment := range strings.SplitSeq(ident, colon) {
 		lastChar := rune(pathSegment[len(pathSegment)-1])
 		if !isAlphaNumeric(lastChar) {
-			return fmt.Errorf("identifier cannot end with an underscore `_` or dot `.`: %s\n", ident)
+			return fmt.Errorf("identifier cannot end with an underscore `_` or dot `.`: %s in %s\n", pathSegment, ident)
 		}
 	}
 	return nil
