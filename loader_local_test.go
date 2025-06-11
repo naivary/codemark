@@ -50,7 +50,9 @@ func TestLocalLoader(t *testing.T) {
 			}
 			for _, proj := range projs {
 				for _, stru := range proj.Structs {
-					fmt.Println(stru.Defs)
+					for _, def := range stru.Defs {
+						fmt.Println(def[0].(description))
+					}
 				}
 			}
 		})
