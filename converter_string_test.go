@@ -14,12 +14,12 @@ type ptrstr *string
 func strDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
-		MakeDef("path:to:str", sdk.TargetField, reflect.TypeOf(str(""))),
-		MakeDef("path:to:ptrstr", sdk.TargetField, reflect.TypeOf(ptrstr(new(string)))),
-		MakeDef("path:to:rune", sdk.TargetField, reflect.TypeOf(r(0))),
-		MakeDef("path:to:ptrrune", sdk.TargetField, reflect.TypeOf(ptrrune(new(rune)))),
-		MakeDef("path:to:byte", sdk.TargetField, reflect.TypeOf(b(0))),
-		MakeDef("path:to:ptrbyte", sdk.TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
+		MustMakeDef("path:to:str", sdk.TargetField, reflect.TypeOf(str(""))),
+		MustMakeDef("path:to:ptrstr", sdk.TargetField, reflect.TypeOf(ptrstr(new(string)))),
+		MustMakeDef("path:to:rune", sdk.TargetField, reflect.TypeOf(r(0))),
+		MustMakeDef("path:to:ptrrune", sdk.TargetField, reflect.TypeOf(ptrrune(new(rune)))),
+		MustMakeDef("path:to:byte", sdk.TargetField, reflect.TypeOf(b(0))),
+		MustMakeDef("path:to:ptrbyte", sdk.TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {

@@ -1,6 +1,7 @@
 package codemark
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -14,8 +15,8 @@ type required bool
 func localLoaderDefs() sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
-		MakeDef("openapi_v3:general:description", sdk.TargetStruct, reflect.TypeOf(description(""))),
-		MakeDef("openapi_v3:validation:required", sdk.TargetField, reflect.TypeOf(required(false))),
+		MustMakeDef("openapi_v3:general:description", sdk.TargetStruct, reflect.TypeOf(description(""))),
+		MustMakeDef("openapi_v3:validation:required", sdk.TargetField, reflect.TypeOf(required(false))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
@@ -43,9 +44,14 @@ func TestLocalLoader(t *testing.T) {
 	l := NewLocalLoader(mngr, nil)
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := l.Load(tc.pattern)
+			projs, err := l.Load(tc.pattern)
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
+			}
+			for _, proj := range projs {
+				for _, stru := range proj.Structs {
+					fmt.Println(stru.Defs)
+				}
 			}
 		})
 	}

@@ -68,50 +68,50 @@ func listDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
 		// string
-		MakeDef("path:to:stringlist", sdk.TargetField, reflect.TypeOf(strList([]string{}))),
+		MustMakeDef("path:to:stringlist", sdk.TargetField, reflect.TypeOf(strList([]string{}))),
 		// int
-		MakeDef("path:to:intlist", sdk.TargetField, reflect.TypeOf(intList([]int{}))),
-		MakeDef("path:to:i8list", sdk.TargetField, reflect.TypeOf(i8List([]int8{}))),
-		MakeDef("path:to:i16list", sdk.TargetField, reflect.TypeOf(i16List([]int16{}))),
-		MakeDef("path:to:bytelist", sdk.TargetField, reflect.TypeOf(byteList([]byte{}))), // =in32 list
-		MakeDef("path:to:i64list", sdk.TargetField, reflect.TypeOf(i64List([]int64{}))),
+		MustMakeDef("path:to:intlist", sdk.TargetField, reflect.TypeOf(intList([]int{}))),
+		MustMakeDef("path:to:i8list", sdk.TargetField, reflect.TypeOf(i8List([]int8{}))),
+		MustMakeDef("path:to:i16list", sdk.TargetField, reflect.TypeOf(i16List([]int16{}))),
+		MustMakeDef("path:to:bytelist", sdk.TargetField, reflect.TypeOf(byteList([]byte{}))), // =in32 list
+		MustMakeDef("path:to:i64list", sdk.TargetField, reflect.TypeOf(i64List([]int64{}))),
 		// uint
-		MakeDef("path:to:uintlist", sdk.TargetField, reflect.TypeOf(uintList([]uint{}))),
-		MakeDef("path:to:runelist", sdk.TargetField, reflect.TypeOf(runeList([]rune{}))), // =uint8 list
-		MakeDef("path:to:ui16list", sdk.TargetField, reflect.TypeOf(ui16List([]uint16{}))),
-		MakeDef("path:to:ui32list", sdk.TargetField, reflect.TypeOf(ui32List([]uint32{}))),
-		MakeDef("path:to:ui64list", sdk.TargetField, reflect.TypeOf(ui64List([]uint64{}))),
+		MustMakeDef("path:to:uintlist", sdk.TargetField, reflect.TypeOf(uintList([]uint{}))),
+		MustMakeDef("path:to:runelist", sdk.TargetField, reflect.TypeOf(runeList([]rune{}))), // =uint8 list
+		MustMakeDef("path:to:ui16list", sdk.TargetField, reflect.TypeOf(ui16List([]uint16{}))),
+		MustMakeDef("path:to:ui32list", sdk.TargetField, reflect.TypeOf(ui32List([]uint32{}))),
+		MustMakeDef("path:to:ui64list", sdk.TargetField, reflect.TypeOf(ui64List([]uint64{}))),
 		// float
-		MakeDef("path:to:f32list", sdk.TargetField, reflect.TypeOf(f32List([]float32{}))),
-		MakeDef("path:to:f64list", sdk.TargetField, reflect.TypeOf(f64List([]float64{}))),
+		MustMakeDef("path:to:f32list", sdk.TargetField, reflect.TypeOf(f32List([]float32{}))),
+		MustMakeDef("path:to:f64list", sdk.TargetField, reflect.TypeOf(f64List([]float64{}))),
 		// complex
-		MakeDef("path:to:c64list", sdk.TargetField, reflect.TypeOf(c64List([]complex64{}))),
-		MakeDef("path:to:c128list", sdk.TargetField, reflect.TypeOf(c128List([]complex128{}))),
+		MustMakeDef("path:to:c64list", sdk.TargetField, reflect.TypeOf(c64List([]complex64{}))),
+		MustMakeDef("path:to:c128list", sdk.TargetField, reflect.TypeOf(c128List([]complex128{}))),
 		// bool
-		MakeDef("path:to:boollist", sdk.TargetField, reflect.TypeOf(boolList([]bool{}))),
+		MustMakeDef("path:to:boollist", sdk.TargetField, reflect.TypeOf(boolList([]bool{}))),
 
 		// ptr string
-		MakeDef("path:to:ptrstringlist", sdk.TargetField, reflect.TypeOf(ptrstrList([]*string{}))),
+		MustMakeDef("path:to:ptrstringlist", sdk.TargetField, reflect.TypeOf(ptrstrList([]*string{}))),
 		// ptr int
-		MakeDef("path:to:ptrintlist", sdk.TargetField, reflect.TypeOf(ptrintList([]*int{}))),
-		MakeDef("path:to:ptri8list", sdk.TargetField, reflect.TypeOf(ptri8List([]*int8{}))),
-		MakeDef("path:to:ptri16list", sdk.TargetField, reflect.TypeOf(ptri16List([]*int16{}))),
-		MakeDef("path:to:ptrbytelist", sdk.TargetField, reflect.TypeOf(ptrbyteList([]*byte{}))),
-		MakeDef("path:to:ptri64list", sdk.TargetField, reflect.TypeOf(ptri64List([]*int64{}))),
+		MustMakeDef("path:to:ptrintlist", sdk.TargetField, reflect.TypeOf(ptrintList([]*int{}))),
+		MustMakeDef("path:to:ptri8list", sdk.TargetField, reflect.TypeOf(ptri8List([]*int8{}))),
+		MustMakeDef("path:to:ptri16list", sdk.TargetField, reflect.TypeOf(ptri16List([]*int16{}))),
+		MustMakeDef("path:to:ptrbytelist", sdk.TargetField, reflect.TypeOf(ptrbyteList([]*byte{}))),
+		MustMakeDef("path:to:ptri64list", sdk.TargetField, reflect.TypeOf(ptri64List([]*int64{}))),
 		// ptr uint
-		MakeDef("path:to:ptruintlist", sdk.TargetField, reflect.TypeOf(ptruintList([]*uint{}))),
-		MakeDef("path:to:ptrrunelist", sdk.TargetField, reflect.TypeOf(ptrruneList([]*rune{}))),
-		MakeDef("path:to:ptrui16list", sdk.TargetField, reflect.TypeOf(ptrui16List([]*uint16{}))),
-		MakeDef("path:to:ptrui32list", sdk.TargetField, reflect.TypeOf(ptrui32List([]*uint32{}))),
-		MakeDef("path:to:ptrui64list", sdk.TargetField, reflect.TypeOf(ptrui64List([]*uint64{}))),
+		MustMakeDef("path:to:ptruintlist", sdk.TargetField, reflect.TypeOf(ptruintList([]*uint{}))),
+		MustMakeDef("path:to:ptrrunelist", sdk.TargetField, reflect.TypeOf(ptrruneList([]*rune{}))),
+		MustMakeDef("path:to:ptrui16list", sdk.TargetField, reflect.TypeOf(ptrui16List([]*uint16{}))),
+		MustMakeDef("path:to:ptrui32list", sdk.TargetField, reflect.TypeOf(ptrui32List([]*uint32{}))),
+		MustMakeDef("path:to:ptrui64list", sdk.TargetField, reflect.TypeOf(ptrui64List([]*uint64{}))),
 		// ptr float
-		MakeDef("path:to:ptrf32list", sdk.TargetField, reflect.TypeOf(ptrf32List([]*float32{}))),
-		MakeDef("path:to:ptrf64list", sdk.TargetField, reflect.TypeOf(ptrf64List([]*float64{}))),
+		MustMakeDef("path:to:ptrf32list", sdk.TargetField, reflect.TypeOf(ptrf32List([]*float32{}))),
+		MustMakeDef("path:to:ptrf64list", sdk.TargetField, reflect.TypeOf(ptrf64List([]*float64{}))),
 		// ptr complex
-		MakeDef("path:to:ptrc64list", sdk.TargetField, reflect.TypeOf(ptrc64List([]*complex64{}))),
-		MakeDef("path:to:ptrc128list", sdk.TargetField, reflect.TypeOf(ptrc128List([]*complex128{}))),
+		MustMakeDef("path:to:ptrc64list", sdk.TargetField, reflect.TypeOf(ptrc64List([]*complex64{}))),
+		MustMakeDef("path:to:ptrc128list", sdk.TargetField, reflect.TypeOf(ptrc128List([]*complex128{}))),
 		// ptr bool
-		MakeDef("path:to:ptrboollist", sdk.TargetField, reflect.TypeOf(ptrboolList([]*bool{}))),
+		MustMakeDef("path:to:ptrboollist", sdk.TargetField, reflect.TypeOf(ptrboolList([]*bool{}))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {

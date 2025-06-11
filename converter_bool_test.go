@@ -17,9 +17,9 @@ func boolDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
 		// bool
-		MakeDef("path:to:bool", sdk.TargetField, reflect.TypeOf(boolean(false))),
+		MustMakeDef("path:to:bool", sdk.TargetField, reflect.TypeOf(boolean(false))),
 		// ptr bool
-		MakeDef("path:to:ptrbool", sdk.TargetField, reflect.TypeOf(ptrboolean(new(bool)))),
+		MustMakeDef("path:to:ptrbool", sdk.TargetField, reflect.TypeOf(ptrboolean(new(bool)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {

@@ -20,11 +20,11 @@ func complexDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
 		// complex
-		MakeDef("path:to:c64", sdk.TargetField, reflect.TypeOf(c64(0+0i))),
-		MakeDef("path:to:c128", sdk.TargetField, reflect.TypeOf(c128(0+0i))),
+		MustMakeDef("path:to:c64", sdk.TargetField, reflect.TypeOf(c64(0+0i))),
+		MustMakeDef("path:to:c128", sdk.TargetField, reflect.TypeOf(c128(0+0i))),
 		// ptr complex
-		MakeDef("path:to:ptrc64", sdk.TargetField, reflect.TypeOf(ptrc64(new(complex64)))),
-		MakeDef("path:to:ptrc128", sdk.TargetField, reflect.TypeOf(ptrc128(new(complex128)))),
+		MustMakeDef("path:to:ptrc64", sdk.TargetField, reflect.TypeOf(ptrc64(new(complex64)))),
+		MustMakeDef("path:to:ptrc128", sdk.TargetField, reflect.TypeOf(ptrc128(new(complex128)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {

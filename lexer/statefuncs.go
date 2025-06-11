@@ -46,7 +46,7 @@ func lexText(l *Lexer) stateFunc {
 	for {
 		r := l.next()
 		if r == _eof {
-			break
+			return lexEOF
 		}
 		if !isNewline(r) {
 			continue
@@ -58,7 +58,6 @@ func lexText(l *Lexer) stateFunc {
 			return lexPlus
 		}
 	}
-	return nil
 }
 
 func lexPlus(l *Lexer) stateFunc {

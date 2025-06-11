@@ -50,35 +50,35 @@ func intDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
 		// int
-		MakeDef("path:to:i", sdk.TargetField, reflect.TypeOf(i(0))),
-		MakeDef("path:to:i8", sdk.TargetField, reflect.TypeOf(i8(0))),
-		MakeDef("path:to:i16", sdk.TargetField, reflect.TypeOf(i16(0))),
-		MakeDef("path:to:i32", sdk.TargetField, reflect.TypeOf(i32(0))),
-		MakeDef("path:to:i64", sdk.TargetField, reflect.TypeOf(i64(0))),
+		MustMakeDef("path:to:i", sdk.TargetField, reflect.TypeOf(i(0))),
+		MustMakeDef("path:to:i8", sdk.TargetField, reflect.TypeOf(i8(0))),
+		MustMakeDef("path:to:i16", sdk.TargetField, reflect.TypeOf(i16(0))),
+		MustMakeDef("path:to:i32", sdk.TargetField, reflect.TypeOf(i32(0))),
+		MustMakeDef("path:to:i64", sdk.TargetField, reflect.TypeOf(i64(0))),
 		// ptr int
-		MakeDef("path:to:ptri", sdk.TargetField, reflect.TypeOf(ptri(new(int)))),
-		MakeDef("path:to:ptri8", sdk.TargetField, reflect.TypeOf(ptri8(new(int8)))),
-		MakeDef("path:to:ptri16", sdk.TargetField, reflect.TypeOf(ptri16(new(int16)))),
-		MakeDef("path:to:ptri32", sdk.TargetField, reflect.TypeOf(ptri32(new(int32)))),
-		MakeDef("path:to:ptri64", sdk.TargetField, reflect.TypeOf(ptri64(new(int64)))),
+		MustMakeDef("path:to:ptri", sdk.TargetField, reflect.TypeOf(ptri(new(int)))),
+		MustMakeDef("path:to:ptri8", sdk.TargetField, reflect.TypeOf(ptri8(new(int8)))),
+		MustMakeDef("path:to:ptri16", sdk.TargetField, reflect.TypeOf(ptri16(new(int16)))),
+		MustMakeDef("path:to:ptri32", sdk.TargetField, reflect.TypeOf(ptri32(new(int32)))),
+		MustMakeDef("path:to:ptri64", sdk.TargetField, reflect.TypeOf(ptri64(new(int64)))),
 		// uint
-		MakeDef("path:to:ui", sdk.TargetField, reflect.TypeOf(ui(0))),
-		MakeDef("path:to:ui8", sdk.TargetField, reflect.TypeOf(ui8(0))),
-		MakeDef("path:to:ui16", sdk.TargetField, reflect.TypeOf(ui16(0))),
-		MakeDef("path:to:ui32", sdk.TargetField, reflect.TypeOf(ui32(0))),
-		MakeDef("path:to:ui64", sdk.TargetField, reflect.TypeOf(ui64(0))),
+		MustMakeDef("path:to:ui", sdk.TargetField, reflect.TypeOf(ui(0))),
+		MustMakeDef("path:to:ui8", sdk.TargetField, reflect.TypeOf(ui8(0))),
+		MustMakeDef("path:to:ui16", sdk.TargetField, reflect.TypeOf(ui16(0))),
+		MustMakeDef("path:to:ui32", sdk.TargetField, reflect.TypeOf(ui32(0))),
+		MustMakeDef("path:to:ui64", sdk.TargetField, reflect.TypeOf(ui64(0))),
 		// ptr uint
-		MakeDef("path:to:ptrui", sdk.TargetField, reflect.TypeOf(ptrui(new(uint)))),
-		MakeDef("path:to:ptrui8", sdk.TargetField, reflect.TypeOf(ptrui8(new(uint8)))),
-		MakeDef("path:to:ptrui16", sdk.TargetField, reflect.TypeOf(ptrui16(new(uint16)))),
-		MakeDef("path:to:ptrui32", sdk.TargetField, reflect.TypeOf(ptrui32(new(uint32)))),
-		MakeDef("path:to:ptrui64", sdk.TargetField, reflect.TypeOf(ptrui64(new(uint64)))),
+		MustMakeDef("path:to:ptrui", sdk.TargetField, reflect.TypeOf(ptrui(new(uint)))),
+		MustMakeDef("path:to:ptrui8", sdk.TargetField, reflect.TypeOf(ptrui8(new(uint8)))),
+		MustMakeDef("path:to:ptrui16", sdk.TargetField, reflect.TypeOf(ptrui16(new(uint16)))),
+		MustMakeDef("path:to:ptrui32", sdk.TargetField, reflect.TypeOf(ptrui32(new(uint32)))),
+		MustMakeDef("path:to:ptrui64", sdk.TargetField, reflect.TypeOf(ptrui64(new(uint64)))),
 		// byte and rune
-		MakeDef("path:to:byte", sdk.TargetField, reflect.TypeOf(b(byte(0)))),
-		MakeDef("path:to:rune", sdk.TargetField, reflect.TypeOf(r(rune(0)))),
+		MustMakeDef("path:to:byte", sdk.TargetField, reflect.TypeOf(b(byte(0)))),
+		MustMakeDef("path:to:rune", sdk.TargetField, reflect.TypeOf(r(rune(0)))),
 		// ptr byte and rune
-		MakeDef("path:to:ptrbyte", sdk.TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
-		MakeDef("path:to:ptrrune", sdk.TargetField, reflect.TypeOf(ptrrune(new(rune)))),
+		MustMakeDef("path:to:ptrbyte", sdk.TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
+		MustMakeDef("path:to:ptrrune", sdk.TargetField, reflect.TypeOf(ptrrune(new(rune)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {

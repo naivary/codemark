@@ -20,11 +20,11 @@ func floatDefs(t *testing.T) sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
 		// float
-		MakeDef("path:to:f32", sdk.TargetField, reflect.TypeOf(f32(0.0))),
-		MakeDef("path:to:f64", sdk.TargetField, reflect.TypeOf(f64(0.0))),
+		MustMakeDef("path:to:f32", sdk.TargetField, reflect.TypeOf(f32(0.0))),
+		MustMakeDef("path:to:f64", sdk.TargetField, reflect.TypeOf(f64(0.0))),
 		// ptr float
-		MakeDef("path:to:ptrf32", sdk.TargetField, reflect.TypeOf(ptrf32(new(float32)))),
-		MakeDef("path:to:ptrf64", sdk.TargetField, reflect.TypeOf(ptrf64(new(float64)))),
+		MustMakeDef("path:to:ptrf32", sdk.TargetField, reflect.TypeOf(ptrf32(new(float32)))),
+		MustMakeDef("path:to:ptrf64", sdk.TargetField, reflect.TypeOf(ptrf64(new(float64)))),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
