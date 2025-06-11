@@ -12,4 +12,6 @@ type ConverterManager interface {
 	AddConverter(conv Converter) error
 
 	GetConverter(rtype reflect.Type) (Converter, error)
+
+	ParseDefs(doc string, t Target) (map[string][]any, error)
 }
