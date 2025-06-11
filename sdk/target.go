@@ -19,6 +19,7 @@ const (
 	TargetImportedPackage
 	TargetAlias
 	TargetInterfaceSignature
+	TargetStruct
 )
 
 var targetNames = map[Target]string{
@@ -34,6 +35,7 @@ var targetNames = map[Target]string{
 	TargetImportedPackage:    "TargetImportedPackage",
 	TargetAlias:              "TargetAlias",
 	TargetInterfaceSignature: "TargetInterfaceSignature",
+	TargetStruct:             "TargetStruct",
 }
 
 func (t Target) String() string {

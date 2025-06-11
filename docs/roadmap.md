@@ -14,5 +14,5 @@
    default.slice.ptr.int etc. On first hrought it isnt much of a great idea
 9. Maybe have cudedicated Byte and Rune Tokens?
 10. Querys on typeid e.g. slice.*.int
-
-
+11. multiline strings
+12. one defiitionf or multiple targets

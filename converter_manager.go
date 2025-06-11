@@ -96,3 +96,25 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, e
 func (c *ConverterManager) AllConverters() map[string]sdk.Converter {
 	return c.convs
 }
+
+func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) {
+	markers, err := parser.Parse(doc)
+	if err != nil {
+		return nil, err
+	}
+	defs := make(map[string][]any, len(markers))
+	for _, marker := range markers {
+		out, err := c.Convert(marker, t)
+		if err != nil {
+			return nil, err
+		}
+		midn := marker.Ident()
+		defss, ok := defs[midn]
+		if !ok {
+			defs[midn] = []any{out}
+			continue
+		}
+		defs[midn] = append(defss, out)
+	}
+	return defs, nil
+}

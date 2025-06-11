@@ -7,9 +7,9 @@ import (
 )
 
 type ConverterManager interface {
-	AddConverter(conv Converter) error
-
 	Convert(mrk parser.Marker, target Target) (any, error)
+
+	AddConverter(conv Converter) error
 
 	GetConverter(rtype reflect.Type) (Converter, error)
 }
