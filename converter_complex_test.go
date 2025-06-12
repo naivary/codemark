@@ -6,34 +6,10 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 const _complexValue = 9 + 9i
-
-type c64 complex64
-type c128 complex128
-
-type ptrc64 *complex64
-type ptrc128 *complex128
-
-func complexDefs(t *testing.T) sdk.Registry {
-	reg := NewInMemoryRegistry()
-	defs := []*sdk.Definition{
-		// complex
-		MustMakeDef("path:to:c64", sdk.TargetField, reflect.TypeOf(c64(0+0i))),
-		MustMakeDef("path:to:c128", sdk.TargetField, reflect.TypeOf(c128(0+0i))),
-		// ptr complex
-		MustMakeDef("path:to:ptrc64", sdk.TargetField, reflect.TypeOf(ptrc64(new(complex64)))),
-		MustMakeDef("path:to:ptrc128", sdk.TargetField, reflect.TypeOf(ptrc128(new(complex128)))),
-	}
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-
-	}
-	return reg
-}
 
 func TestComplexConverter(t *testing.T) {
 	tests := []struct {
@@ -48,10 +24,10 @@ func TestComplexConverter(t *testing.T) {
 			name:    "complex marker to c64 type",
 			mrk:     parser.NewMarker("path:to:c64", parser.MarkerKindComplex, reflect.ValueOf(_complexValue)),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(c64(0 + 0i)),
+			out:     reflect.TypeOf(sdktesting.C64(0 + 0i)),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				c := got.Interface().(c64)
+				c := got.Interface().(sdktesting.C64)
 				return c == _complexValue
 			},
 		},
@@ -59,10 +35,10 @@ func TestComplexConverter(t *testing.T) {
 			name:    "complex marker to c128 type",
 			mrk:     parser.NewMarker("path:to:c128", parser.MarkerKindComplex, reflect.ValueOf(_complexValue)),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(c128(0 + 0i)),
+			out:     reflect.TypeOf(sdktesting.C128(0 + 0i)),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				c := got.Interface().(c128)
+				c := got.Interface().(sdktesting.C128)
 				return c == _complexValue
 			},
 		},
@@ -70,10 +46,10 @@ func TestComplexConverter(t *testing.T) {
 			name:    "complex marker to ptrc64 type",
 			mrk:     parser.NewMarker("path:to:ptrc64", parser.MarkerKindComplex, reflect.ValueOf(_complexValue)),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrc64(new(complex64))),
+			out:     reflect.TypeOf(sdktesting.PtrC64(new(complex64))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				c := got.Interface().(ptrc64)
+				c := got.Interface().(sdktesting.PtrC64)
 				return *c == _complexValue
 			},
 		},
@@ -81,15 +57,19 @@ func TestComplexConverter(t *testing.T) {
 			name:    "complex marker to ptrc128 type",
 			mrk:     parser.NewMarker("path:to:ptrc128", parser.MarkerKindComplex, reflect.ValueOf(_complexValue)),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrc128(new(complex128))),
+			out:     reflect.TypeOf(sdktesting.PtrC128(new(complex128))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				c := got.Interface().(ptrc128)
+				c := got.Interface().(sdktesting.PtrC128)
 				return *c == _complexValue
 			},
 		},
 	}
-	reg := complexDefs(t)
+	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
+
 	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

@@ -39,10 +39,6 @@ func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, e
 			return nil, err
 		}
 	}
-	// listConv := &listConverter{mngr}
-	// if err := mngr.AddConverter(listConv); err != nil {
-	// 	return nil, err
-	// }
 	return mngr, nil
 }
 
@@ -77,7 +73,7 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, e
 		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, *inFavorOf)
 		slog.Warn(msg)
 	}
-	if !slices.Contains(def.Targets, target) {
+	if !(slices.Contains(def.Targets, target) || slices.Contains(def.Targets, sdk.TargetAny)) {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, def.Targets, target)
 	}
 	conv, err := c.GetConverter(def.Output)
@@ -115,7 +111,7 @@ func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any
 			defs[midn] = []any{def}
 			continue
 		}
-	defs[midn] = append(defss, def)
+		defs[midn] = append(defss, def)
 	}
 	return defs, nil
 }

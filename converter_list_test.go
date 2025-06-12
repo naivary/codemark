@@ -6,121 +6,8 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
-
-// string
-type strList []string
-
-// int
-type intList []int
-type i8List []int8
-type i16List []int16
-type byteList []byte // int32
-type i64List []int64
-
-// uint
-type uintList []uint
-type runeList []rune // uint8
-type ui16List []uint16
-type ui32List []uint32
-type ui64List []uint64
-
-// float
-type f32List []float32
-type f64List []float64
-
-// complex
-type c64List []complex64
-type c128List []complex128
-
-// bool
-type boolList []bool
-
-// ptr string
-type ptrstrList []*string
-
-// ptr bool
-type ptrboolList []*bool
-
-// ptr int
-type ptrintList []*int
-type ptri8List []*int8
-type ptri16List []*int16
-type ptrbyteList []*byte // int32
-type ptri64List []*int64
-
-// ptr uint
-type ptruintList []*uint
-type ptrruneList []*rune // uint8
-type ptrui16List []*uint16
-type ptrui32List []*uint32
-type ptrui64List []*uint64
-
-// float
-type ptrf32List []*float32
-type ptrf64List []*float64
-
-// complex
-type ptrc64List []*complex64
-type ptrc128List []*complex128
-
-func listDefs(t *testing.T) sdk.Registry {
-	reg := NewInMemoryRegistry()
-	defs := []*sdk.Definition{
-		// string
-		MustMakeDef("path:to:stringlist", reflect.TypeOf(strList([]string{})), sdk.TargetField),
-		// int
-		MustMakeDef("path:to:intlist", sdk.TargetField, reflect.TypeOf(intList([]int{}))),
-		MustMakeDef("path:to:i8list", sdk.TargetField, reflect.TypeOf(i8List([]int8{}))),
-		MustMakeDef("path:to:i16list", sdk.TargetField, reflect.TypeOf(i16List([]int16{}))),
-		MustMakeDef("path:to:bytelist", sdk.TargetField, reflect.TypeOf(byteList([]byte{}))), // =in32 list
-		MustMakeDef("path:to:i64list", sdk.TargetField, reflect.TypeOf(i64List([]int64{}))),
-		// uint
-		MustMakeDef("path:to:uintlist", sdk.TargetField, reflect.TypeOf(uintList([]uint{}))),
-		MustMakeDef("path:to:runelist", sdk.TargetField, reflect.TypeOf(runeList([]rune{}))), // =uint8 list
-		MustMakeDef("path:to:ui16list", sdk.TargetField, reflect.TypeOf(ui16List([]uint16{}))),
-		MustMakeDef("path:to:ui32list", sdk.TargetField, reflect.TypeOf(ui32List([]uint32{}))),
-		MustMakeDef("path:to:ui64list", sdk.TargetField, reflect.TypeOf(ui64List([]uint64{}))),
-		// float
-		MustMakeDef("path:to:f32list", sdk.TargetField, reflect.TypeOf(f32List([]float32{}))),
-		MustMakeDef("path:to:f64list", sdk.TargetField, reflect.TypeOf(f64List([]float64{}))),
-		// complex
-		MustMakeDef("path:to:c64list", sdk.TargetField, reflect.TypeOf(c64List([]complex64{}))),
-		MustMakeDef("path:to:c128list", sdk.TargetField, reflect.TypeOf(c128List([]complex128{}))),
-		// bool
-		MustMakeDef("path:to:boollist", sdk.TargetField, reflect.TypeOf(boolList([]bool{}))),
-
-		// ptr string
-		MustMakeDef("path:to:ptrstringlist", sdk.TargetField, reflect.TypeOf(ptrstrList([]*string{}))),
-		// ptr int
-		MustMakeDef("path:to:ptrintlist", sdk.TargetField, reflect.TypeOf(ptrintList([]*int{}))),
-		MustMakeDef("path:to:ptri8list", sdk.TargetField, reflect.TypeOf(ptri8List([]*int8{}))),
-		MustMakeDef("path:to:ptri16list", sdk.TargetField, reflect.TypeOf(ptri16List([]*int16{}))),
-		MustMakeDef("path:to:ptrbytelist", sdk.TargetField, reflect.TypeOf(ptrbyteList([]*byte{}))),
-		MustMakeDef("path:to:ptri64list", sdk.TargetField, reflect.TypeOf(ptri64List([]*int64{}))),
-		// ptr uint
-		MustMakeDef("path:to:ptruintlist", sdk.TargetField, reflect.TypeOf(ptruintList([]*uint{}))),
-		MustMakeDef("path:to:ptrrunelist", sdk.TargetField, reflect.TypeOf(ptrruneList([]*rune{}))),
-		MustMakeDef("path:to:ptrui16list", sdk.TargetField, reflect.TypeOf(ptrui16List([]*uint16{}))),
-		MustMakeDef("path:to:ptrui32list", sdk.TargetField, reflect.TypeOf(ptrui32List([]*uint32{}))),
-		MustMakeDef("path:to:ptrui64list", sdk.TargetField, reflect.TypeOf(ptrui64List([]*uint64{}))),
-		// ptr float
-		MustMakeDef("path:to:ptrf32list", sdk.TargetField, reflect.TypeOf(ptrf32List([]*float32{}))),
-		MustMakeDef("path:to:ptrf64list", sdk.TargetField, reflect.TypeOf(ptrf64List([]*float64{}))),
-		// ptr complex
-		MustMakeDef("path:to:ptrc64list", sdk.TargetField, reflect.TypeOf(ptrc64List([]*complex64{}))),
-		MustMakeDef("path:to:ptrc128list", sdk.TargetField, reflect.TypeOf(ptrc128List([]*complex128{}))),
-		// ptr bool
-		MustMakeDef("path:to:ptrboollist", sdk.TargetField, reflect.TypeOf(ptrboolList([]*bool{}))),
-	}
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-
-	}
-	return reg
-}
 
 func TestListConverter(t *testing.T) {
 	tests := []struct {
@@ -136,11 +23,11 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to string list",
 			mrk:     parser.NewMarker("path:to:stringlist", parser.MarkerKindList, reflect.ValueOf([]any{"path", "to", "marker"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(strList([]string{})),
+			out:     reflect.TypeOf(sdktesting.StringList([]string{})),
 			value:   []any{"path", "to", "marker"},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(strList)
+				list := got.Interface().(sdktesting.StringList)
 				for i, el := range list {
 					expectedElem := expected[i].(string)
 					if expectedElem != el {
@@ -154,11 +41,11 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to rune list",
 			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(runeList([]rune{})),
+			out:     reflect.TypeOf(sdktesting.RuneList([]rune{})),
 			value:   []any{rune('p'), rune('t'), rune('m')},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(runeList)
+				list := got.Interface().(sdktesting.RuneList)
 				for i, el := range list {
 					expectedElem := expected[i].(rune)
 					if expectedElem != el {
@@ -172,11 +59,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to uint list",
 			mrk:     parser.NewMarker("path:to:uintlist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(uintList([]uint{})),
+			out:     reflect.TypeOf(sdktesting.UintList([]uint{})),
 			value:   []any{uint(3), uint(2), uint(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(uintList)
+				list := got.Interface().(sdktesting.UintList)
 				for i, el := range list {
 					expectedElem := expected[i].(uint)
 					if expectedElem != el {
@@ -190,11 +77,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to rune list",
 			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(runeList([]rune{})),
+			out:     reflect.TypeOf(sdktesting.RuneList([]rune{})),
 			value:   []any{rune(3), rune(2), rune(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(runeList)
+				list := got.Interface().(sdktesting.RuneList)
 				for i, el := range list {
 					expectedElem := expected[i].(rune)
 					if expectedElem != el {
@@ -208,11 +95,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to uint16 list",
 			mrk:     parser.NewMarker("path:to:ui16list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ui16List([]uint16{})),
+			out:     reflect.TypeOf(sdktesting.U16List([]uint16{})),
 			value:   []any{uint16(3), uint16(2), uint16(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ui16List)
+				list := got.Interface().(sdktesting.U16List)
 				for i, el := range list {
 					expectedElem := expected[i].(uint16)
 					if expectedElem != el {
@@ -226,11 +113,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to uint32 list",
 			mrk:     parser.NewMarker("path:to:ui32list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ui32List([]uint32{})),
+			out:     reflect.TypeOf(sdktesting.U32List([]uint32{})),
 			value:   []any{uint32(3), uint32(2), uint32(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ui32List)
+				list := got.Interface().(sdktesting.U32List)
 				for i, el := range list {
 					expectedElem := expected[i].(uint32)
 					if expectedElem != el {
@@ -244,11 +131,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to uint64 list",
 			mrk:     parser.NewMarker("path:to:ui64list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ui64List([]uint64{})),
+			out:     reflect.TypeOf(sdktesting.U64List([]uint64{})),
 			value:   []any{uint64(3), uint64(2), uint64(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ui64List)
+				list := got.Interface().(sdktesting.U64List)
 				for i, el := range list {
 					expectedElem := expected[i].(uint64)
 					if expectedElem != el {
@@ -263,11 +150,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to int list",
 			mrk:     parser.NewMarker("path:to:intlist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(intList([]int{})),
+			out:     reflect.TypeOf(sdktesting.IntList([]int{})),
 			value:   []any{3, 2, 2},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(intList)
+				list := got.Interface().(sdktesting.IntList)
 				for i, el := range list {
 					expectedElem := expected[i].(int)
 					if expectedElem != el {
@@ -282,11 +169,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to int8 list",
 			mrk:     parser.NewMarker("path:to:i8list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(i8List([]int8{})),
+			out:     reflect.TypeOf(sdktesting.I8List([]int8{})),
 			value:   []any{int8(3), int8(2), int8(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(i8List)
+				list := got.Interface().(sdktesting.I8List)
 				for i, el := range list {
 					expectedElem := expected[i].(int8)
 					if expectedElem != el {
@@ -300,11 +187,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to int16 list",
 			mrk:     parser.NewMarker("path:to:i16list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(i16List([]int16{})),
+			out:     reflect.TypeOf(sdktesting.I16List([]int16{})),
 			value:   []any{int16(3), int16(2), int16(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(i16List)
+				list := got.Interface().(sdktesting.I16List)
 				for i, el := range list {
 					expectedElem := expected[i].(int16)
 					if expectedElem != el {
@@ -318,11 +205,11 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to byte list",
 			mrk:     parser.NewMarker("path:to:bytelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(byteList([]byte{})),
+			out:     reflect.TypeOf(sdktesting.ByteList([]byte{})),
 			value:   []any{byte('p'), byte('t'), byte('m')},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(byteList)
+				list := got.Interface().(sdktesting.ByteList)
 				for i, el := range list {
 					expectedElem := expected[i].(byte)
 					if expectedElem != el {
@@ -336,11 +223,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to byte list",
 			mrk:     parser.NewMarker("path:to:bytelist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(byteList([]byte{})),
+			out:     reflect.TypeOf(sdktesting.ByteList([]byte{})),
 			value:   []any{byte(3), byte(2), byte(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(byteList)
+				list := got.Interface().(sdktesting.ByteList)
 				for i, el := range list {
 					expectedElem := expected[i].(byte)
 					if expectedElem != el {
@@ -354,11 +241,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to int64 list",
 			mrk:     parser.NewMarker("path:to:i64list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(i64List([]int64{})),
+			out:     reflect.TypeOf(sdktesting.I64List([]int64{})),
 			value:   []any{int64(3), int64(2), int64(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(i64List)
+				list := got.Interface().(sdktesting.I64List)
 				for i, el := range list {
 					expectedElem := expected[i].(int64)
 					if expectedElem != el {
@@ -373,11 +260,11 @@ func TestListConverter(t *testing.T) {
 			name:    "float list marker to float32 list",
 			mrk:     parser.NewMarker("path:to:f32list", parser.MarkerKindList, reflect.ValueOf([]any{3.0, 2.1, 2.2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(f32List([]float32{})),
+			out:     reflect.TypeOf(sdktesting.F32List([]float32{})),
 			value:   []any{float32(3.0), float32(2.1), float32(2.2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(f32List)
+				list := got.Interface().(sdktesting.F32List)
 				for i, el := range list {
 					expectedElem := expected[i].(float32)
 					if expectedElem != el {
@@ -391,11 +278,11 @@ func TestListConverter(t *testing.T) {
 			name:    "float list marker to float64 list",
 			mrk:     parser.NewMarker("path:to:f64list", parser.MarkerKindList, reflect.ValueOf([]any{3.0, 2.1, 2.2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(f64List([]float64{})),
+			out:     reflect.TypeOf(sdktesting.F64List([]float64{})),
 			value:   []any{float64(3.0), float64(2.1), float64(2.2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(f64List)
+				list := got.Interface().(sdktesting.F64List)
 				for i, el := range list {
 					expectedElem := expected[i].(float64)
 					if expectedElem != el {
@@ -410,11 +297,11 @@ func TestListConverter(t *testing.T) {
 			name:    "complex list marker to complex64 list",
 			mrk:     parser.NewMarker("path:to:c64list", parser.MarkerKindList, reflect.ValueOf([]any{0 + 1i, 1 + 2i, 2 + 3i})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(c64List([]complex64{})),
+			out:     reflect.TypeOf(sdktesting.C64List([]complex64{})),
 			value:   []any{complex64(0 + 1i), complex64(1 + 2i), complex64(2 + 3i)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(c64List)
+				list := got.Interface().(sdktesting.C64List)
 				for i, el := range list {
 					expectedElem := expected[i].(complex64)
 					if expectedElem != el {
@@ -428,11 +315,11 @@ func TestListConverter(t *testing.T) {
 			name:    "complex list marker to complex128 list",
 			mrk:     parser.NewMarker("path:to:c128list", parser.MarkerKindList, reflect.ValueOf([]any{0 + 1i, 1 + 2i, 2 + 3i})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(c128List([]complex128{})),
+			out:     reflect.TypeOf(sdktesting.C128List([]complex128{})),
 			value:   []any{0 + 1i, 1 + 2i, 2 + 3i},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(c128List)
+				list := got.Interface().(sdktesting.C128List)
 				for i, el := range list {
 					expectedElem := expected[i].(complex128)
 					if expectedElem != el {
@@ -447,11 +334,11 @@ func TestListConverter(t *testing.T) {
 			name:    "bool list marker to bool list",
 			mrk:     parser.NewMarker("path:to:boollist", parser.MarkerKindList, reflect.ValueOf([]any{false, true, false})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(boolList([]bool{})),
+			out:     reflect.TypeOf(sdktesting.BoolList([]bool{})),
 			value:   []any{false, true, false},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(boolList)
+				list := got.Interface().(sdktesting.BoolList)
 				for i, el := range list {
 					expectedElem := expected[i].(bool)
 					if expectedElem != el {
@@ -466,11 +353,11 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to ptr string list",
 			mrk:     parser.NewMarker("path:to:ptrstringlist", parser.MarkerKindList, reflect.ValueOf([]any{"path", "to", "marker"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrstrList([]*string{})),
+			out:     reflect.TypeOf(sdktesting.PtrStringList([]*string{})),
 			value:   []any{"path", "to", "marker"},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrstrList)
+				list := got.Interface().(sdktesting.PtrStringList)
 				for i, el := range list {
 					expectedElem := expected[i].(string)
 					if expectedElem != *el {
@@ -484,11 +371,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr uint list",
 			mrk:     parser.NewMarker("path:to:ptruintlist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptruintList([]*uint{})),
+			out:     reflect.TypeOf(sdktesting.PtrUintList([]*uint{})),
 			value:   []any{uint(3), uint(2), uint(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptruintList)
+				list := got.Interface().(sdktesting.PtrUintList)
 				for i, el := range list {
 					expectedElem := expected[i].(uint)
 					if expectedElem != *el {
@@ -502,11 +389,11 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to ptr rune list",
 			mrk:     parser.NewMarker("path:to:ptrrunelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrruneList([]*rune{})),
+			out:     reflect.TypeOf(sdktesting.PtrRuneList([]*rune{})),
 			value:   []any{rune('p'), rune('t'), rune('m')},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrruneList)
+				list := got.Interface().(sdktesting.PtrRuneList)
 				for i, el := range list {
 					expectedElem := expected[i].(rune)
 					if expectedElem != *el {
@@ -520,11 +407,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr rune list",
 			mrk:     parser.NewMarker("path:to:ptrrunelist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrruneList([]*rune{})),
+			out:     reflect.TypeOf(sdktesting.PtrRuneList([]*rune{})),
 			value:   []any{rune(3), rune(2), rune(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrruneList)
+				list := got.Interface().(sdktesting.PtrRuneList)
 				for i, el := range list {
 					expectedElem := expected[i].(rune)
 					if expectedElem != *el {
@@ -538,11 +425,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr uint16 list",
 			mrk:     parser.NewMarker("path:to:ptrui16list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrui16List([]*uint16{})),
+			out:     reflect.TypeOf(sdktesting.PtrU16List([]*uint16{})),
 			value:   []any{uint16(3), uint16(2), uint16(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrui16List)
+				list := got.Interface().(sdktesting.PtrU16List)
 				for i, el := range list {
 					expectedElem := expected[i].(uint16)
 					if expectedElem != *el {
@@ -556,11 +443,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr uint32 list",
 			mrk:     parser.NewMarker("path:to:ptrui32list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrui32List([]*uint32{})),
+			out:     reflect.TypeOf(sdktesting.PtrU32List([]*uint32{})),
 			value:   []any{uint32(3), uint32(2), uint32(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrui32List)
+				list := got.Interface().(sdktesting.PtrU32List)
 				for i, el := range list {
 					expectedElem := expected[i].(uint32)
 					if expectedElem != *el {
@@ -574,11 +461,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr uint64 list",
 			mrk:     parser.NewMarker("path:to:ptrui64list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrui64List([]*uint64{})),
+			out:     reflect.TypeOf(sdktesting.PtrU64List([]*uint64{})),
 			value:   []any{uint64(3), uint64(2), uint64(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrui64List)
+				list := got.Interface().(sdktesting.PtrU64List)
 				for i, el := range list {
 					expectedElem := expected[i].(uint64)
 					if expectedElem != *el {
@@ -593,11 +480,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr int list",
 			mrk:     parser.NewMarker("path:to:ptrintlist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrintList([]*int{})),
+			out:     reflect.TypeOf(sdktesting.PtrIntList([]*int{})),
 			value:   []any{3, 2, 2},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrintList)
+				list := got.Interface().(sdktesting.PtrIntList)
 				for i, el := range list {
 					expectedElem := expected[i].(int)
 					if expectedElem != *el {
@@ -611,11 +498,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr int8 list",
 			mrk:     parser.NewMarker("path:to:ptri8list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptri8List([]*int8{})),
+			out:     reflect.TypeOf(sdktesting.PtrI8List([]*int8{})),
 			value:   []any{int8(3), int8(2), int8(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptri8List)
+				list := got.Interface().(sdktesting.PtrI8List)
 				for i, el := range list {
 					expectedElem := expected[i].(int8)
 					if expectedElem != *el {
@@ -629,11 +516,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr int16 list",
 			mrk:     parser.NewMarker("path:to:ptri16list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptri16List([]*int16{})),
+			out:     reflect.TypeOf(sdktesting.PtrI16List([]*int16{})),
 			value:   []any{int16(3), int16(2), int16(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptri16List)
+				list := got.Interface().(sdktesting.PtrI16List)
 				for i, el := range list {
 					expectedElem := expected[i].(int16)
 					if expectedElem != *el {
@@ -648,11 +535,11 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to ptr byte list",
 			mrk:     parser.NewMarker("path:to:ptrbytelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "m"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrbyteList([]*byte{})),
+			out:     reflect.TypeOf(sdktesting.PtrByteList([]*byte{})),
 			value:   []any{byte('p'), byte('t'), byte('m')},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrbyteList)
+				list := got.Interface().(sdktesting.PtrByteList)
 				for i, el := range list {
 					expectedElem := expected[i].(byte)
 					if expectedElem != *el {
@@ -666,11 +553,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr byte list",
 			mrk:     parser.NewMarker("path:to:ptrbytelist", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrbyteList([]*byte{})),
+			out:     reflect.TypeOf(sdktesting.PtrByteList([]*byte{})),
 			value:   []any{byte(3), byte(2), byte(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrbyteList)
+				list := got.Interface().(sdktesting.PtrByteList)
 				for i, el := range list {
 					expectedElem := expected[i].(byte)
 					if expectedElem != *el {
@@ -684,11 +571,11 @@ func TestListConverter(t *testing.T) {
 			name:    "int list marker to ptr int64 list",
 			mrk:     parser.NewMarker("path:to:ptri64list", parser.MarkerKindList, reflect.ValueOf([]any{3, 2, 2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptri64List([]*int64{})),
+			out:     reflect.TypeOf(sdktesting.PtrI64List([]*int64{})),
 			value:   []any{int64(3), int64(2), int64(2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptri64List)
+				list := got.Interface().(sdktesting.PtrI64List)
 				for i, el := range list {
 					expectedElem := expected[i].(int64)
 					if expectedElem != *el {
@@ -703,11 +590,11 @@ func TestListConverter(t *testing.T) {
 			name:    "float list marker to ptr float32 list",
 			mrk:     parser.NewMarker("path:to:ptrf32list", parser.MarkerKindList, reflect.ValueOf([]any{3.0, 2.1, 2.2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrf32List([]*float32{})),
+			out:     reflect.TypeOf(sdktesting.PtrF32List([]*float32{})),
 			value:   []any{float32(3.0), float32(2.1), float32(2.2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrf32List)
+				list := got.Interface().(sdktesting.PtrF32List)
 				for i, el := range list {
 					expectedElem := expected[i].(float32)
 					if expectedElem != *el {
@@ -721,11 +608,11 @@ func TestListConverter(t *testing.T) {
 			name:    "float list marker to ptr float64 list",
 			mrk:     parser.NewMarker("path:to:ptrf64list", parser.MarkerKindList, reflect.ValueOf([]any{3.0, 2.1, 2.2})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrf64List([]*float64{})),
+			out:     reflect.TypeOf(sdktesting.PtrF64List([]*float64{})),
 			value:   []any{float64(3.0), float64(2.1), float64(2.2)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrf64List)
+				list := got.Interface().(sdktesting.PtrF64List)
 				for i, el := range list {
 					expectedElem := expected[i].(float64)
 					if expectedElem != *el {
@@ -740,11 +627,11 @@ func TestListConverter(t *testing.T) {
 			name:    "complex list marker to ptr complex64 list",
 			mrk:     parser.NewMarker("path:to:ptrc64list", parser.MarkerKindList, reflect.ValueOf([]any{0 + 1i, 1 + 2i, 2 + 3i})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrc64List([]*complex64{})),
+			out:     reflect.TypeOf(sdktesting.PtrC64List([]*complex64{})),
 			value:   []any{complex64(0 + 1i), complex64(1 + 2i), complex64(2 + 3i)},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrc64List)
+				list := got.Interface().(sdktesting.PtrC64List)
 				for i, el := range list {
 					expectedElem := expected[i].(complex64)
 					if expectedElem != *el {
@@ -758,11 +645,11 @@ func TestListConverter(t *testing.T) {
 			name:    "complex list marker to ptr complex128 list",
 			mrk:     parser.NewMarker("path:to:ptrc128list", parser.MarkerKindList, reflect.ValueOf([]any{0 + 1i, 1 + 2i, 2 + 3i})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrc128List([]*complex128{})),
+			out:     reflect.TypeOf(sdktesting.PtrC128List([]*complex128{})),
 			value:   []any{0 + 1i, 1 + 2i, 2 + 3i},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrc128List)
+				list := got.Interface().(sdktesting.PtrC128List)
 				for i, el := range list {
 					expectedElem := expected[i].(complex128)
 					if expectedElem != *el {
@@ -777,11 +664,11 @@ func TestListConverter(t *testing.T) {
 			name:    "bool list marker to ptr bool list",
 			mrk:     parser.NewMarker("path:to:ptrboollist", parser.MarkerKindList, reflect.ValueOf([]any{false, true, false})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrboolList([]*bool{})),
+			out:     reflect.TypeOf(sdktesting.PtrBoolList([]*bool{})),
 			value:   []any{false, true, false},
 			isValid: true,
 			isValidValue: func(got reflect.Value, expected []any) bool {
-				list := got.Interface().(ptrboolList)
+				list := got.Interface().(sdktesting.PtrBoolList)
 				for i, el := range list {
 					expectedElem := expected[i].(bool)
 					if expectedElem != *el {
@@ -796,7 +683,7 @@ func TestListConverter(t *testing.T) {
 			name:    "string list marker to rune list wrong length",
 			mrk:     parser.NewMarker("path:to:runelist", parser.MarkerKindList, reflect.ValueOf([]any{"p", "t", "ma"})),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(runeList([]rune{})),
+			out:     reflect.TypeOf(sdktesting.RuneList([]rune{})),
 			value:   nil,
 			isValid: false,
 			isValidValue: func(got reflect.Value, expected []any) bool {
@@ -804,7 +691,10 @@ func TestListConverter(t *testing.T) {
 			},
 		},
 	}
-	reg := listDefs(t)
+	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
 	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

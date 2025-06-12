@@ -15,8 +15,8 @@ type required bool
 func localLoaderDefs() sdk.Registry {
 	reg := NewInMemoryRegistry()
 	defs := []*sdk.Definition{
-		MustMakeDef("openapi_v3:general:description", sdk.TargetStruct, reflect.TypeOf(description(""))),
-		MustMakeDef("openapi_v3:validation:required", sdk.TargetField, reflect.TypeOf(required(false))),
+		MustMakeDef("openapi_v3:general:description", reflect.TypeOf(description("")), sdk.TargetStruct),
+		MustMakeDef("openapi_v3:validation:required", reflect.TypeOf(required(false)), sdk.TargetField),
 	}
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {

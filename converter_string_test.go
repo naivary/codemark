@@ -6,29 +6,8 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
-
-type str string
-type ptrstr *string
-
-func strDefs(t *testing.T) sdk.Registry {
-	reg := NewInMemoryRegistry()
-	defs := []*sdk.Definition{
-		MustMakeDef("path:to:str", sdk.TargetField, reflect.TypeOf(str(""))),
-		MustMakeDef("path:to:ptrstr", sdk.TargetField, reflect.TypeOf(ptrstr(new(string)))),
-		MustMakeDef("path:to:rune", sdk.TargetField, reflect.TypeOf(r(0))),
-		MustMakeDef("path:to:ptrrune", sdk.TargetField, reflect.TypeOf(ptrrune(new(rune)))),
-		MustMakeDef("path:to:byte", sdk.TargetField, reflect.TypeOf(b(0))),
-		MustMakeDef("path:to:ptrbyte", sdk.TargetField, reflect.TypeOf(ptrbyte(new(byte)))),
-	}
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-
-	}
-	return reg
-}
 
 func TestStringConverter(t *testing.T) {
 	tests := []struct {
@@ -44,11 +23,11 @@ func TestStringConverter(t *testing.T) {
 			name:          "string marker to string type",
 			mrk:           parser.NewMarker("path:to:str", parser.MarkerKindString, reflect.ValueOf(string("codemark"))),
 			t:             sdk.TargetField,
-			out:           reflect.TypeOf(str("")),
+			out:           reflect.TypeOf(sdktesting.String("")),
 			isValid:       true,
 			expectedValue: "codemark",
 			isValidValue: func(got reflect.Value) bool {
-				str := got.Interface().(str)
+				str := got.Interface().(sdktesting.String)
 				return str == "codemark"
 			},
 		},
@@ -56,16 +35,19 @@ func TestStringConverter(t *testing.T) {
 			name:          "string marker to ptr string type",
 			mrk:           parser.NewMarker("path:to:ptrstr", parser.MarkerKindString, reflect.ValueOf(string("codemark"))),
 			t:             sdk.TargetField,
-			out:           reflect.TypeOf(ptrstr(new(string))),
+			out:           reflect.TypeOf(sdktesting.PtrString(new(string))),
 			expectedValue: "codemark",
 			isValid:       true,
 			isValidValue: func(got reflect.Value) bool {
-				str := got.Interface().(ptrstr)
+				str := got.Interface().(sdktesting.PtrString)
 				return *str == "codemark"
 			},
 		},
 	}
-	reg := strDefs(t)
+	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
 	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

@@ -113,7 +113,7 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	}
 	markerKind := parser.MarkerKindOf(rvalue.Type())
 	fakeMarker := parser.NewMarker("codemark:fake:def", markerKind, rvalue)
-	fakeDef, err := MakeDef("codemark:fake:def", sdk.TargetField, typ)
+	fakeDef, err := MakeDef("codemark:fake:def", typ, sdk.TargetField)
 	if err != nil {
 		return _rvzero, err
 	}

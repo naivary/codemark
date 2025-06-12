@@ -6,29 +6,10 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 const _boolValue = true
-
-type boolean bool
-type ptrboolean *bool
-
-func boolDefs(t *testing.T) sdk.Registry {
-	reg := NewInMemoryRegistry()
-	defs := []*sdk.Definition{
-		// bool
-		MustMakeDef("path:to:bool", sdk.TargetField, reflect.TypeOf(boolean(false))),
-		// ptr bool
-		MustMakeDef("path:to:ptrbool", sdk.TargetField, reflect.TypeOf(ptrboolean(new(bool)))),
-	}
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-
-	}
-	return reg
-}
 
 func TestBoolConverter(t *testing.T) {
 	tests := []struct {
@@ -43,10 +24,10 @@ func TestBoolConverter(t *testing.T) {
 			name:    "bool marker to bool type",
 			mrk:     parser.NewMarker("path:to:bool", parser.MarkerKindBool, reflect.ValueOf(_boolValue)),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(boolean(false)),
+			out:     reflect.TypeOf(sdktesting.Bool(false)),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				b := got.Interface().(boolean)
+				b := got.Interface().(sdktesting.Bool)
 				return b == _boolValue
 			},
 		},
@@ -54,15 +35,18 @@ func TestBoolConverter(t *testing.T) {
 			name:    "bool marker to ptr bool type",
 			mrk:     parser.NewMarker("path:to:ptrbool", parser.MarkerKindBool, reflect.ValueOf(_boolValue)),
 			t:       sdk.TargetField,
-			out:     reflect.TypeOf(ptrboolean(new(bool))),
+			out:     reflect.TypeOf(sdktesting.PtrBool(new(bool))),
 			isValid: true,
 			isValidValue: func(got reflect.Value) bool {
-				b := got.Interface().(ptrboolean)
+				b := got.Interface().(sdktesting.PtrBool)
 				return *b == _boolValue
 			},
 		},
 	}
-	reg := boolDefs(t)
+	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
 	mngr, err := NewConvMngr(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

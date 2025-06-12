@@ -6,6 +6,35 @@ import (
 	"github.com/naivary/codemark/sdk"
 )
 
+var _ sdk.DefinitionMaker = (*DefinitionMarker)(nil)
+
+type DefinitionMarker struct{}
+
+func (d DefinitionMarker) MakeDef(ident string, output reflect.Type, targets ...sdk.Target) (*sdk.Definition, error) {
+	return MakeDef(ident, output, targets...)
+}
+
+func (d DefinitionMarker) MakeDefWithHelp(ident string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) (*sdk.Definition, error) {
+	return MakeDefWithHelp(ident, output, help, targets...)
+}
+
+func (d DefinitionMarker) MustMakeDef(ident string, output reflect.Type, targets ...sdk.Target) *sdk.Definition {
+	return MustMakeDef(ident, output, targets...)
+}
+
+func (d DefinitionMarker) MustMakeDefWithHelp(ident string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) *sdk.Definition {
+	return MustMakeDefWithHelp(ident, output, help, targets...)
+}
+
+func MakeDef(idn string, output reflect.Type, targets ...sdk.Target) (*sdk.Definition, error) {
+	def := &sdk.Definition{
+		Ident:   idn,
+		Targets: targets,
+		Output:  output,
+	}
+	return def, def.IsValid()
+}
+
 func MustMakeDef(idn string, output reflect.Type, targets ...sdk.Target) *sdk.Definition {
 	def := &sdk.Definition{
 		Ident:   idn,
@@ -18,29 +47,20 @@ func MustMakeDef(idn string, output reflect.Type, targets ...sdk.Target) *sdk.De
 	return def
 }
 
+func MakeDefWithHelp(name string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) (*sdk.Definition, error) {
+	def, err := MakeDef(name, output, targets...)
+	if err != nil {
+		return nil, err
+	}
+	def.Help = help
+	return def, def.IsValid()
+}
+
 func MustMakeDefWithHelp(name string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) *sdk.Definition {
-	def := MustMakeDef(name, output, targets...)
-	if err := def.IsValid(); err != nil {
+	def, err := MakeDef(name, output, targets...)
+	if err != nil {
 		panic(err)
 	}
 	def.Help = help
 	return def
-}
-
-func MakeDef(idn string, output reflect.Type, targets ...sdk.Target) (*sdk.Definition, error) {
-	def := &sdk.Definition{
-		Ident:   idn,
-		Targets: targets,
-		Output:  output,
-	}
-	return def, def.IsValid()
-}
-
-func MakeDefWithHelp(name string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) (*sdk.Definition, error) {
-	def := MustMakeDef(name, output, targets...)
-	if err := def.IsValid(); err != nil {
-		panic(err)
-	}
-	def.Help = help
-	return def, def.IsValid()
 }

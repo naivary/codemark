@@ -7,6 +7,14 @@ import (
 	"github.com/naivary/codemark/lexer"
 )
 
+type DefinitionMaker interface {
+	MakeDef(ident string, output reflect.Type, targets ...Target) (*Definition, error)
+	MakeDefWithHelp(ident string, output reflect.Type, help *DefinitionHelp, targets ...Target) (*Definition, error)
+
+	MustMakeDef(ident string, output reflect.Type, targets ...Target) *Definition
+	MustMakeDefWithHelp(ident string, output reflect.Type, help *DefinitionHelp, targets ...Target) *Definition
+}
+
 // TODO: Make it possible to store a Definition in a database
 type Definition struct {
 	// Name of the definition in the correct format
