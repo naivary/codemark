@@ -2,11 +2,13 @@ package testing
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"golang.org/x/exp/constraints"
 )
 
 type ConverterTestCase struct {
@@ -42,20 +44,34 @@ func NewConvTestCases(
 	return tests, nil
 }
 
+func IsValidInteger[T constraints.Integer](got, wanted reflect.Value) bool {
+	g := got.Interface().(T)
+	w := wanted.Interface().(int64)
+	return int64(g) == w
+}
 
-func IsValidValuePtrFloat[T ~*float32 | ~*float64](got, wanted reflect.Value) bool {
-	// got is a reflect.Value containing a *float32 or *float64
-	ptr := got.Interface().(T) // T is *float32 or *float64
-	value := reflect.ValueOf(ptr).Elem().Interface()
-	var f64 float64
-	switch v := value.(type) {
-	case float32:
-		f64 = float64(v)
-	case float64:
-		f64 = v
+func IsValidValuePtr[T ~*int | ~*uint](got, wanted reflect.Value) bool {
+	ptr := got.Interface().(T)
+	value := reflect.ValueOf(ptr).Elem()
+	var i64 int64
+	switch value.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		i64 = value.Int()
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		u64 := value.Uint()
+		if u64 > math.MaxInt64 {
+			return false // uint64 value too large for int64
+		}
 	default:
 		return false
 	}
+	w := wanted.Interface().(int64)
+	return i64 == w
+}
+
+func IsValidValuePtrFloat[T ~*float32 | ~*float64](got, wanted reflect.Value) bool {
+	ptr := got.Interface().(T)
+	value := reflect.ValueOf(ptr).Elem().Float()
 	w := wanted.Interface().(float64)
-	return AlmostEqual(f64, w)
+	return AlmostEqual(value, w)
 }
