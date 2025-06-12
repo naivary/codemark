@@ -7,11 +7,7 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-type lengthy interface {
-	~string | []any
-}
-
-func isNotEmpty[T lengthy](v any) bool {
+func isNotEmpty[T ~string | []any](v any) bool {
 	return len(v.(T)) != 0
 }
 
@@ -24,31 +20,26 @@ func TestRandMarker(t *testing.T) {
 	tests := []struct {
 		name    string
 		rtype   reflect.Type
-		ident   string
 		isValid func(got any) bool
 	}{
 		{
 			name:    "string marker",
 			rtype:   reflect.TypeOf(string("")),
-			ident:   "path:to:str",
 			isValid: isNotEmpty[string],
 		},
 		{
 			name:    "int marker",
 			rtype:   reflect.TypeOf(int(0)),
-			ident:   "int",
 			isValid: isValidNumber[int64],
 		},
 		{
 			name:    "float32 marker",
 			rtype:   reflect.TypeOf(float32(0.0)),
-			ident:   "float32",
 			isValid: isValidNumber[float64],
 		},
 		{
 			name:    "float64 marker",
 			rtype:   reflect.TypeOf(float64(0.0)),
-			ident:   "float64",
 			isValid: isValidNumber[float64],
 		},
 
@@ -68,6 +59,17 @@ func TestRandMarker(t *testing.T) {
 			isValid: isNotEmpty[[]any],
 		},
 		{
+			name:    "list float marker",
+			rtype:   reflect.TypeOf([]float64{}),
+			isValid: isNotEmpty[[]any],
+		},
+		{
+			name:    "list ptr float marker",
+			rtype:   reflect.TypeOf(new([]float64)),
+			isValid: isNotEmpty[[]any],
+		},
+
+		{
 			name:    "unknown marker",
 			rtype:   reflect.TypeOf(new([]string)),
 			isValid: isNotEmpty[[]any],
@@ -76,12 +78,9 @@ func TestRandMarker(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			marker := RandomMarker(tc.rtype)
-			ident := marker.Ident()
-			if ident != tc.ident {
-				t.Errorf("identifier dont macht. got: %s; wanted: %s\n", ident, tc.ident)
-			}
+			marker := RandMarker(tc.rtype)
 			val := marker.Value().Interface()
+			t.Log(val)
 			if !tc.isValid(val) {
 				t.Errorf("value is not valid. got: %v\n", val)
 			}

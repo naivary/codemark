@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
@@ -12,247 +11,249 @@ import (
 const _intValue = 99
 
 func TestIntConverter(t *testing.T) {
-	tests := []struct {
-		name         string
-		mrk          parser.Marker
-		t            sdk.Target
-		out          reflect.Type
-		isValid      bool
-		isValidValue func(got reflect.Value) bool
-	}{
+	tests := []sdktesting.ConverterTestCase{
 		// int
 		{
-			name:    "int marker to int type",
-			mrk:     parser.NewMarker("path:to:i", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.Int(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.Int)
-				return i == _intValue
+			Name:        "int marker to int type",
+			Marker:      sdktesting.RandMarker(sdktesting.Int(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.Int(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(got.Interface().(sdktesting.Int))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to int8 type",
-			mrk:     parser.NewMarker("path:to:i8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.I8(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.I8)
-				return i == _intValue
+			Name:        "int marker to int8 type",
+			Marker:      sdktesting.RandMarker(sdktesting.I8(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.I8(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(got.Interface().(sdktesting.I8))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to int16 type",
-			mrk:     parser.NewMarker("path:to:i16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.I16(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.I16)
-				return i == _intValue
+			Name:        "int marker to int16 type",
+			Marker:      sdktesting.RandMarker(sdktesting.I16(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.I16(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(got.Interface().(sdktesting.I16))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to int32 type",
-			mrk:     parser.NewMarker("path:to:i32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.I32(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.I32)
-				return i == _intValue
+			Name:        "int marker to int32 type",
+			Marker:      sdktesting.RandMarker(sdktesting.I32(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.I32(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(got.Interface().(sdktesting.I32))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to int64 type",
-			mrk:     parser.NewMarker("path:to:i64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.I64(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.I64)
-				return i == _intValue
+			Name:        "int marker to int64 type",
+			Marker:      sdktesting.RandMarker(sdktesting.I64(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.I64(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(got.Interface().(sdktesting.I64))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		// uint
 		{
-			name:    "int marker to uint type",
-			mrk:     parser.NewMarker("path:to:ui", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.Uint(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.Uint)
-				return i == _intValue
+			Name:        "int marker to uint type",
+			Marker:      sdktesting.RandMarker(sdktesting.Uint(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.Uint(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(got.Interface().(sdktesting.Uint))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to uint8 type",
-			mrk:     parser.NewMarker("path:to:ui8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.U8(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.U8)
-				return i == _intValue
+			Name:        "int marker to uint8 type",
+			Marker:      sdktesting.RandMarker(sdktesting.U8(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.U8(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(got.Interface().(sdktesting.U8))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to uint16 type",
-			mrk:     parser.NewMarker("path:to:ui16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.U16(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.U16)
-				return i == _intValue
+			Name:        "int marker to uint16 type",
+			Marker:      sdktesting.RandMarker(sdktesting.U16(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.U16(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(got.Interface().(sdktesting.U16))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to uint32 type",
-			mrk:     parser.NewMarker("path:to:ui32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.U32(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.U32)
-				return i == _intValue
+			Name:        "int marker to uint32 type",
+			Marker:      sdktesting.RandMarker(sdktesting.U32(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.U32(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(got.Interface().(sdktesting.U32))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to uint64 type",
-			mrk:     parser.NewMarker("path:to:ui64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.U64(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.U64)
-				return i == _intValue
+			Name:        "int marker to uint64 type",
+			Marker:      sdktesting.RandMarker(sdktesting.U64(0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.U64(0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(got.Interface().(sdktesting.U64))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		// ptr int
 		{
-			name:    "int marker to ptr int type",
-			mrk:     parser.NewMarker("path:to:ptri", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrInt(new(int))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrInt)
-				return *i == _intValue
+			Name:        "int marker to ptr int type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrInt(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrInt(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(*got.Interface().(sdktesting.PtrInt))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to ptr int8 type",
-			mrk:     parser.NewMarker("path:to:ptri8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrI8(new(int8))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrI8)
-				return *i == _intValue
+			Name:        "int marker to ptr int8 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrI8(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrI8(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(*got.Interface().(sdktesting.PtrI8))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to ptr int16 type",
-			mrk:     parser.NewMarker("path:to:ptri16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrI16(new(int16))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrI16)
-				return *i == _intValue
+			Name:        "int marker to ptr int16 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrI16(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrI16(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(*got.Interface().(sdktesting.PtrI16))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to ptr int32 type",
-			mrk:     parser.NewMarker("path:to:ptri32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrI32(new(int32))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrI32)
-				return *i == _intValue
+			Name:        "int marker to ptr int32 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrI32(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrI32(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(*got.Interface().(sdktesting.PtrI32))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		{
-			name:    "int marker to ptr int64 type",
-			mrk:     parser.NewMarker("path:to:ptri64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrI64(new(int64))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrI64)
-				return *i == _intValue
+			Name:        "int marker to ptr int64 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrI64(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrI64(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := int64(*got.Interface().(sdktesting.PtrI64))
+				w := wanted.Interface().(int64)
+				return g == w
 			},
 		},
 		// ptr uint
 		{
-			name:    "int marker to ptr uint type",
-			mrk:     parser.NewMarker("path:to:ptrui", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrUint(new(uint))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrUint)
-				return *i == _intValue
+			Name:        "int marker to ptr uint type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrUint(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrUint(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(*got.Interface().(sdktesting.PtrUint))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to ptr uint8 type",
-			mrk:     parser.NewMarker("path:to:ptrui8", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrU8(new(uint8))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrU8)
-				return *i == _intValue
+			Name:        "int marker to ptr uint8 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrU8(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrU8(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(*got.Interface().(sdktesting.PtrU8))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to ptr uint16 type",
-			mrk:     parser.NewMarker("path:to:ptrui16", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrU16(new(uint16))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrU16)
-				return *i == _intValue
+			Name:        "int marker to ptr uint16 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrU16(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrU16(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(*got.Interface().(sdktesting.PtrU16))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to ptr uint32 type",
-			mrk:     parser.NewMarker("path:to:ptrui32", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrU32(new(uint32))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrU32)
-				return *i == _intValue
+			Name:        "int marker to ptr uint32 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrU32(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrU32(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(*got.Interface().(sdktesting.PtrU32))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 		{
-			name:    "int marker to ptr uint64 type",
-			mrk:     parser.NewMarker("path:to:ptrui64", parser.MarkerKindInt, reflect.ValueOf(_intValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrU64(new(uint64))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				i := got.Interface().(sdktesting.PtrU64)
-				return *i == _intValue
-			},
-		},
-		{
-			name:    "string marker to byte type",
-			mrk:     parser.NewMarker("path:to:byte", parser.MarkerKindString, reflect.ValueOf("c")),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.Byte(0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				b := got.Interface().(sdktesting.Byte)
-				return b == 'c'
+			Name:        "int marker to ptr uint64 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrU64(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrU64(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := uint64(*got.Interface().(sdktesting.PtrU64))
+				w := wanted.Interface().(int64)
+				return g == uint64(w)
 			},
 		},
 	}
@@ -265,20 +266,20 @@ func TestIntConverter(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			v, err := mngr.Convert(tc.mrk, tc.t)
+		t.Run(tc.Name, func(t *testing.T) {
+			v, err := mngr.Convert(tc.Marker, tc.Target)
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			rtype := reflect.TypeOf(v)
-			if rtype != tc.out {
-				t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", rtype, tc.out)
+			gotType := reflect.TypeOf(v)
+			if gotType != tc.ToType {
+				t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.ToType)
 			}
-			rvalue := reflect.ValueOf(v)
-			if !tc.isValidValue(rvalue) {
-				t.Fatalf("value is not correct. got: %v", rvalue)
+			gotValue := reflect.ValueOf(v)
+			if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
+				t.Fatalf("value is not correct. got: %v; expected: %v\n", gotValue, tc.Marker.Value())
 			}
-			t.Logf("succesfully converted. got: %v; expected: %v\n", rtype, tc.out)
+			t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.ToType)
 		})
 	}
 }

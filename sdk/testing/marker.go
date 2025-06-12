@@ -2,6 +2,7 @@ package testing
 
 import (
 	"fmt"
+	"math"
 	"math/rand/v2"
 	"reflect"
 	"strconv"
@@ -12,23 +13,41 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-func RandomMarker(rtype reflect.Type) parser.Marker {
-	n := rand.IntN(12) + 1
+// AlmostEqual checks if the two float values a and b are equal with respect to
+// some threshold.
+func AlmostEqual(a, b float64) bool {
+	const float64EqualityThreshold = 1e-5
+	return math.Abs(a-b) <= float64EqualityThreshold
+}
+
+// NewIdent returns a identifier which can be used for both marker and
+// definition. This function should only be used for test purposes and if the
+// marker should be included in the codemark:testing:* namespace. For custom
+// identifier naming it's recommneded to create your own function.
+func NewIdent(typeID string) string {
+	return fmt.Sprintf("codemark:testing:%s", typeID)
+}
+
+func RandMarkerWithIdent(ident string, rtype reflect.Type) parser.Marker {
 	typeID := sdkutil.TypeID(rtype)
-	ident, found := typeIDToMarkerName[typeID]
-	if !found {
-		ident = fmt.Sprintf("path:to:%s", typeID)
-	}
-	v := typeIDToRandValue(typeID, n)
+	v := randValueFromTypeID(typeID)
 	value := reflect.ValueOf(v)
 	return parser.NewMarker(ident, parser.MarkerKindOf(rtype), value)
 }
 
-func typeIDToRandValue(typeID string, listLen int) any {
+func RandMarker(typ any) parser.Marker {
+	rtype := reflect.TypeOf(typ)
+	typeID := sdkutil.TypeID(rtype)
+	v := randValueFromTypeID(typeID)
+	value := reflect.ValueOf(v)
+	return parser.NewMarker(NewIdent(typeID), parser.MarkerKindOf(rtype), value)
+}
+
+func randValueFromTypeID(typeID string) any {
 	typeID, _ = strings.CutPrefix(typeID, "ptr.")
 	if strings.HasPrefix(typeID, "slice") {
 		typeID, _ = strings.CutPrefix(typeID, "slice.")
-		return randList(typeID, listLen)
+		return randList(typeID)
 	}
 	if strings.HasPrefix(typeID, "string") {
 		return randString()
@@ -48,7 +67,8 @@ func typeIDToRandValue(typeID string, listLen int) any {
 	return nil
 }
 
-func randList(typeID string, listLen int) []any {
+func randList(typeID string) []any {
+	listLen := rand.IntN(8) + 1
 	if sdkutil.MatchTypeID(typeID, `(ptr\.)?int\d{0,2}`) {
 		return randListT(listLen, randInt64)
 	}
@@ -74,7 +94,8 @@ func randInt64() int64 {
 func randFloat64() float64 {
 	const minN = 1
 	const maxN = 100
-	return minN + rand.Float64()*(maxN-minN)
+	f := minN + rand.Float64()*(maxN-minN)
+	return f
 }
 
 func randBool() bool {

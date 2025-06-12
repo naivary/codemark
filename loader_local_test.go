@@ -1,7 +1,6 @@
 package codemark
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -48,13 +47,7 @@ func TestLocalLoader(t *testing.T) {
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			for _, proj := range projs {
-				for _, stru := range proj.Structs {
-					for _, def := range stru.Defs {
-						fmt.Println(def[0].(description))
-					}
-				}
-			}
+			_ = projs
 		})
 	}
 }

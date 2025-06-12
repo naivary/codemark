@@ -4,43 +4,34 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 func TestStringConverter(t *testing.T) {
-	tests := []struct {
-		name          string
-		mrk           parser.Marker
-		t             sdk.Target
-		out           reflect.Type
-		expectedValue any
-		isValid       bool
-		isValidValue  func(got reflect.Value) bool
-	}{
+	tests := []sdktesting.ConverterTestCase{
 		{
-			name:          "string marker to string type",
-			mrk:           parser.NewMarker("path:to:str", parser.MarkerKindString, reflect.ValueOf(string("codemark"))),
-			t:             sdk.TargetField,
-			out:           reflect.TypeOf(sdktesting.String("")),
-			isValid:       true,
-			expectedValue: "codemark",
-			isValidValue: func(got reflect.Value) bool {
-				str := got.Interface().(sdktesting.String)
-				return str == "codemark"
+			Name:        "string marker to string type",
+			Marker:      sdktesting.RandMarker(sdktesting.String("")),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.String("")),
+			IsValidCase: true,
+			IsValidValue: func(got, want reflect.Value) bool {
+				g := string(got.Interface().(sdktesting.String))
+				w := want.Interface().(string)
+				return g == w
 			},
 		},
 		{
-			name:          "string marker to ptr string type",
-			mrk:           parser.NewMarker("path:to:ptrstr", parser.MarkerKindString, reflect.ValueOf(string("codemark"))),
-			t:             sdk.TargetField,
-			out:           reflect.TypeOf(sdktesting.PtrString(new(string))),
-			expectedValue: "codemark",
-			isValid:       true,
-			isValidValue: func(got reflect.Value) bool {
-				str := got.Interface().(sdktesting.PtrString)
-				return *str == "codemark"
+			Name:        "string marker to ptr string type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrString(nil)),
+			Target:      sdk.TargetField,
+			ToType:      reflect.TypeOf(sdktesting.PtrString(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, want reflect.Value) bool {
+				g := string(*got.Interface().(sdktesting.PtrString))
+				w := want.Interface().(string)
+				return g == w
 			},
 		},
 	}
@@ -53,20 +44,20 @@ func TestStringConverter(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			v, err := mngr.Convert(tc.mrk, tc.t)
+		t.Run(tc.Name, func(t *testing.T) {
+			v, err := mngr.Convert(tc.Marker, tc.Target)
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			rtype := reflect.TypeOf(v)
-			if rtype != tc.out {
-				t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", rtype, tc.out)
+			gotType := reflect.TypeOf(v)
+			if gotType != tc.ToType {
+				t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.ToType)
 			}
-			rvalue := reflect.ValueOf(v)
-			if !tc.isValidValue(rvalue) {
-				t.Fatalf("value is not correct. got: %v", rvalue)
+			gotValue := reflect.ValueOf(v)
+			if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
+				t.Fatalf("value is not correct. got: %v; wanted: %v\n", gotValue, tc.Marker.Value())
 			}
-			t.Logf("succesfully converted. got: %v; expected: %v\n", rtype, tc.out)
+			t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.ToType)
 		})
 	}
 }

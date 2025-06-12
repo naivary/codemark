@@ -4,67 +4,62 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
-const _floatValue = 99.99
-
 func TestFloatConverter(t *testing.T) {
-	tests := []struct {
-		name         string
-		mrk          parser.Marker
-		t            sdk.Target
-		out          reflect.Type
-		isValid      bool
-		isValidValue func(got reflect.Value) bool
-	}{
+	tests := []sdktesting.ConverterTestCase{
 		{
-			name:    "float marker to f32 type",
-			mrk:     parser.NewMarker("path:to:f32", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.F32(0.0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				f := got.Interface().(sdktesting.F32)
-				return f == _floatValue
+			Name:        "float marker to f32 type",
+			Marker:      sdktesting.RandMarker(sdktesting.F32(0.0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.F32(0.0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := float64(got.Interface().(sdktesting.F32))
+				w := wanted.Interface().(float64)
+				return sdktesting.AlmostEqual(g, w)
 			},
 		},
 		{
-			name:    "float marker to f64 type",
-			mrk:     parser.NewMarker("path:to:f64", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.F64(0.0)),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				f := got.Interface().(sdktesting.F64)
-				return f == _floatValue
+			Name:        "float marker to f64 type",
+			Marker:      sdktesting.RandMarker(sdktesting.F64(0.0)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.F64(0.0)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := got.Interface().(sdktesting.F64)
+				w := wanted.Interface().(float64)
+				return sdktesting.AlmostEqual(float64(g), w)
 			},
 		},
 		{
-			name:    "float marker to ptr f32 type",
-			mrk:     parser.NewMarker("path:to:ptrf32", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrF32(new(float32))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				f := got.Interface().(sdktesting.PtrF32)
-				return *f == _floatValue
+			Name:        "float marker to ptr f32 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrF32(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrF32(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := float64(*got.Interface().(sdktesting.PtrF32))
+				w := wanted.Interface().(float64)
+				return sdktesting.AlmostEqual(g, w)
 			},
 		},
 		{
-			name:    "float marker to ptr f64 type",
-			mrk:     parser.NewMarker("path:to:ptrf64", parser.MarkerKindFloat, reflect.ValueOf(_floatValue)),
-			t:       sdk.TargetField,
-			out:     reflect.TypeOf(sdktesting.PtrF64(new(float64))),
-			isValid: true,
-			isValidValue: func(got reflect.Value) bool {
-				f := got.Interface().(sdktesting.PtrF64)
-				return *f == _floatValue
+			Name:        "float marker to ptr f64 type",
+			Marker:      sdktesting.RandMarker(sdktesting.PtrF64(nil)),
+			Target:      sdk.TargetAny,
+			ToType:      reflect.TypeOf(sdktesting.PtrF64(nil)),
+			IsValidCase: true,
+			IsValidValue: func(got, wanted reflect.Value) bool {
+				g := float64(*got.Interface().(sdktesting.PtrF64))
+				w := wanted.Interface().(float64)
+				return sdktesting.AlmostEqual(g, w)
 			},
 		},
 	}
+
 	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -74,20 +69,23 @@ func TestFloatConverter(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			v, err := mngr.Convert(tc.mrk, tc.t)
-			if err != nil {
+		t.Run(tc.Name, func(t *testing.T) {
+			v, err := mngr.Convert(tc.Marker, tc.Target)
+			if err != nil && tc.IsValidCase {
 				t.Errorf("err occured: %s\n", err)
 			}
-			rtype := reflect.TypeOf(v)
-			if rtype != tc.out {
-				t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", rtype, tc.out)
+			if err != nil && !tc.IsValidCase {
+				t.Skipf("skipping invalid case after successful assertion")
 			}
-			rvalue := reflect.ValueOf(v)
-			if !tc.isValidValue(rvalue) {
-				t.Fatalf("value is not correct. got: %v", rvalue)
+			gotType := reflect.TypeOf(v)
+			if gotType != tc.ToType {
+				t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.ToType)
 			}
-			t.Logf("succesfully converted. got: %v; expected: %v\n", rtype, tc.out)
+			gotValue := reflect.ValueOf(v)
+			if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
+				t.Fatalf("value is not correct. got: %v; wanted: %v\n", gotValue, tc.Marker.Value())
+			}
+			t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.ToType)
 		})
 	}
 }
