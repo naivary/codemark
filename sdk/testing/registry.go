@@ -2,9 +2,82 @@ package testing
 
 import (
 	"reflect"
+	"slices"
 
 	"github.com/naivary/codemark/sdk"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
+
+var typeIDToMarkerName = map[string]string{
+	sdkutil.TypeID(reflect.TypeOf(String(""))):         "path:to:str",
+	sdkutil.TypeID(reflect.TypeOf(PtrString(nil))):     "path:to:ptrstr",
+	sdkutil.TypeID(reflect.TypeOf(Bool(false))):        "path:to:bool",
+	sdkutil.TypeID(reflect.TypeOf(PtrBool(nil))):       "path:to:ptrbool",
+	sdkutil.TypeID(reflect.TypeOf(C64(0 + 0i))):        "path:to:c64",
+	sdkutil.TypeID(reflect.TypeOf(C128(0 + 0i))):       "path:to:c128",
+	sdkutil.TypeID(reflect.TypeOf(PtrC64(nil))):        "path:to:ptrc64",
+	sdkutil.TypeID(reflect.TypeOf(PtrC128(nil))):       "path:to:ptrc128",
+	sdkutil.TypeID(reflect.TypeOf(Int(0))):             "path:to:i",
+	sdkutil.TypeID(reflect.TypeOf(I8(0))):              "path:to:i8",
+	sdkutil.TypeID(reflect.TypeOf(I16(0))):             "path:to:i16",
+	sdkutil.TypeID(reflect.TypeOf(I32(0))):             "path:to:i32",
+	sdkutil.TypeID(reflect.TypeOf(I64(0))):             "path:to:i64",
+	sdkutil.TypeID(reflect.TypeOf(PtrInt(nil))):        "path:to:ptri",
+	sdkutil.TypeID(reflect.TypeOf(PtrI8(nil))):         "path:to:ptri8",
+	sdkutil.TypeID(reflect.TypeOf(PtrI16(nil))):        "path:to:ptri16",
+	sdkutil.TypeID(reflect.TypeOf(PtrI32(nil))):        "path:to:ptri32",
+	sdkutil.TypeID(reflect.TypeOf(PtrI64(nil))):        "path:to:ptri64",
+	sdkutil.TypeID(reflect.TypeOf(Uint(0))):            "path:to:ui",
+	sdkutil.TypeID(reflect.TypeOf(U8(0))):              "path:to:ui8",
+	sdkutil.TypeID(reflect.TypeOf(U16(0))):             "path:to:ui16",
+	sdkutil.TypeID(reflect.TypeOf(U32(0))):             "path:to:ui32",
+	sdkutil.TypeID(reflect.TypeOf(U64(0))):             "path:to:ui64",
+	sdkutil.TypeID(reflect.TypeOf(PtrUint(nil))):       "path:to:ptrui",
+	sdkutil.TypeID(reflect.TypeOf(PtrU8(nil))):         "path:to:ptrui8",
+	sdkutil.TypeID(reflect.TypeOf(PtrU16(nil))):        "path:to:ptrui16",
+	sdkutil.TypeID(reflect.TypeOf(PtrU32(nil))):        "path:to:ptrui32",
+	sdkutil.TypeID(reflect.TypeOf(PtrU64(nil))):        "path:to:ptrui64",
+	sdkutil.TypeID(reflect.TypeOf(Byte(0))):            "path:to:byte",
+	sdkutil.TypeID(reflect.TypeOf(Rune(0))):            "path:to:rune",
+	sdkutil.TypeID(reflect.TypeOf(PtrByte(nil))):       "path:to:ptrbyte",
+	sdkutil.TypeID(reflect.TypeOf(PtrRune(nil))):       "path:to:ptrrune",
+	sdkutil.TypeID(reflect.TypeOf(F32(0.0))):           "path:to:f32",
+	sdkutil.TypeID(reflect.TypeOf(F64(0.0))):           "path:to:f64",
+	sdkutil.TypeID(reflect.TypeOf(PtrF32(nil))):        "path:to:ptrf32",
+	sdkutil.TypeID(reflect.TypeOf(PtrF64(nil))):        "path:to:ptrf64",
+	sdkutil.TypeID(reflect.TypeOf(StringList(nil))):    "path:to:stringlist",
+	sdkutil.TypeID(reflect.TypeOf(IntList(nil))):       "path:to:intlist",
+	sdkutil.TypeID(reflect.TypeOf(I8List(nil))):        "path:to:i8list",
+	sdkutil.TypeID(reflect.TypeOf(I16List(nil))):       "path:to:i16list",
+	sdkutil.TypeID(reflect.TypeOf(ByteList(nil))):      "path:to:bytelist",
+	sdkutil.TypeID(reflect.TypeOf(I64List(nil))):       "path:to:i64list",
+	sdkutil.TypeID(reflect.TypeOf(UintList(nil))):      "path:to:uintlist",
+	sdkutil.TypeID(reflect.TypeOf(RuneList(nil))):      "path:to:runelist",
+	sdkutil.TypeID(reflect.TypeOf(U16List(nil))):       "path:to:ui16list",
+	sdkutil.TypeID(reflect.TypeOf(U32List(nil))):       "path:to:ui32list",
+	sdkutil.TypeID(reflect.TypeOf(U64List(nil))):       "path:to:ui64list",
+	sdkutil.TypeID(reflect.TypeOf(F32List(nil))):       "path:to:f32list",
+	sdkutil.TypeID(reflect.TypeOf(F64List(nil))):       "path:to:f64list",
+	sdkutil.TypeID(reflect.TypeOf(C64List(nil))):       "path:to:c64list",
+	sdkutil.TypeID(reflect.TypeOf(C128List(nil))):      "path:to:c128list",
+	sdkutil.TypeID(reflect.TypeOf(BoolList(nil))):      "path:to:boollist",
+	sdkutil.TypeID(reflect.TypeOf(PtrStringList(nil))): "path:to:ptrstringlist",
+	sdkutil.TypeID(reflect.TypeOf(PtrIntList(nil))):    "path:to:ptrintlist",
+	sdkutil.TypeID(reflect.TypeOf(PtrI8List(nil))):     "path:to:ptri8list",
+	sdkutil.TypeID(reflect.TypeOf(PtrI16List(nil))):    "path:to:ptri16list",
+	sdkutil.TypeID(reflect.TypeOf(PtrByteList(nil))):   "path:to:ptrbytelist",
+	sdkutil.TypeID(reflect.TypeOf(PtrI64List(nil))):    "path:to:ptri64list",
+	sdkutil.TypeID(reflect.TypeOf(PtrUintList(nil))):   "path:to:ptruintlist",
+	sdkutil.TypeID(reflect.TypeOf(PtrRuneList(nil))):   "path:to:ptrrunelist",
+	sdkutil.TypeID(reflect.TypeOf(PtrU16List(nil))):    "path:to:ptrui16list",
+	sdkutil.TypeID(reflect.TypeOf(PtrU32List(nil))):    "path:to:ptrui32list",
+	sdkutil.TypeID(reflect.TypeOf(PtrU64List(nil))):    "path:to:ptrui64list",
+	sdkutil.TypeID(reflect.TypeOf(PtrF32List(nil))):    "path:to:ptrf32list",
+	sdkutil.TypeID(reflect.TypeOf(PtrF64List(nil))):    "path:to:ptrf64list",
+	sdkutil.TypeID(reflect.TypeOf(PtrC64List(nil))):    "path:to:ptrc64list",
+	sdkutil.TypeID(reflect.TypeOf(PtrC128List(nil))):   "path:to:ptrc128list",
+	sdkutil.TypeID(reflect.TypeOf(PtrBoolList(nil))):   "path:to:ptrboollist",
+}
 
 type F32 float32
 type F64 float64
@@ -116,7 +189,7 @@ type PtrF64List []*float64
 type PtrC64List []*complex64
 type PtrC128List []*complex128
 
-func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker) (sdk.Registry, error) {
+func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
 	defs := []*sdk.Definition{
 		// string
 		b.MustMakeDef("path:to:str", reflect.TypeOf(String("")), sdk.TargetAny),
@@ -213,7 +286,7 @@ func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker) (sdk.Registry, error) {
 		// ptr bool list
 		b.MustMakeDef("path:to:ptrboollist", reflect.TypeOf(PtrBoolList([]*bool{})), sdk.TargetAny),
 	}
-	for _, def := range defs {
+	for _, def := range slices.Concat(defs, customDefs) {
 		if err := reg.Define(def); err != nil {
 			return nil, err
 		}
