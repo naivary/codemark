@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"reflect"
 	"testing"
 
 	"golang.org/x/exp/constraints"
@@ -19,68 +18,74 @@ func isValidNumber[T constraints.Integer | constraints.Float](got any) bool {
 func TestRandMarker(t *testing.T) {
 	tests := []struct {
 		name    string
-		rtype   reflect.Type
+		typ     any
 		isValid func(got any) bool
 	}{
 		{
 			name:    "string marker",
-			rtype:   reflect.TypeOf(string("")),
+			typ:     string(""),
 			isValid: isNotEmpty[string],
 		},
 		{
 			name:    "int marker",
-			rtype:   reflect.TypeOf(int(0)),
+			typ:     int(0),
+			isValid: isValidNumber[int64],
+		},
+		{
+			name:    "int16 marker",
+			typ:     int16(0),
 			isValid: isValidNumber[int64],
 		},
 		{
 			name:    "float32 marker",
-			rtype:   reflect.TypeOf(float32(0.0)),
+			typ:     float32(0.0),
 			isValid: isValidNumber[float64],
 		},
 		{
 			name:    "float64 marker",
-			rtype:   reflect.TypeOf(float64(0.0)),
+			typ:     float64(0.0),
 			isValid: isValidNumber[float64],
 		},
 
 		{
 			name:    "ptr string marker",
-			rtype:   reflect.TypeOf(new(string)),
+			typ:     new(string),
 			isValid: isNotEmpty[string],
 		},
 		{
 			name:    "list string marker",
-			rtype:   reflect.TypeOf([]string{}),
+			typ:     []string{},
 			isValid: isNotEmpty[[]any],
 		},
 		{
 			name:    "list int marker",
-			rtype:   reflect.TypeOf([]int{}),
+			typ:     []int{},
 			isValid: isNotEmpty[[]any],
 		},
 		{
 			name:    "list float marker",
-			rtype:   reflect.TypeOf([]float64{}),
+			typ:     []float64{},
 			isValid: isNotEmpty[[]any],
 		},
 		{
 			name:    "list ptr float marker",
-			rtype:   reflect.TypeOf(new([]float64)),
+			typ:     new([]float64),
 			isValid: isNotEmpty[[]any],
 		},
 
 		{
 			name:    "unknown marker",
-			rtype:   reflect.TypeOf(new([]string)),
+			typ:     new([]string),
 			isValid: isNotEmpty[[]any],
 		},
 	}
-
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			marker := RandMarker(tc.rtype)
+			marker := RandMarker(tc.typ)
+			if marker == nil {
+				t.Errorf("err: no marker produced")
+			}
 			val := marker.Value().Interface()
-			t.Log(val)
 			if !tc.isValid(val) {
 				t.Errorf("value is not valid. got: %v\n", val)
 			}

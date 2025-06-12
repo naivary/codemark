@@ -56,7 +56,7 @@ func randValueFromTypeID(typeID string) any {
 		return randBool()
 	}
 	if sdkutil.MatchTypeID(typeID, `int[1-6]{0,2}`) {
-		return rand.Int64()
+		return randInt(typeID)()
 	}
 	if sdkutil.MatchTypeID(typeID, `float\d{2}`) {
 		return randFloat64()
@@ -70,7 +70,7 @@ func randValueFromTypeID(typeID string) any {
 func randList(typeID string) []any {
 	listLen := rand.IntN(8) + 1
 	if sdkutil.MatchTypeID(typeID, `(ptr\.)?int\d{0,2}`) {
-		return randListT(listLen, randInt64)
+		return randListT(listLen, randInt(typeID))
 	}
 	if sdkutil.MatchTypeID(typeID, `(ptr\.)?float\d{2}`) {
 		return randListT(listLen, randFloat64)
@@ -87,8 +87,23 @@ func randList(typeID string) []any {
 	return nil
 }
 
-func randInt64() int64 {
-	return rand.Int64()
+func randInt(typeID string) func() int64 {
+	typeID, _ = strings.CutPrefix(typeID, "ptr.")
+	maxs := map[string]int64{
+		"int":    math.MaxInt,
+		"int8":   math.MaxInt8,
+		"int16":  math.MaxInt16,
+		"int32":  math.MaxInt32,
+		"int64":  math.MaxInt64,
+		"uint":   math.MaxInt,
+		"uint8":  math.MaxInt8,
+		"uint16": math.MaxInt16,
+		"uint32": math.MaxInt32,
+		"uint64": math.MaxInt64,
+	}
+	return func() int64 {
+		return rand.Int64N(maxs[typeID])
+	}
 }
 
 func randFloat64() float64 {
