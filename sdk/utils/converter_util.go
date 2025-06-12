@@ -2,6 +2,7 @@ package utils
 
 import (
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -36,6 +37,11 @@ func ToType(v reflect.Value, typ reflect.Type) (reflect.Value, error) {
 		return out.Convert(typ), nil
 	}
 	return out.Elem(), nil
+}
+
+func MatchTypeID(typeID, pattern string) bool {
+	exp := regexp.MustCompile(pattern)
+	return exp.MatchString(typeID)
 }
 
 func TypeID(typ reflect.Type) string {
