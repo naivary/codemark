@@ -7,6 +7,7 @@ import (
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/sdk/utils"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 	"golang.org/x/exp/constraints"
 )
@@ -44,34 +45,22 @@ func NewConvTestCases(
 	return tests, nil
 }
 
-func IsValidInteger[T constraints.Integer](got, wanted reflect.Value) bool {
-	g := got.Interface().(T)
-	w := wanted.Interface().(int64)
-	return int64(g) == w
-}
-
-func IsValidValuePtr[T ~*int | ~*uint](got, wanted reflect.Value) bool {
-	ptr := got.Interface().(T)
-	value := reflect.ValueOf(ptr).Elem()
+func IsValidInteger[T constraints.Integer | ~*int | ~*int8 | ~*int16 | ~*int32 | ~*int64 | ~*uint | ~*uint8 | ~*uint16 | ~*uint32 | ~*uint64](got, want reflect.Value) bool {
+	if utils.IsPointer(got.Type()) {
+		got = got.Elem()
+	}
 	var i64 int64
-	switch value.Kind() {
+	switch got.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		i64 = value.Int()
+		i64 = got.Int()
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		u64 := value.Uint()
+		u64 := got.Uint()
 		if u64 > math.MaxInt64 {
 			return false // uint64 value too large for int64
 		}
 	default:
 		return false
 	}
-	w := wanted.Interface().(int64)
+	w := want.Interface().(int64)
 	return i64 == w
-}
-
-func IsValidValuePtrFloat[T ~*float32 | ~*float64](got, wanted reflect.Value) bool {
-	ptr := got.Interface().(T)
-	value := reflect.ValueOf(ptr).Elem().Float()
-	w := wanted.Interface().(float64)
-	return AlmostEqual(value, w)
 }
