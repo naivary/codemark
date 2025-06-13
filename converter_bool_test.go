@@ -19,7 +19,7 @@ func TestBoolConverter(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := tester.Tests()
+	tests, err := tester.ValidTestCases()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
