@@ -12,6 +12,14 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
+type ValidValueFunc func(got, want reflect.Type) bool
+
+type ConverterTester interface {
+	GetValidValueFunc(typeID string) ValidValueFunc
+}
+
+var validValueFuncs = map[string]func(got, want reflect.Value) bool{}
+
 type ConverterTestCase struct {
 	Name         string
 	Marker       parser.Marker
@@ -21,10 +29,7 @@ type ConverterTestCase struct {
 	IsValidValue func(got reflect.Value, wanted reflect.Value) bool
 }
 
-func NewConvTestCases(
-	conv sdk.Converter,
-	validValueFuncs map[string]func(got reflect.Value, wanted reflect.Value) bool,
-) ([]ConverterTestCase, error) {
+func NewConvTestCases(conv sdk.Converter) ([]ConverterTestCase, error) {
 	tests := make([]ConverterTestCase, 0, len(conv.SupportedTypes()))
 	for _, rtype := range conv.SupportedTypes() {
 		typeID := sdkutil.TypeID(rtype)
@@ -45,7 +50,11 @@ func NewConvTestCases(
 	return tests, nil
 }
 
-func IsValidInteger[T constraints.Integer | ~*int | ~*int8 | ~*int16 | ~*int32 | ~*int64 | ~*uint | ~*uint8 | ~*uint16 | ~*uint32 | ~*uint64](got, want reflect.Value) bool {
+func getValidValueFunc(typeID string) func(got, want reflect.Value) bool {
+	return nil
+}
+
+func isValidInteger[T constraints.Integer | ~*int | ~*int8 | ~*int16 | ~*int32 | ~*int64 | ~*uint | ~*uint8 | ~*uint16 | ~*uint32 | ~*uint64](got, want reflect.Value) bool {
 	if utils.IsPointer(got.Type()) {
 		got = got.Elem()
 	}

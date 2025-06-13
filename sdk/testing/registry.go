@@ -82,8 +82,8 @@ type (
 	PtrC128List   []*complex128
 )
 
-func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
-	types := []any{
+func DefaultTypes() []any {
+	return []any{
 		F32(0), F64(0),
 		PtrF32(nil), PtrF64(nil),
 		Bool(false), PtrBool(nil),
@@ -104,7 +104,11 @@ func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Defi
 		PtrF32List(nil), PtrF64List(nil),
 		PtrC64List(nil), PtrC128List(nil),
 	}
-	for _, typ := range types {
+
+}
+
+func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
+	for _, typ := range DefaultTypes() {
 		rtype := reflect.TypeOf(typ)
 		typeID := sdkutil.TypeID(rtype)
 		ident := NewIdent(typeID)
