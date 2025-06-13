@@ -4,36 +4,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 func TestBoolConverter(t *testing.T) {
-	tests := []sdktesting.ConverterTestCase{
-		{
-			Name:        "bool marker to bool type",
-			Marker:      sdktesting.RandMarker(sdktesting.Bool(false)),
-			Target:      sdk.TargetAny,
-			ToType:      reflect.TypeOf(sdktesting.Bool(false)),
-			IsValidCase: true,
-			IsValidValue: func(got, want reflect.Value) bool {
-				g := bool(got.Interface().(sdktesting.Bool))
-				w := want.Interface().(bool)
-				return w == g
-			},
-		},
-		{
-			Name:        "bool marker to ptr bool type",
-			Marker:      sdktesting.RandMarker(sdktesting.PtrBool(nil)),
-			Target:      sdk.TargetAny,
-			ToType:      reflect.TypeOf(sdktesting.PtrBool(nil)),
-			IsValidCase: true,
-			IsValidValue: func(got, want reflect.Value) bool {
-				g := bool(*got.Interface().(sdktesting.PtrBool))
-				w := want.Interface().(bool)
-				return g == w
-			},
-		},
+	convTester, err := sdktesting.NewConverterTester(nil, nil)
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
+	tests, err := convTester.NewTest(&boolConverter{})
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
 	}
 	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
 	if err != nil {

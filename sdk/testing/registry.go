@@ -52,10 +52,12 @@ type (
 	IntList       []int
 	I8List        []int8
 	I16List       []int16
+	I32List       []int32
 	ByteList      []byte
 	I64List       []int64
 	UintList      []uint
 	RuneList      []rune
+	U8List        []uint8
 	U16List       []uint16
 	U32List       []uint32
 	U64List       []uint64
@@ -69,10 +71,12 @@ type (
 	PtrIntList    []*int
 	PtrI8List     []*int8
 	PtrI16List    []*int16
+	PtrI32List    []*int32
 	PtrByteList   []*byte
 	PtrI64List    []*int64
 	PtrUintList   []*uint
 	PtrRuneList   []*rune
+	PtrU8List     []*uint8
 	PtrU16List    []*uint16
 	PtrU32List    []*uint32
 	PtrU64List    []*uint64
@@ -94,13 +98,13 @@ func DefaultTypes() []any {
 		PtrInt(nil), PtrI8(nil), PtrI16(nil), PtrI32(nil), PtrI64(nil),
 		Uint(0), U8(0), U16(0), U32(0), U64(0),
 		PtrUint(nil), PtrU8(nil), PtrU16(nil), PtrU32(nil), PtrU64(nil),
-		StringList(nil), IntList(nil), I8List(nil), I16List(nil), I64List(nil),
-		UintList(nil), U16List(nil), U32List(nil), U64List(nil),
+		StringList(nil), IntList(nil), I8List(nil), I16List(nil), I32List(nil), I64List(nil),
+		UintList(nil), U8List(nil), U16List(nil), U32List(nil), U64List(nil),
 		F32List(nil), F64List(nil),
 		C64List(nil), C128List(nil),
 		BoolList(nil), PtrStringList(nil), PtrBoolList(nil),
-		PtrIntList(nil), PtrI8List(nil), PtrI16List(nil), PtrI64List(nil),
-		PtrUintList(nil), PtrU16List(nil), PtrU32List(nil), PtrU64List(nil),
+		PtrIntList(nil), PtrI8List(nil), PtrI16List(nil), PtrI32List(nil), PtrI64List(nil),
+		PtrUintList(nil), PtrU8List(nil), PtrU16List(nil), PtrU32List(nil), PtrU64List(nil),
 		PtrF32List(nil), PtrF64List(nil),
 		PtrC64List(nil), PtrC128List(nil),
 	}

@@ -58,11 +58,13 @@ func (c *converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, erro
 		if marker == nil {
 			return nil, fmt.Errorf("no valid marker found: %v\n", rtype)
 		}
+		to := c.types[typeID]
+		name := fmt.Sprintf("marker(%v) to %v", marker, to)
 		tc := ConverterTestCase{
-			Name:         "random-name",
+			Name:         name,
 			Marker:       marker,
 			Target:       sdk.TargetAny,
-			ToType:       c.types[typeID],
+			ToType:       to,
 			IsValidCase:  true,
 			IsValidValue: c.vvfns[typeID],
 		}
@@ -168,13 +170,13 @@ func (c *converterTester) defaultVVFns() {
 }
 
 func (c *converterTester) isValidList(got, want reflect.Value) bool {
-	elem := got.Elem()
-	vvfn, found := c.vvfns[sdkutil.TypeID(elem.Type())]
+	elem := got.Type().Elem()
+	vvfn, found := c.vvfns[sdkutil.TypeID(elem)]
 	if !found {
 		return false
 	}
-	i := 0
-	for wantElem := range want.Seq() {
+	for i := 0; i < want.Len(); i++ {
+		wantElem := want.Index(i)
 		gotElem := got.Index(i)
 		if !vvfn(gotElem, wantElem) {
 			return false
@@ -196,6 +198,7 @@ func isValidInteger(got, want reflect.Value) bool {
 		if u64 > math.MaxInt64 {
 			return false // uint64 value too large for int64
 		}
+		i64 = int64(u64)
 	default:
 		return false
 	}

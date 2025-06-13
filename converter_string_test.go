@@ -4,36 +4,17 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 func TestStringConverter(t *testing.T) {
-	tests := []sdktesting.ConverterTestCase{
-		{
-			Name:        "string marker to string type",
-			Marker:      sdktesting.RandMarker(sdktesting.String("")),
-			Target:      sdk.TargetAny,
-			ToType:      reflect.TypeOf(sdktesting.String("")),
-			IsValidCase: true,
-			IsValidValue: func(got, want reflect.Value) bool {
-				g := string(got.Interface().(sdktesting.String))
-				w := want.Interface().(string)
-				return g == w
-			},
-		},
-		{
-			Name:        "string marker to ptr string type",
-			Marker:      sdktesting.RandMarker(sdktesting.PtrString(nil)),
-			Target:      sdk.TargetField,
-			ToType:      reflect.TypeOf(sdktesting.PtrString(nil)),
-			IsValidCase: true,
-			IsValidValue: func(got, want reflect.Value) bool {
-				g := string(*got.Interface().(sdktesting.PtrString))
-				w := want.Interface().(string)
-				return g == w
-			},
-		},
+	convTester, err := sdktesting.NewConverterTester(nil, nil)
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
+	tests, err := convTester.NewTest(&stringConverter{})
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
 	}
 	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
 	if err != nil {
