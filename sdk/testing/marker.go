@@ -29,22 +29,14 @@ func NewIdent(typeID string) string {
 }
 
 func RandMarkerWithIdent(ident string, rtype reflect.Type) parser.Marker {
-	typeID := sdkutil.TypeID(rtype)
+	typeID := sdkutil.TypeIDOf(rtype)
 	v := randValueFromTypeID(typeID)
 	value := reflect.ValueOf(v)
 	return parser.NewMarker(ident, parser.MarkerKindOf(rtype), value)
 }
 
-func RandMarkerFromRefType(rtype reflect.Type) parser.Marker {
-	typeID := sdkutil.TypeID(rtype)
-	v := randValueFromTypeID(typeID)
-	value := reflect.ValueOf(v)
-	return parser.NewMarker(NewIdent(typeID), parser.MarkerKindOf(rtype), value)
-}
-
-func RandMarker(typ any) parser.Marker {
-	rtype := reflect.TypeOf(typ)
-	typeID := sdkutil.TypeID(rtype)
+func RandMarker(rtype reflect.Type) parser.Marker {
+	typeID := sdkutil.TypeIDOf(rtype)
 	v := randValueFromTypeID(typeID)
 	value := reflect.ValueOf(v)
 	return parser.NewMarker(NewIdent(typeID), parser.MarkerKindOf(rtype), value)

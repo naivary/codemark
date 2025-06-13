@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"testing"
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
@@ -11,36 +12,50 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
+type ValidValueFunc func(got, want reflect.Value) bool
+
+type ConverterTesterConfig struct {
+	ValidValueFuncs map[sdk.TypeID]ValidValueFunc
+	Types           map[sdk.TypeID]reflect.Type
+}
+
 type ConverterTestCase struct {
 	Name         string
 	Marker       parser.Marker
 	Target       sdk.Target
 	ToType       reflect.Type
 	IsValidCase  bool
-	IsValidValue func(got reflect.Value, want reflect.Value) bool
+	IsValidValue ValidValueFunc
 }
 
 type ConverterTester interface {
-	NewTest(conv sdk.Converter) ([]ConverterTestCase, error)
+	Tests() ([]ConverterTestCase, error)
+	Run(t *testing.T, tc ConverterTestCase, mngr sdk.ConverterManager)
 }
 
 type converterTester struct {
-	vvfns map[string]func(got, want reflect.Value) bool
-	types map[string]reflect.Type
+	conv  sdk.Converter
+	vvfns map[sdk.TypeID]ValidValueFunc
+	types map[sdk.TypeID]reflect.Type
 }
 
-func NewConverterTester(vvfns map[string]func(got, want reflect.Value) bool, types map[string]reflect.Type) (ConverterTester, error) {
-	c := &converterTester{}
-	c.defaultVVFns()
-	c.defaultTypes()
-	for typeID, fn := range vvfns {
-		_, found := c.vvfns[typeID]
-		if found {
+func NewConverterTester(conv sdk.Converter, cfg *ConverterTesterConfig) (ConverterTester, error) {
+	if cfg == nil {
+		cfg = &ConverterTesterConfig{}
+	}
+	c := &converterTester{
+		conv:  conv,
+		vvfns: make(map[sdk.TypeID]ValidValueFunc),
+		types: typeIDToReflectTypeMap(),
+	}
+	for typeID, fn := range cfg.ValidValueFuncs {
+		vvfn := c.getVVFnFromTypeID(typeID)
+		if vvfn != nil {
 			return nil, fmt.Errorf("IsValidFunction exists: %s\n", typeID)
 		}
 		c.vvfns[typeID] = fn
 	}
-	for typeID, rtype := range types {
+	for typeID, rtype := range cfg.Types {
 		_, found := c.types[typeID]
 		if found {
 			return nil, fmt.Errorf("type id already exists: %s\n", typeID)
@@ -50,129 +65,75 @@ func NewConverterTester(vvfns map[string]func(got, want reflect.Value) bool, typ
 	return c, nil
 }
 
-func (c *converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, error) {
-	tests := make([]ConverterTestCase, 0, len(conv.SupportedTypes()))
-	for _, rtype := range conv.SupportedTypes() {
-		typeID := sdkutil.TypeID(rtype)
-		marker := RandMarkerFromRefType(rtype)
+func (c *converterTester) Tests() ([]ConverterTestCase, error) {
+	types := c.conv.SupportedTypes()
+	tests := make([]ConverterTestCase, 0, len(types))
+	for _, rtype := range types {
+		typeID := sdkutil.TypeIDOf(rtype)
+		marker := RandMarker(rtype)
 		if marker == nil {
 			return nil, fmt.Errorf("no valid marker found: %v\n", rtype)
 		}
 		to := c.types[typeID]
-		name := fmt.Sprintf("marker(%v) to %v", marker, to)
+		name := fmt.Sprintf("marker(%s) to %v", marker.Ident(), to)
 		tc := ConverterTestCase{
 			Name:         name,
 			Marker:       marker,
 			Target:       sdk.TargetAny,
 			ToType:       to,
 			IsValidCase:  true,
-			IsValidValue: c.vvfns[typeID],
+			IsValidValue: c.getVVFnFromTypeID(typeID),
 		}
 		tests = append(tests, tc)
 	}
 	return tests, nil
 }
 
-func (c *converterTester) defaultTypes() {
-	types := DefaultTypes()
-	c.types = make(map[string]reflect.Type, len(types))
-	for _, typ := range types {
-		rtype := reflect.TypeOf(typ)
-		typeID := sdkutil.TypeID(rtype)
-		c.types[typeID] = rtype
-	}
+func (c *converterTester) Run(t *testing.T, tc ConverterTestCase, mngr sdk.ConverterManager) {
+	t.Run(tc.Name, func(t *testing.T) {
+		v, err := mngr.Convert(tc.Marker, tc.Target)
+		if err != nil {
+			t.Errorf("err occured: %s\n", err)
+		}
+		gotType := reflect.TypeOf(v)
+		if gotType != tc.ToType {
+			t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.ToType)
+		}
+		gotValue := reflect.ValueOf(v)
+		if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
+			t.Fatalf("value is not correct. got: %v; wanted: %v\n", gotValue, tc.Marker.Value())
+		}
+		t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.ToType)
+	})
 }
 
-func (c *converterTester) defaultVVFns() {
-	c.vvfns = map[string]func(got, want reflect.Value) bool{
-		// Integers
-		sdkutil.TypeIDFromAny(Int(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(I8(0)):        isValidInteger,
-		sdkutil.TypeIDFromAny(I16(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(Byte(0)):      isValidInteger,
-		sdkutil.TypeIDFromAny(I32(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(I64(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(PtrInt(nil)):  isValidInteger,
-		sdkutil.TypeIDFromAny(PtrI8(nil)):   isValidInteger,
-		sdkutil.TypeIDFromAny(PtrI16(nil)):  isValidInteger,
-		sdkutil.TypeIDFromAny(PtrByte(nil)): isValidInteger,
-		sdkutil.TypeIDFromAny(PtrI32(nil)):  isValidInteger,
-		sdkutil.TypeIDFromAny(PtrI64(nil)):  isValidInteger,
-
-		// Unsigned integers
-		sdkutil.TypeIDFromAny(Uint(0)):      isValidInteger,
-		sdkutil.TypeIDFromAny(Rune(0)):      isValidInteger,
-		sdkutil.TypeIDFromAny(U8(0)):        isValidInteger,
-		sdkutil.TypeIDFromAny(U16(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(U32(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(U64(0)):       isValidInteger,
-		sdkutil.TypeIDFromAny(PtrUint(nil)): isValidInteger,
-		sdkutil.TypeIDFromAny(PtrRune(nil)): isValidInteger,
-		sdkutil.TypeIDFromAny(PtrU8(nil)):   isValidInteger,
-		sdkutil.TypeIDFromAny(PtrU16(nil)):  isValidInteger,
-		sdkutil.TypeIDFromAny(PtrU32(nil)):  isValidInteger,
-		sdkutil.TypeIDFromAny(PtrU64(nil)):  isValidInteger,
-
-		// Floats
-		sdkutil.TypeIDFromAny(F32(0)):      isValidFloat,
-		sdkutil.TypeIDFromAny(F64(0)):      isValidFloat,
-		sdkutil.TypeIDFromAny(PtrF32(nil)): isValidFloat,
-		sdkutil.TypeIDFromAny(PtrF64(nil)): isValidFloat,
-
-		// Complex
-		sdkutil.TypeIDFromAny(C64(0)):       isValidComplex,
-		sdkutil.TypeIDFromAny(C128(0)):      isValidComplex,
-		sdkutil.TypeIDFromAny(PtrC64(nil)):  isValidComplex,
-		sdkutil.TypeIDFromAny(PtrC128(nil)): isValidComplex,
-
-		// Booleans and strings
-		sdkutil.TypeIDFromAny(Bool(false)):    isValidBool,
-		sdkutil.TypeIDFromAny(String("")):     isValidString,
-		sdkutil.TypeIDFromAny(PtrBool(nil)):   isValidBool,
-		sdkutil.TypeIDFromAny(PtrString(nil)): isValidString,
-
-		// List
-		sdkutil.TypeIDFromAny(IntList(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(I8List(nil)):     c.isValidList,
-		sdkutil.TypeIDFromAny(I16List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(ByteList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(I64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(UintList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(RuneList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(U16List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(U32List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(U64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(F32List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(F64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(C64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(C128List(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(BoolList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(StringList(nil)): c.isValidList,
-
-		// List of pointers
-		sdkutil.TypeIDFromAny(PtrIntList(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrI8List(nil)):     c.isValidList,
-		sdkutil.TypeIDFromAny(PtrI16List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrByteList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(PtrI64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrUintList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(PtrRuneList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(PtrU16List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrU32List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrU64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrF32List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrF64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrC64List(nil)):    c.isValidList,
-		sdkutil.TypeIDFromAny(PtrC128List(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(PtrBoolList(nil)):   c.isValidList,
-		sdkutil.TypeIDFromAny(PtrStringList(nil)): c.isValidList,
+func (c *converterTester) getVVFnFromTypeID(typeID string) ValidValueFunc {
+	if sdkutil.MatchTypeID(typeID, `slice\..+`) {
+		return c.isValidList
 	}
+	if sdkutil.MatchTypeID(typeID, `(ptr\.)?int\d{0,2}`) {
+		return isValidInteger
+	}
+	if sdkutil.MatchTypeID(typeID, `(ptr\.)?float\d{2}`) {
+		return isValidFloat
+	}
+	if sdkutil.MatchTypeID(typeID, `(ptr\.)?complex\d{2,3}`) {
+		return isValidComplex
+	}
+	if sdkutil.MatchTypeID(typeID, `(ptr\.)?bool`) {
+		return isValidBool
+	}
+	if sdkutil.MatchTypeID(typeID, `(ptr\.)?string`) {
+		return isValidString
+	}
+	return c.vvfns[typeID]
 }
 
 func (c *converterTester) isValidList(got, want reflect.Value) bool {
 	elem := got.Type().Elem()
-	vvfn, found := c.vvfns[sdkutil.TypeID(elem)]
-	if !found {
+	typeID := sdkutil.TypeIDOf(elem)
+	vvfn := c.getVVFnFromTypeID(typeID)
+	if vvfn == nil {
 		return false
 	}
 	for i := 0; i < want.Len(); i++ {
@@ -186,9 +147,7 @@ func (c *converterTester) isValidList(got, want reflect.Value) bool {
 }
 
 func isValidInteger(got, want reflect.Value) bool {
-	if utils.IsPointer(got.Type()) {
-		got = got.Elem()
-	}
+	got = utils.DeRefValue(got)
 	var i64 int64
 	switch got.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -207,33 +166,36 @@ func isValidInteger(got, want reflect.Value) bool {
 }
 
 func isValidFloat(got, want reflect.Value) bool {
-	if utils.IsPointer(got.Type()) {
-		got = got.Elem()
-	}
+	got = utils.DeRefValue(got)
 	w := want.Interface().(float64)
 	return AlmostEqual(got.Float(), w)
 }
 
 func isValidComplex(got, want reflect.Value) bool {
-	if utils.IsPointer(got.Type()) {
-		got = got.Elem()
-	}
+	got = utils.DeRefValue(got)
 	w := want.Interface().(complex128)
 	return got.Complex() == w
 }
 
 func isValidString(got, want reflect.Value) bool {
-	if utils.IsPointer(got.Type()) {
-		got = got.Elem()
-	}
+	got = utils.DeRefValue(got)
 	w := want.Interface().(string)
 	return got.String() == w
 }
 
 func isValidBool(got, want reflect.Value) bool {
-	if utils.IsPointer(got.Type()) {
-		got = got.Elem()
-	}
+	got = utils.DeRefValue(got)
 	w := want.Interface().(bool)
 	return got.Bool() == w
+}
+
+func typeIDToReflectTypeMap() map[sdk.TypeID]reflect.Type {
+	types := DefaultTypes()
+	m := make(map[sdk.TypeID]reflect.Type, len(types))
+	for _, typ := range types {
+		rtype := reflect.TypeOf(typ)
+		typeID := sdkutil.TypeIDOf(rtype)
+		m[typeID] = rtype
+	}
+	return m
 }

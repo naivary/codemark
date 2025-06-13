@@ -45,7 +45,7 @@ func (f *floatConverter) float(m parser.Marker, def *sdk.Definition) (reflect.Va
 	if f.isOverflowing(def.Output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
 	}
-	return sdkutil.ToType(m.Value(), def.Output)
+	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
 
 func (f *floatConverter) isOverflowing(out reflect.Type, n float64) bool {

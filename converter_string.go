@@ -39,5 +39,5 @@ func (s *stringConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect
 }
 
 func (s *stringConverter) str(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
-	return sdkutil.ToType(m.Value(), def.Output)
+	return sdkutil.ConvertTo(m.Value(), def.Output)
 }

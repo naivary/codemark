@@ -43,7 +43,7 @@ func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, e
 }
 
 func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
-	typeID := sdkutil.TypeID(rtype)
+	typeID := sdkutil.TypeIDOf(rtype)
 	conv, ok := c.convs[typeID]
 	if !ok {
 		return nil, fmt.Errorf("converter not found: %s\n", typeID)
@@ -53,7 +53,7 @@ func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, erro
 
 func (c *ConverterManager) AddConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
-		typeID := sdkutil.TypeID(rtype)
+		typeID := sdkutil.TypeIDOf(rtype)
 		_, found := c.convs[typeID]
 		if found {
 			return fmt.Errorf("converter already exists: %s\n", typeID)

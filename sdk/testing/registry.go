@@ -114,7 +114,7 @@ func DefaultTypes() []any {
 func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
 	for _, typ := range DefaultTypes() {
 		rtype := reflect.TypeOf(typ)
-		typeID := sdkutil.TypeID(rtype)
+		typeID := sdkutil.TypeIDOf(rtype)
 		ident := NewIdent(typeID)
 		def, err := b.MakeDef(ident, rtype, sdk.TargetAny)
 		if err != nil {

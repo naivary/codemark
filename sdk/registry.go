@@ -6,7 +6,8 @@ type Registry interface {
 	Define(def *Definition) error
 
 	// Get the definition by the unique identiffier
-	Get(idn string) (*Definition, error)
+	Get(ident string) (*Definition, error)
 
+	// All returns all Definitions stored in the registry.
 	All() map[string]*Definition
 }

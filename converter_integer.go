@@ -63,7 +63,7 @@ func (i *intConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
 }
 
 func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
-	typeID := sdkutil.TypeID(def.Output)
+	typeID := sdkutil.TypeIDOf(def.Output)
 	markerKind := m.Kind()
 	if i.isInteger(typeID, markerKind) {
 		return i.integer(m, def)
@@ -74,8 +74,6 @@ func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Va
 	if i.isByte(typeID, markerKind) {
 		return i.bytee(m, def)
 	}
-	// something has to be true because the manager is choosing the converter
-	// always correctly.
 	return i.runee(m, def)
 }
 
@@ -84,7 +82,7 @@ func (i *intConverter) integer(m parser.Marker, def *sdk.Definition) (reflect.Va
 	if i.isOverflowingInt(def.Output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
 	}
-	return sdkutil.ToType(m.Value(), def.Output)
+	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
 
 func (i *intConverter) uinteger(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
@@ -92,7 +90,7 @@ func (i *intConverter) uinteger(m parser.Marker, def *sdk.Definition) (reflect.V
 	if i.isOverflowingUint(def.Output, uint64(n)) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
 	}
-	return sdkutil.ToType(m.Value(), def.Output)
+	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
 
 func (i *intConverter) runee(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
@@ -101,7 +99,7 @@ func (i *intConverter) runee(m parser.Marker, def *sdk.Definition) (reflect.Valu
 		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", m.Value())
 	}
 	rvalue := reflect.ValueOf(rune(markerValue[0]))
-	return sdkutil.ToType(rvalue, def.Output)
+	return sdkutil.ConvertTo(rvalue, def.Output)
 }
 
 func (i *intConverter) bytee(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
@@ -110,7 +108,7 @@ func (i *intConverter) bytee(m parser.Marker, def *sdk.Definition) (reflect.Valu
 		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s\n", m.Value())
 	}
 	bvalue := reflect.ValueOf(byte(markerValue[0]))
-	return sdkutil.ToType(bvalue, def.Output)
+	return sdkutil.ConvertTo(bvalue, def.Output)
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {

@@ -36,7 +36,7 @@ func TestTypeID(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			rtype := reflect.TypeOf(tc.typ)
-			typeID := TypeID(rtype)
+			typeID := TypeIDOf(rtype)
 			if typeID != tc.typeID {
 				t.Fatalf("expected: %s; got: %s\n", tc.typeID, typeID)
 			}

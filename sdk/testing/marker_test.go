@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"reflect"
 	"testing"
 
 	"golang.org/x/exp/constraints"
@@ -81,7 +82,8 @@ func TestRandMarker(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			marker := RandMarker(tc.typ)
+			rtype := reflect.TypeOf(tc.typ)
+			marker := RandMarker(rtype)
 			if marker == nil {
 				t.Errorf("err: no marker produced")
 			}

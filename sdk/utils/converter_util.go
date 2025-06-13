@@ -10,7 +10,17 @@ const (
 	TypeIDSep = "."
 )
 
+func DeRefValue(v reflect.Value) reflect.Value {
+	if IsPointer(v.Type()) {
+		return v.Elem()
+	}
+	return v
+}
+
 func Deref(typ reflect.Type) reflect.Type {
+	if typ == nil {
+		return typ
+	}
 	if IsPointer(typ) {
 		typ = typ.Elem()
 	}
@@ -21,9 +31,9 @@ func IsPointer(typ reflect.Type) bool {
 	return typ.Kind() == reflect.Pointer
 }
 
-// ToType converts the value `v` to the Type `typ` handling pointer
-// dereferencing and other inconveniences
-func ToType(v reflect.Value, typ reflect.Type) (reflect.Value, error) {
+// ConvertTo converts the value `v` to the Type `typ` handling pointer
+// dereferencing and other inconveniences.
+func ConvertTo(v reflect.Value, typ reflect.Type) (reflect.Value, error) {
 	isPtr := IsPointer(typ)
 	outputType := typ
 	// need to dereference type to create the correct variable using
@@ -44,23 +54,13 @@ func MatchTypeID(typeID, pattern string) bool {
 	return exp.MatchString(typeID)
 }
 
-func TypeID(typ reflect.Type) string {
-	if typ == nil {
-		return ""
-	}
+func TypeIDOf(rtype reflect.Type) string {
 	var b strings.Builder
-	return typeID(typ, &b)
-}
-
-func TypeIDFromAny(typ any) string {
-	if typ == nil {
-		return ""
-	}
-	rtype := reflect.TypeOf(typ)
-	return TypeID(rtype)
+	return typeID(rtype, &b)
 }
 
 func typeID(typ reflect.Type, b *strings.Builder) string {
+	// TODO: add struct to it
 	if typ == nil {
 		return b.String()
 	}

@@ -45,7 +45,7 @@ func (c *complexConverter) complexx(m parser.Marker, def *sdk.Definition) (refle
 	if c.isOverflowing(def.Output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
 	}
-	return sdkutil.ToType(m.Value(), def.Output)
+	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
 
 func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {
