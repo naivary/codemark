@@ -26,22 +26,31 @@ type ConverterTester interface {
 
 type converterTester struct {
 	vvfns map[string]func(got, want reflect.Value) bool
+	types map[string]reflect.Type
 }
 
-func NewConverterTester(vvfns map[string]func(got, want reflect.Value) bool) (ConverterTester, error) {
-	c := &converterTester{vvfns}
-	defaultVVFns := c.defaultVVFns()
+func NewConverterTester(vvfns map[string]func(got, want reflect.Value) bool, types map[string]reflect.Type) (ConverterTester, error) {
+	c := &converterTester{}
+	c.defaultVVFns()
+	c.defaultTypes()
 	for typeID, fn := range vvfns {
-		_, found := defaultVVFns[typeID]
+		_, found := c.vvfns[typeID]
 		if found {
 			return nil, fmt.Errorf("IsValidFunction exists: %s\n", typeID)
 		}
-		defaultVVFns[typeID] = fn
+		c.vvfns[typeID] = fn
+	}
+	for typeID, rtype := range types {
+		_, found := c.types[typeID]
+		if found {
+			return nil, fmt.Errorf("type id already exists: %s\n", typeID)
+		}
+		c.types[typeID] = rtype
 	}
 	return c, nil
 }
 
-func (c converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, error) {
+func (c *converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, error) {
 	tests := make([]ConverterTestCase, 0, len(conv.SupportedTypes()))
 	for _, rtype := range conv.SupportedTypes() {
 		typeID := sdkutil.TypeID(rtype)
@@ -53,7 +62,7 @@ func (c converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, error
 			Name:         "random-name",
 			Marker:       marker,
 			Target:       sdk.TargetAny,
-			ToType:       rtype,
+			ToType:       c.types[typeID],
 			IsValidCase:  true,
 			IsValidValue: c.vvfns[typeID],
 		}
@@ -62,8 +71,18 @@ func (c converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, error
 	return tests, nil
 }
 
-func (c converterTester) defaultVVFns() map[string]func(got, want reflect.Value) bool {
-	return map[string]func(got, want reflect.Value) bool{
+func (c *converterTester) defaultTypes() {
+	types := DefaultTypes()
+	c.types = make(map[string]reflect.Type, len(types))
+	for _, typ := range types {
+		rtype := reflect.TypeOf(typ)
+		typeID := sdkutil.TypeID(rtype)
+		c.types[typeID] = rtype
+	}
+}
+
+func (c *converterTester) defaultVVFns() {
+	c.vvfns = map[string]func(got, want reflect.Value) bool{
 		// Integers
 		sdkutil.TypeIDFromAny(Int(0)):       isValidInteger,
 		sdkutil.TypeIDFromAny(I8(0)):        isValidInteger,
