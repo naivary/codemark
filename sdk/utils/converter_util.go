@@ -52,11 +52,18 @@ func TypeID(typ reflect.Type) string {
 	return typeID(typ, &b)
 }
 
+func TypeIDFromAny(typ any) string {
+	if typ == nil {
+		return ""
+	}
+	rtype := reflect.TypeOf(typ)
+	return TypeID(rtype)
+}
+
 func typeID(typ reflect.Type, b *strings.Builder) string {
 	if typ == nil {
 		return b.String()
 	}
-	// write dot to seperate the incoming kind
 	if len(b.String()) > 0 {
 		b.WriteString(TypeIDSep)
 	}

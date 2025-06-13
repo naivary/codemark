@@ -9,16 +9,7 @@ import (
 	"github.com/naivary/codemark/sdk"
 	"github.com/naivary/codemark/sdk/utils"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
-	"golang.org/x/exp/constraints"
 )
-
-type ValidValueFunc func(got, want reflect.Type) bool
-
-type ConverterTester interface {
-	GetValidValueFunc(typeID string) ValidValueFunc
-}
-
-var validValueFuncs = map[string]func(got, want reflect.Value) bool{}
 
 type ConverterTestCase struct {
 	Name         string
@@ -26,10 +17,31 @@ type ConverterTestCase struct {
 	Target       sdk.Target
 	ToType       reflect.Type
 	IsValidCase  bool
-	IsValidValue func(got reflect.Value, wanted reflect.Value) bool
+	IsValidValue func(got reflect.Value, want reflect.Value) bool
 }
 
-func NewConvTestCases(conv sdk.Converter) ([]ConverterTestCase, error) {
+type ConverterTester interface {
+	NewTest(conv sdk.Converter) ([]ConverterTestCase, error)
+}
+
+type converterTester struct {
+	vvfns map[string]func(got, want reflect.Value) bool
+}
+
+func NewConverterTester(vvfns map[string]func(got, want reflect.Value) bool) (ConverterTester, error) {
+	c := &converterTester{vvfns}
+	defaultVVFns := c.defaultVVFns()
+	for typeID, fn := range vvfns {
+		_, found := defaultVVFns[typeID]
+		if found {
+			return nil, fmt.Errorf("IsValidFunction exists: %s\n", typeID)
+		}
+		defaultVVFns[typeID] = fn
+	}
+	return c, nil
+}
+
+func (c converterTester) NewTest(conv sdk.Converter) ([]ConverterTestCase, error) {
 	tests := make([]ConverterTestCase, 0, len(conv.SupportedTypes()))
 	for _, rtype := range conv.SupportedTypes() {
 		typeID := sdkutil.TypeID(rtype)
@@ -43,18 +55,116 @@ func NewConvTestCases(conv sdk.Converter) ([]ConverterTestCase, error) {
 			Target:       sdk.TargetAny,
 			ToType:       rtype,
 			IsValidCase:  true,
-			IsValidValue: validValueFuncs[typeID],
+			IsValidValue: c.vvfns[typeID],
 		}
 		tests = append(tests, tc)
 	}
 	return tests, nil
 }
 
-func getValidValueFunc(typeID string) func(got, want reflect.Value) bool {
-	return nil
+func (c converterTester) defaultVVFns() map[string]func(got, want reflect.Value) bool {
+	return map[string]func(got, want reflect.Value) bool{
+		// Integers
+		sdkutil.TypeIDFromAny(Int(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(I8(0)):        isValidInteger,
+		sdkutil.TypeIDFromAny(I16(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(Byte(0)):      isValidInteger,
+		sdkutil.TypeIDFromAny(I32(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(I64(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(PtrInt(nil)):  isValidInteger,
+		sdkutil.TypeIDFromAny(PtrI8(nil)):   isValidInteger,
+		sdkutil.TypeIDFromAny(PtrI16(nil)):  isValidInteger,
+		sdkutil.TypeIDFromAny(PtrByte(nil)): isValidInteger,
+		sdkutil.TypeIDFromAny(PtrI32(nil)):  isValidInteger,
+		sdkutil.TypeIDFromAny(PtrI64(nil)):  isValidInteger,
+
+		// Unsigned integers
+		sdkutil.TypeIDFromAny(Uint(0)):      isValidInteger,
+		sdkutil.TypeIDFromAny(Rune(0)):      isValidInteger,
+		sdkutil.TypeIDFromAny(U8(0)):        isValidInteger,
+		sdkutil.TypeIDFromAny(U16(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(U32(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(U64(0)):       isValidInteger,
+		sdkutil.TypeIDFromAny(PtrUint(nil)): isValidInteger,
+		sdkutil.TypeIDFromAny(PtrRune(nil)): isValidInteger,
+		sdkutil.TypeIDFromAny(PtrU8(nil)):   isValidInteger,
+		sdkutil.TypeIDFromAny(PtrU16(nil)):  isValidInteger,
+		sdkutil.TypeIDFromAny(PtrU32(nil)):  isValidInteger,
+		sdkutil.TypeIDFromAny(PtrU64(nil)):  isValidInteger,
+
+		// Floats
+		sdkutil.TypeIDFromAny(F32(0)):      isValidFloat,
+		sdkutil.TypeIDFromAny(F64(0)):      isValidFloat,
+		sdkutil.TypeIDFromAny(PtrF32(nil)): isValidFloat,
+		sdkutil.TypeIDFromAny(PtrF64(nil)): isValidFloat,
+
+		// Complex
+		sdkutil.TypeIDFromAny(C64(0)):       isValidComplex,
+		sdkutil.TypeIDFromAny(C128(0)):      isValidComplex,
+		sdkutil.TypeIDFromAny(PtrC64(nil)):  isValidComplex,
+		sdkutil.TypeIDFromAny(PtrC128(nil)): isValidComplex,
+
+		// Booleans and strings
+		sdkutil.TypeIDFromAny(Bool(false)):    isValidBool,
+		sdkutil.TypeIDFromAny(String("")):     isValidString,
+		sdkutil.TypeIDFromAny(PtrBool(nil)):   isValidBool,
+		sdkutil.TypeIDFromAny(PtrString(nil)): isValidString,
+
+		// List
+		sdkutil.TypeIDFromAny(IntList(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(I8List(nil)):     c.isValidList,
+		sdkutil.TypeIDFromAny(I16List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(ByteList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(I64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(UintList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(RuneList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(U16List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(U32List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(U64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(F32List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(F64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(C64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(C128List(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(BoolList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(StringList(nil)): c.isValidList,
+
+		// List of pointers
+		sdkutil.TypeIDFromAny(PtrIntList(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrI8List(nil)):     c.isValidList,
+		sdkutil.TypeIDFromAny(PtrI16List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrByteList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(PtrI64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrUintList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(PtrRuneList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(PtrU16List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrU32List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrU64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrF32List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrF64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrC64List(nil)):    c.isValidList,
+		sdkutil.TypeIDFromAny(PtrC128List(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(PtrBoolList(nil)):   c.isValidList,
+		sdkutil.TypeIDFromAny(PtrStringList(nil)): c.isValidList,
+	}
 }
 
-func isValidInteger[T constraints.Integer | ~*int | ~*int8 | ~*int16 | ~*int32 | ~*int64 | ~*uint | ~*uint8 | ~*uint16 | ~*uint32 | ~*uint64](got, want reflect.Value) bool {
+func (c *converterTester) isValidList(got, want reflect.Value) bool {
+	elem := got.Elem()
+	vvfn, found := c.vvfns[sdkutil.TypeID(elem.Type())]
+	if !found {
+		return false
+	}
+	i := 0
+	for wantElem := range want.Seq() {
+		gotElem := got.Index(i)
+		if !vvfn(gotElem, wantElem) {
+			return false
+		}
+	}
+	return true
+}
+
+func isValidInteger(got, want reflect.Value) bool {
 	if utils.IsPointer(got.Type()) {
 		got = got.Elem()
 	}
@@ -72,4 +182,36 @@ func isValidInteger[T constraints.Integer | ~*int | ~*int8 | ~*int16 | ~*int32 |
 	}
 	w := want.Interface().(int64)
 	return i64 == w
+}
+
+func isValidFloat(got, want reflect.Value) bool {
+	if utils.IsPointer(got.Type()) {
+		got = got.Elem()
+	}
+	w := want.Interface().(float64)
+	return AlmostEqual(got.Float(), w)
+}
+
+func isValidComplex(got, want reflect.Value) bool {
+	if utils.IsPointer(got.Type()) {
+		got = got.Elem()
+	}
+	w := want.Interface().(complex128)
+	return got.Complex() == w
+}
+
+func isValidString(got, want reflect.Value) bool {
+	if utils.IsPointer(got.Type()) {
+		got = got.Elem()
+	}
+	w := want.Interface().(string)
+	return got.String() == w
+}
+
+func isValidBool(got, want reflect.Value) bool {
+	if utils.IsPointer(got.Type()) {
+		got = got.Elem()
+	}
+	w := want.Interface().(bool)
+	return got.Bool() == w
 }
