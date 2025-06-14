@@ -1,10 +1,35 @@
 package codemark
 
 import (
+	"reflect"
 	"testing"
 
 	sdktesting "github.com/naivary/codemark/sdk/testing"
+	"github.com/naivary/codemark/sdk/utils"
 )
+
+func isValidString(got, want reflect.Value) bool {
+	got = utils.DeRefValue(got)
+	w := want.Interface().(string)
+	return got.String() == w
+}
+
+func newConvTesterForString() (sdktesting.ConverterTester, error) {
+	tester, err := sdktesting.NewConverterTester(&stringConverter{})
+	if err != nil {
+		return nil, err
+	}
+	for _, typ := range sdktesting.StringTypes() {
+		rtype := reflect.TypeOf(typ)
+		if err := tester.AddType(rtype); err != nil {
+			return nil, err
+		}
+		if err := tester.AddVVFunc(rtype, isValidString); err != nil {
+			return nil, err
+		}
+	}
+	return tester, nil
+}
 
 func TestStringConverter(t *testing.T) {
 	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
@@ -15,11 +40,11 @@ func TestStringConverter(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tester, err := sdktesting.NewConverterTester(&stringConverter{}, nil)
+	tester, err := newConvTesterForString()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := tester.ValidTestCases()
+	tests, err := tester.ValidTests()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

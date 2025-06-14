@@ -25,9 +25,13 @@ type ConverterTestCase struct {
 }
 
 type ConverterTester interface {
-	NewTestCase(rtype reflect.Type, isValidCase bool) (ConverterTestCase, error)
+	NewTest(rtype reflect.Type, isValidCase bool, t sdk.Target) (ConverterTestCase, error)
 
-	ValidTestCases() ([]ConverterTestCase, error)
+	ValidTests() ([]ConverterTestCase, error)
+
+	AddVVFunc(rtype reflect.Type, fn ValidValueFunc) error
+
+	AddType(rtype reflect.Type) error
 
 	Run(t *testing.T, tc ConverterTestCase, mngr sdk.ConverterManager)
 }

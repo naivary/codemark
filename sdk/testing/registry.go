@@ -86,33 +86,74 @@ type (
 	PtrC128List   []*complex128
 )
 
-func DefaultTypes() []any {
+func FloatTypes() []any {
 	return []any{
 		F32(0), F64(0),
 		PtrF32(nil), PtrF64(nil),
-		Bool(false), PtrBool(nil),
-		C64(0), C128(0),
+	}
+}
+
+func ComplexTypes() []any {
+	return []any{
+		C64(0 + 0i), C128(0 + 0i),
 		PtrC64(nil), PtrC128(nil),
-		String(""), PtrString(nil),
+	}
+}
+
+func BoolTypes() []any {
+	return []any{
+		Bool(false),
+		PtrBool(nil),
+	}
+}
+
+func StringTypes() []any {
+	return []any{
+		String(""),
+		PtrString(nil),
+	}
+}
+
+func IntTypes() []any {
+	return []any{
 		Int(0), I8(0), I16(0), I32(0), I64(0),
 		PtrInt(nil), PtrI8(nil), PtrI16(nil), PtrI32(nil), PtrI64(nil),
+	}
+}
+
+func UintTypes() []any {
+	return []any{
 		Uint(0), U8(0), U16(0), U32(0), U64(0),
 		PtrUint(nil), PtrU8(nil), PtrU16(nil), PtrU32(nil), PtrU64(nil),
+	}
+}
+
+func ListTypes() []any {
+	return []any{
 		StringList(nil), IntList(nil), I8List(nil), I16List(nil), I32List(nil), I64List(nil),
 		UintList(nil), U8List(nil), U16List(nil), U32List(nil), U64List(nil),
-		F32List(nil), F64List(nil),
-		C64List(nil), C128List(nil),
-		BoolList(nil), PtrStringList(nil), PtrBoolList(nil),
+		F32List(nil), F64List(nil), C64List(nil), C128List(nil), BoolList(nil),
+		PtrStringList(nil), PtrBoolList(nil),
 		PtrIntList(nil), PtrI8List(nil), PtrI16List(nil), PtrI32List(nil), PtrI64List(nil),
 		PtrUintList(nil), PtrU8List(nil), PtrU16List(nil), PtrU32List(nil), PtrU64List(nil),
-		PtrF32List(nil), PtrF64List(nil),
-		PtrC64List(nil), PtrC128List(nil),
+		PtrF32List(nil), PtrF64List(nil), PtrC64List(nil), PtrC128List(nil),
 	}
+}
 
+func AllTypes() []any {
+	return slices.Concat(
+		FloatTypes(),
+		ComplexTypes(),
+		BoolTypes(),
+		StringTypes(),
+		IntTypes(),
+		UintTypes(),
+		ListTypes(),
+	)
 }
 
 func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
-	for _, typ := range DefaultTypes() {
+	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		typeID := sdkutil.TypeIDOf(rtype)
 		ident := NewIdent(typeID)
