@@ -10,6 +10,8 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
+var _ ConverterTester = (*converterTester)(nil)
+
 type converterTester struct {
 	conv  sdk.Converter
 	rand  func(rtype reflect.Type) parser.Marker
@@ -45,7 +47,7 @@ func (c *converterTester) ValidTests() ([]ConverterTestCase, error) {
 
 func (c *converterTester) NewTest(rtype reflect.Type, isValidCase bool, target sdk.Target) (ConverterTestCase, error) {
 	typeID := sdkutil.TypeIDOf(rtype)
-	marker := RandMarker(rtype)
+	marker := c.rand(rtype)
 	if marker == nil {
 		return ConverterTestCase{}, fmt.Errorf("no valid marker found: %v\n", rtype)
 	}

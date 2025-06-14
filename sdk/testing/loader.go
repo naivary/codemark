@@ -3,8 +3,6 @@ package testing
 import (
 	"io"
 	"testing"
-
-	"github.com/naivary/codemark/sdk"
 )
 
 type LoaderTestCase struct {
@@ -12,7 +10,5 @@ type LoaderTestCase struct {
 }
 
 type LoaderTester interface {
-	Tests() ([]LoaderTestCase, error)
-
-	Run(t *testing.T, tc ConverterTestCase, mngr sdk.ConverterManager)
+	Run(t *testing.T, tc LoaderTestCase)
 }

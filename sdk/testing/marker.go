@@ -105,6 +105,10 @@ func randInt(typeID string) func() int64 {
 	}
 }
 
+func randInt64() int64 {
+	return randInt("int64")()
+}
+
 func randFloat64() float64 {
 	const minN = 1
 	const maxN = 100

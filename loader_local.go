@@ -55,21 +55,32 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 			if err := l.extractPkgInfo(pkg, file); err != nil {
 				return nil, err
 			}
-			for _, struc := range l.proj.Structs {
-				name := struc.Spec.Name.Name
-				struc.Methods = l.methods[name]
-			}
-			for _, named := range l.proj.Named {
-				name := named.Spec.Name.Name
-				named.Methods = l.methods[name]
-			}
+			l.addMethodInfosOfTypes()
 		}
-		projs = append(projs, l.proj)
-		// reset
-		l.proj = &sdk.Project{}
-		l.methods = make(map[string][]sdk.FuncInfo)
+		l.addProject(projs)
 	}
 	return projs, nil
+}
+
+func (l *localLoader) addProject(projs []*sdk.Project) {
+	projs = append(projs, l.proj)
+	l.reset()
+}
+
+func (l *localLoader) reset() {
+	l.proj = &sdk.Project{}
+	l.methods = make(map[string][]sdk.FuncInfo)
+}
+
+func (l *localLoader) addMethodInfosOfTypes() {
+	for _, struc := range l.proj.Structs {
+		name := struc.Spec.Name.Name
+		struc.Methods = l.methods[name]
+	}
+	for _, named := range l.proj.Named {
+		name := named.Spec.Name.Name
+		named.Methods = l.methods[name]
+	}
 }
 
 func (l *localLoader) defaultConfig() *packages.Config {
