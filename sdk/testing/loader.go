@@ -1,10 +1,10 @@
 package testing
 
 import (
-	"io"
 	"reflect"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/spf13/afero"
 )
 
 type Func struct {
@@ -31,5 +31,5 @@ type LoaderTestCase struct {
 }
 
 type LoaderTester interface {
-	NewFile() (io.Reader, error)
+	NewFS() (afero.Fs, error)
 }

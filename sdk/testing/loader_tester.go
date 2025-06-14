@@ -1,13 +1,14 @@
 package testing
 
 import (
-	"bytes"
-	"io"
+	"path"
 	"reflect"
+	"strings"
 	"text/template"
 	"unicode"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/spf13/afero"
 )
 
 var _ LoaderTester = (*loaderTester)(nil)
@@ -18,7 +19,7 @@ func NewLoaderTester() (LoaderTester, error) {
 	return &loaderTester{}, nil
 }
 
-func (l *loaderTester) NewFile() (io.Reader, error) {
+func (l *loaderTester) NewFS() (afero.Fs, error) {
 	tc := LoaderTestCase{}
 	structQuantity := quantity(6)
 	funcQuantity := quantity(4)
@@ -32,15 +33,28 @@ func (l *loaderTester) NewFile() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	var b bytes.Buffer
-	err = tmpl.Execute(&b, &tc)
-	return &b, err
+	fs := afero.NewOsFs()
+	tmpDir, err := afero.TempDir(fs, "codemark", "")
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range tmpl.Templates() {
+		name, _ := strings.CutSuffix(t.Name(), ".tmpl")
+		path := path.Join(tmpDir, name)
+		file, err := fs.Create(path)
+		if err != nil {
+			return nil, err
+		}
+		if err := t.Execute(file, &tc); err != nil {
+			return nil, err
+		}
+	}
+	return fs, err
 }
 
 func randStruct() Struct {
 	fieldQuantity := (randInt64() % 6) + 1
 	methodQuantity := (randInt64() % 2) + 1
-
 	fields := make([]Field, 0, fieldQuantity)
 	methods := make([]Func, 0, methodQuantity)
 	for range fieldQuantity {
