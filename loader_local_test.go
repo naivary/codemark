@@ -47,7 +47,13 @@ func TestLocalLoader(t *testing.T) {
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			_ = projs
+			for _, proj := range projs {
+				for _, s := range proj.Structs {
+					for _, field := range s.Fields {
+						t.Log(field.Defs)
+					}
+				}
+			}
 		})
 	}
 }

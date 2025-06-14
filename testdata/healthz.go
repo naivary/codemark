@@ -36,6 +36,7 @@ type HealthzRequest struct {
 
 type healthzResponse struct {
 	// +openapi_v3:validation:required
+	// +openapi_v3:validation:required=false
 	Status, Amount int
 }
 
