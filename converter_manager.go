@@ -11,10 +11,14 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
+var _ sdk.ConverterManager = (*ConverterManager)(nil)
+
 type ConverterManager struct {
 	reg sdk.Registry
 
-	convs map[string]sdk.Converter
+	convs map[sdk.TypeID]sdk.Converter
+
+	rtypeConvs map[reflect.Type]sdk.Converter
 }
 
 func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, error) {
@@ -22,8 +26,9 @@ func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, e
 		return nil, sdk.ErrRegistryEmpty
 	}
 	mngr := &ConverterManager{
-		reg:   reg,
-		convs: make(map[string]sdk.Converter),
+		reg:        reg,
+		convs:      make(map[string]sdk.Converter),
+		rtypeConvs: make(map[reflect.Type]sdk.Converter),
 	}
 	defaultConvs := []sdk.Converter{
 		&stringConverter{},
@@ -44,11 +49,15 @@ func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, e
 
 func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 	typeID := sdkutil.TypeIDOf(rtype)
-	conv, ok := c.convs[typeID]
-	if !ok {
-		return nil, fmt.Errorf("converter not found: %s\n", typeID)
+	conv, isTypeIDConv := c.convs[typeID]
+	rtypeConv, isRtypeConv := c.rtypeConvs[rtype]
+	if isTypeIDConv {
+		return conv, nil
 	}
-	return conv, nil
+	if isRtypeConv {
+		return rtypeConv, nil
+	}
+	return nil, fmt.Errorf("no converter found: %v\n", rtype)
 }
 
 func (c *ConverterManager) AddConverter(conv sdk.Converter) error {
@@ -90,8 +99,16 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, e
 	return out.Interface(), nil
 }
 
-func (c *ConverterManager) AllConverters() map[string]sdk.Converter {
-	return c.convs
+// AddConvByRefType add the converter to the specific `rtype` provided. Use this
+// method if you want to map a converter to a specific type. For example a great
+// use case is `time.Time`.
+func (c *ConverterManager) AddConvByRefType(rtype reflect.Type, conv sdk.Converter) error {
+	_, found := c.rtypeConvs[rtype]
+	if found {
+		return fmt.Errorf("converter already exists: %s\n", rtype)
+	}
+	c.rtypeConvs[rtype] = conv
+	return nil
 }
 
 func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) {

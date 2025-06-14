@@ -28,9 +28,9 @@ type ConverterManager interface {
 
 	AddConverter(conv Converter) error
 
-	Convert(mrk parser.Marker, target Target) (any, error)
+	AddConvByRefType(rtype reflect.Type, conv Converter) error
 
-	AllConverters() map[string]Converter
+	Convert(mrk parser.Marker, target Target) (any, error)
 
 	ParseDefs(doc string, t Target) (map[string][]any, error)
 }

@@ -7,5 +7,6 @@
 6. Make the tester concept a bit more advanced and to be used for everything
    e.g. registry, loader, converter etc.
 7. reflect.TypeFor can be really useful
-8. I think its better to use go/types for the analysis of every package as soon
-   as possible
+8. Its better to do the loader using go/types
+9. Matching patterns of common things should be implemented in a central place
+10. Time converter should a nice addition

@@ -20,13 +20,13 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		[]int{},
 		[]int8{},
 		[]int16{},
-		// =[]byte
+		// =[]rune
 		[]int32{},
 		[]int64{},
 
 		// uint
 		[]uint{},
-		// =[]rune
+		// =[]byte
 		[]uint8{},
 		[]uint16{},
 		[]uint32{},
@@ -48,13 +48,13 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		[]*int{},
 		[]*int8{},
 		[]*int16{},
-		// []*byte
+		// []*rune
 		[]*int32{},
 		[]*int64{},
 
 		// ptr uint
 		[]*uint{},
-		// []*rune
+		// []*byte
 		[]*uint8{},
 		[]*uint16{},
 		[]*uint32{},
