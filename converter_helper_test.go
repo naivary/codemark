@@ -11,7 +11,7 @@ import (
 )
 
 func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
-	tester, err := sdktesting.NewConverterTester(conv)
+	tester, err := sdktesting.NewConverterTester(conv, nil)
 	if err != nil {
 		return nil, err
 	}

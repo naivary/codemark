@@ -5,19 +5,25 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 type converterTester struct {
 	conv  sdk.Converter
+	rand  func(rtype reflect.Type) parser.Marker
 	vvfns map[sdk.TypeID]ValidValueFunc
 	types map[sdk.TypeID]reflect.Type
 }
 
-func NewConverterTester(conv sdk.Converter) (ConverterTester, error) {
+func NewConverterTester(conv sdk.Converter, rand RandomMarkerFunc) (ConverterTester, error) {
+	if rand == nil {
+		rand = RandMarker
+	}
 	c := &converterTester{
 		conv:  conv,
+		rand:  rand,
 		vvfns: make(map[sdk.TypeID]ValidValueFunc),
 		types: make(map[sdk.TypeID]reflect.Type),
 	}
