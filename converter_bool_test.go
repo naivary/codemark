@@ -1,35 +1,10 @@
 package codemark
 
 import (
-	"reflect"
 	"testing"
 
 	sdktesting "github.com/naivary/codemark/sdk/testing"
-	"github.com/naivary/codemark/sdk/utils"
 )
-
-func isValidBool(got, want reflect.Value) bool {
-	got = utils.DeRefValue(got)
-	w := want.Interface().(bool)
-	return got.Bool() == w
-}
-
-func newConvTesterForBool() (sdktesting.ConverterTester, error) {
-	tester, err := sdktesting.NewConverterTester(&boolConverter{})
-	if err != nil {
-		return nil, err
-	}
-	for _, typ := range sdktesting.BoolTypes() {
-		rtype := reflect.TypeOf(typ)
-		if err := tester.AddType(rtype); err != nil {
-			return nil, err
-		}
-		if err := tester.AddVVFunc(rtype, isValidBool); err != nil {
-			return nil, err
-		}
-	}
-	return tester, nil
-}
 
 func TestBoolConverter(t *testing.T) {
 	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
@@ -40,7 +15,7 @@ func TestBoolConverter(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tester, err := newConvTesterForBool()
+	tester, err := newConvTester(&boolConverter{})
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
