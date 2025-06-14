@@ -1,6 +1,6 @@
-package sdk
+//go:generate stringer -type=Target
 
-import "fmt"
+package sdk
 
 // Target defines to which type of
 // expression a marker is appliable
@@ -21,26 +21,3 @@ const (
 	TargetStruct
 	TargetAny
 )
-
-var targetNames = map[Target]string{
-	TargetField:              "TargetField",
-	TargetType:               "TargetType",
-	TargetPackage:            "TargetPackage",
-	TargetFunc:               "TargetFunc",
-	TargetConst:              "TargetConst",
-	TargetVar:                "TargetVar",
-	TargetMethod:             "TargetMethod",
-	TargetInterface:          "TargetInterface",
-	TargetImport:             "TargetImport",
-	TargetAlias:              "TargetAlias",
-	TargetInterfaceSignature: "TargetInterfaceSignature",
-	TargetStruct:             "TargetStruct",
-	TargetAny:                "TargetAny",
-}
-
-func (t Target) String() string {
-	if name, ok := targetNames[t]; ok {
-		return name
-	}
-	return fmt.Sprintf("Target<%d>", t)
-}

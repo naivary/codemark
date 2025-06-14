@@ -12,11 +12,6 @@ type RandomMarkerFunc func(rtype reflect.Type) parser.Marker
 
 type ValidValueFunc func(got, want reflect.Value) bool
 
-type ConverterTesterConfig struct {
-	ValidValueFuncs map[sdk.TypeID]ValidValueFunc
-	Types           map[sdk.TypeID]reflect.Type
-}
-
 type ConverterTestCase struct {
 	Name         string
 	Marker       parser.Marker

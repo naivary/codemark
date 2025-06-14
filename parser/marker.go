@@ -1,3 +1,5 @@
+//go:generate stringer -type=MarkerKind
+
 package parser
 
 import (
@@ -39,22 +41,6 @@ const (
 	MarkerKindBool
 	MarkerKindList
 )
-
-var markerNames = map[MarkerKind]string{
-	MarkerKindString:  "MarkerKindString",
-	MarkerKindFloat:   "MarkerKindFloat",
-	MarkerKindInt:     "MarkerKindInt",
-	MarkerKindComplex: "MarkerKindComplex",
-	MarkerKindBool:    "MarkerKindBool",
-	MarkerKindList:    "MarkerKindList",
-}
-
-func (m MarkerKind) String() string {
-	if name, ok := markerNames[m]; ok {
-		return name
-	}
-	return fmt.Sprintf("MarkerKind<%d>", m)
-}
 
 type Marker interface {
 	String() string
