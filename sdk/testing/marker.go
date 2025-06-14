@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
@@ -88,7 +89,7 @@ func randList(typeID string) []any {
 
 func randInt(typeID string) func() int64 {
 	typeID, _ = strings.CutPrefix(typeID, "ptr.")
-	maxs := map[string]int64{
+	maxs := map[sdk.TypeID]int64{
 		"int":    math.MaxInt,
 		"int8":   math.MaxInt8,
 		"int16":  math.MaxInt16,
