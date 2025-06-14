@@ -1,14 +1,24 @@
 package testing
 
-import "testing"
+import (
+	"io"
+	"strings"
+	"testing"
+)
 
-func TestRandField(t *testing.T) {
-	s := randStruct()
-	t.Log(s.Name)
-	for _, m := range s.Markers {
-		t.Log(m)
+func TestLoaderTester(t *testing.T) {
+	tester, err := NewLoaderTester()
+	if err != nil {
+		t.Errorf("err occured: %v\n", err)
 	}
-	for _, f := range s.Fields {
-		t.Log(f.F.Name)
+	r, err := tester.NewFile()
+	if err != nil {
+		t.Errorf("err occured: %v\n", err)
 	}
+	var b strings.Builder
+	_, err = io.Copy(&b, r)
+	if err != nil {
+		t.Errorf("err occured: %v\n", err)
+	}
+	t.Log(b.String())
 }

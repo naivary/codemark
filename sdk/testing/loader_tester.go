@@ -1,69 +1,61 @@
 package testing
 
 import (
-	"fmt"
-	"os"
+	"bytes"
+	"io"
 	"reflect"
-	"testing"
 	"text/template"
 	"unicode"
 
 	"github.com/naivary/codemark/parser"
 )
 
-type File struct {
-	Structs []Struct
-}
-
-type Struct struct {
-	Name    string
-	Markers []parser.Marker
-	Fields  []Field
-}
-
-type Field struct {
-	F       reflect.StructField
-	Markers []parser.Marker
-}
-
 var _ LoaderTester = (*loaderTester)(nil)
 
 type loaderTester struct{}
 
 func NewLoaderTester() (LoaderTester, error) {
-	return nil, nil
+	return &loaderTester{}, nil
 }
 
-func (l *loaderTester) Run(t *testing.T, tc LoaderTestCase) {}
+func (l *loaderTester) NewFile() (io.Reader, error) {
+	tc := LoaderTestCase{}
+	structQuantity := quantity(6)
+	funcQuantity := quantity(4)
+	for range structQuantity {
+		tc.Structs = append(tc.Structs, randStruct())
+	}
+	for range funcQuantity {
+		tc.Funcs = append(tc.Funcs, randFunc())
+	}
+	tmpl, err := template.ParseGlob("tmpl/*")
+	if err != nil {
+		return nil, err
+	}
+	var b bytes.Buffer
+	err = tmpl.Execute(&b, &tc)
+	return &b, err
+}
 
 func randStruct() Struct {
 	fieldQuantity := (randInt64() % 6) + 1
+	methodQuantity := (randInt64() % 2) + 1
+
 	fields := make([]Field, 0, fieldQuantity)
+	methods := make([]Func, 0, methodQuantity)
 	for range fieldQuantity {
 		fields = append(fields, randField())
+	}
+	for range methodQuantity {
+		methods = append(methods, randFunc())
 	}
 	s := Struct{
 		Name:    randName(),
 		Fields:  fields,
 		Markers: randMarkers(),
+		Methods: methods,
 	}
-	t, err := template.ParseGlob("tmpl/*")
-	fmt.Println(err)
-	err = t.Execute(os.Stdout, File{[]Struct{s}})
-	fmt.Println(err)
 	return s
-}
-
-func randName() string {
-	name := randString()
-	for {
-		firstLetter := rune(name[0])
-		if !unicode.IsDigit(firstLetter) {
-			break
-		}
-		name = randString()
-	}
-	return name
 }
 
 func randField() Field {
@@ -72,6 +64,15 @@ func randField() Field {
 			Name: randName(),
 			Type: randType(),
 		},
+		Markers: randMarkers(),
+	}
+}
+
+func randFunc() Func {
+	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
+	return Func{
+		Name:    randName(),
+		Fn:      fn,
 		Markers: randMarkers(),
 	}
 }
@@ -113,4 +114,21 @@ func randType() reflect.Type {
 		return reflect.TypeFor[[]bool]()
 	}
 	return nil
+}
+
+func randName() string {
+	name := randString()
+	for {
+		firstLetter := rune(name[0])
+		if !unicode.IsDigit(firstLetter) {
+			break
+		}
+		name = randString()
+	}
+	return name
+}
+
+func quantity(mx int) int {
+	q := (randInt64() % int64(mx)) + 1
+	return int(q)
 }

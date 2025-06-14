@@ -2,13 +2,34 @@ package testing
 
 import (
 	"io"
-	"testing"
+	"reflect"
+
+	"github.com/naivary/codemark/parser"
 )
 
+type Func struct {
+	Name    string
+	Fn      reflect.Type
+	Markers []parser.Marker
+}
+
+type Struct struct {
+	Name    string
+	Markers []parser.Marker
+	Fields  []Field
+	Methods []Func
+}
+
+type Field struct {
+	F       reflect.StructField
+	Markers []parser.Marker
+}
+
 type LoaderTestCase struct {
-	File io.Reader
+	Structs []Struct
+	Funcs   []Func
 }
 
 type LoaderTester interface {
-	Run(t *testing.T, tc LoaderTestCase)
+	NewFile() (io.Reader, error)
 }
