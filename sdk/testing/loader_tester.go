@@ -1,22 +1,29 @@
 package testing
 
 import (
+	"fmt"
+	"os"
 	"reflect"
 	"testing"
+	"text/template"
 	"unicode"
 
 	"github.com/naivary/codemark/parser"
 )
 
+type File struct {
+	Structs []Struct
+}
+
 type Struct struct {
-	name    string
-	markers []parser.Marker
-	fields  []Field
+	Name    string
+	Markers []parser.Marker
+	Fields  []Field
 }
 
 type Field struct {
-	f       reflect.StructField
-	markers []parser.Marker
+	F       reflect.StructField
+	Markers []parser.Marker
 }
 
 var _ LoaderTester = (*loaderTester)(nil)
@@ -35,11 +42,16 @@ func randStruct() Struct {
 	for range fieldQuantity {
 		fields = append(fields, randField())
 	}
-	return Struct{
-		name:    randName(),
-		fields:  fields,
-		markers: randMarkers(),
+	s := Struct{
+		Name:    randName(),
+		Fields:  fields,
+		Markers: randMarkers(),
 	}
+	t, err := template.ParseGlob("tmpl/*")
+	fmt.Println(err)
+	err = t.Execute(os.Stdout, File{[]Struct{s}})
+	fmt.Println(err)
+	return s
 }
 
 func randName() string {
@@ -56,11 +68,11 @@ func randName() string {
 
 func randField() Field {
 	return Field{
-		f: reflect.StructField{
+		F: reflect.StructField{
 			Name: randName(),
 			Type: randType(),
 		},
-		markers: randMarkers(),
+		Markers: randMarkers(),
 	}
 }
 

@@ -19,24 +19,24 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 		int(0),
 		int8(0),
 		int16(0),
-		// byte
+		// rune
 		int32(0),
 		int64(0),
 		uint(0),
-		//rune
+		// byte
 		uint8(0),
 		uint16(0),
 		uint32(0),
 		uint64(0),
-		//pointer
+		// pointer
 		new(int),
 		new(int8),
 		new(int16),
-		// *byte
+		// *rune
 		new(int32),
 		new(int64),
 		new(uint),
-		// *rune
+		// *byte
 		new(uint8),
 		new(uint16),
 		new(uint32),
