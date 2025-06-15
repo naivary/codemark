@@ -58,6 +58,7 @@ type parser struct {
 	l *lexer.Lexer
 
 	state parseFunc
+
 	// all the markers which have been built, including error markers
 	markers []Marker
 
@@ -203,7 +204,11 @@ func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 }
 
 func parseListBoolElem(p *parser, t lexer.Token) (parseFunc, bool) {
-	val := reflect.ValueOf(t.Value)
+	b, err := strconv.ParseBool(t.Value)
+	if err != nil {
+		p.errorf("bool conversion failed: %s\n", t.Value)
+	}
+	val := reflect.ValueOf(b)
 	p.m.value = reflect.Append(p.m.value, val)
 	return parseListElem, _next
 }

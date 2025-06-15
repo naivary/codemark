@@ -1,6 +1,7 @@
 package codemark
 
 import (
+	"errors"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -25,10 +26,12 @@ func NewLocalLoader(mngr *ConverterManager, cfg *packages.Config) sdk.Loader {
 		mngr:    mngr,
 		proj:    &sdk.Project{},
 		methods: make(map[string][]sdk.FuncInfo),
+		cfg:     &packages.Config{},
 	}
-	if cfg == nil {
-		l.cfg = l.defaultConfig()
+	if cfg != nil {
+		l.cfg = cfg
 	}
+	l.cfg.Mode = packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes
 	l.cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
 		return parser.ParseFile(fset, filename, src, parser.ParseComments)
 	}
@@ -43,11 +46,11 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 	if len(pkgs) == 0 {
 		return nil, sdk.ErrPkgsEmpty
 	}
+	if packages.PrintErrors(pkgs) > 0 {
+		return nil, errors.New("error occured after load")
+	}
 	projs := make([]*sdk.Project, 0, len(pkgs))
 	for _, pkg := range pkgs {
-		if len(pkg.Errors) > 0 {
-			return nil, pkg.Errors[0]
-		}
 		for _, file := range pkg.Syntax {
 			if err := l.extractInfosFromFile(pkg, file); err != nil {
 				return nil, err
@@ -57,14 +60,10 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 			}
 			l.addMethodInfosOfTypes()
 		}
-		l.addProject(projs)
+		projs = append(projs, l.proj)
+		l.reset()
 	}
 	return projs, nil
-}
-
-func (l *localLoader) addProject(projs []*sdk.Project) {
-	projs = append(projs, l.proj)
-	l.reset()
 }
 
 func (l *localLoader) reset() {
@@ -80,12 +79,6 @@ func (l *localLoader) addMethodInfosOfTypes() {
 	for _, named := range l.proj.Named {
 		name := named.Spec.Name.Name
 		named.Methods = l.methods[name]
-	}
-}
-
-func (l *localLoader) defaultConfig() *packages.Config {
-	return &packages.Config{
-		Mode: packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes,
 	}
 }
 

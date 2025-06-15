@@ -35,9 +35,5 @@ func (b *boolConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
 }
 
 func (b *boolConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
-	return b.boolean(m, def)
-}
-
-func (b *boolConverter) boolean(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
