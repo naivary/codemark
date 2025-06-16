@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"os"
 	"path"
 	"reflect"
 	"strings"
@@ -8,49 +9,12 @@ import (
 	"unicode"
 
 	"github.com/naivary/codemark/parser"
-	"github.com/spf13/afero"
 )
 
-type LoaderTester interface {
-	NewFS() (afero.Fs, error)
-}
-
-var _ LoaderTester = (*loaderTester)(nil)
-
-type loaderTester struct{}
-
-func NewLoaderTester() (LoaderTester, error) {
-	return &loaderTester{}, nil
-}
-
-func (l *loaderTester) NewFS() (afero.Fs, error) {
-	tc := LoaderTestCase{}
-	structQuantity := quantity(6)
-	funcQuantity := quantity(4)
-	for range structQuantity {
-		tc.Structs = append(tc.Structs, RandStruct())
-	}
-	for range funcQuantity {
-		tc.Funcs = append(tc.Funcs, randFunc())
-	}
-	tmpl, err := template.ParseGlob("sdk/testing/tmpl/*")
-	if err != nil {
-		return nil, err
-	}
-	const baseDir = "codemark"
-	fs := afero.NewMemMapFs()
-	for _, t := range tmpl.Templates() {
-		name, _ := strings.CutSuffix(t.Name(), ".tmpl")
-		path := path.Join(baseDir, name)
-		file, err := fs.Create(path)
-		if err != nil {
-			return nil, err
-		}
-		if err := t.Execute(file, &tc); err != nil {
-			return nil, err
-		}
-	}
-	return fs, err
+type LoaderTestCase struct {
+	Dir     string
+	Structs []Struct
+	Funcs   []Func
 }
 
 type Func struct {
@@ -71,9 +35,38 @@ type Field struct {
 	Markers []parser.Marker
 }
 
-type LoaderTestCase struct {
-	Structs []Struct
-	Funcs   []Func
+func NewGoFiles() (LoaderTestCase, error) {
+	tc := LoaderTestCase{}
+	structQuantity := quantity(6)
+	funcQuantity := quantity(4)
+	for range structQuantity {
+		tc.Structs = append(tc.Structs, RandStruct())
+	}
+	for range funcQuantity {
+		tc.Funcs = append(tc.Funcs, randFunc())
+	}
+	tmpl, err := template.ParseGlob("sdk/testing/tmpl/*")
+	if err != nil {
+		return tc, err
+	}
+	tmpDir := os.TempDir()
+	dir, err := os.MkdirTemp(tmpDir, "cm-project")
+	if err != nil {
+		return tc, err
+	}
+	tc.Dir = dir
+	for _, t := range tmpl.Templates() {
+		name, _ := strings.CutSuffix(t.Name(), ".tmpl")
+		path := path.Join(dir, name)
+		file, err := os.Create(path)
+		if err != nil {
+			return tc, err
+		}
+		if err := t.Execute(file, &tc); err != nil {
+			return tc, err
+		}
+	}
+	return tc, err
 }
 
 func RandStruct() Struct {

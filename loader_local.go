@@ -43,11 +43,11 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(pkgs) == 0 {
-		return nil, sdk.ErrPkgsEmpty
-	}
 	if packages.PrintErrors(pkgs) > 0 {
 		return nil, errors.New("error occured after load")
+	}
+	if len(pkgs) == 0 {
+		return nil, sdk.ErrPkgsEmpty
 	}
 	projs := make([]*sdk.Project, 0, len(pkgs))
 	for _, pkg := range pkgs {
