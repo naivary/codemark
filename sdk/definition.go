@@ -15,7 +15,6 @@ type DefinitionMaker interface {
 	MustMakeDefWithHelp(ident string, output reflect.Type, help *DefinitionHelp, targets ...Target) *Definition
 }
 
-// TODO: Make it possible to store a Definition in a database
 type Definition struct {
 	// Name of the definition in the correct format
 	// e.g. +path:to:mark

@@ -1,5 +1,6 @@
 //go:generate stringer -type=MarkerKind
 
+// TODO: bring marker to sdk and sdk/utils
 package parser
 
 import (
