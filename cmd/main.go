@@ -38,11 +38,11 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	l := codemark.NewLocalLoader(conv, nil)
-	proj, err := l.Load("./testdata")
-	if err != nil {
-		return err
-	}
-	fmt.Println(proj[0].Structs[0].Defs)
+	_ = conv
+	// l := codemark.NewLocalLoader(conv, nil)
+	// proj, err := l.Load("./testdata")
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }

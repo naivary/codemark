@@ -2,6 +2,7 @@ package codemark
 
 import (
 	"errors"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -15,18 +16,16 @@ import (
 var _ sdk.Loader = (*localLoader)(nil)
 
 type localLoader struct {
-	mngr    *ConverterManager
-	cfg     *packages.Config
-	proj    *sdk.Project
-	methods map[string][]sdk.FuncInfo
+	mngr *ConverterManager
+	cfg  *packages.Config
+	proj *sdk.Project
 }
 
 func NewLocalLoader(mngr *ConverterManager, cfg *packages.Config) sdk.Loader {
 	l := &localLoader{
-		mngr:    mngr,
-		proj:    &sdk.Project{},
-		methods: make(map[string][]sdk.FuncInfo),
-		cfg:     &packages.Config{},
+		mngr: mngr,
+		proj: sdk.NewProject(),
+		cfg:  &packages.Config{},
 	}
 	if cfg != nil {
 		l.cfg = cfg
@@ -58,7 +57,6 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 			if err := l.extractPkgInfo(pkg, file); err != nil {
 				return nil, err
 			}
-			l.addMethodInfosOfTypes()
 		}
 		projs = append(projs, l.proj)
 		l.reset()
@@ -67,30 +65,15 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 }
 
 func (l *localLoader) reset() {
-	l.proj = &sdk.Project{}
-	l.methods = make(map[string][]sdk.FuncInfo)
+	l.proj = sdk.NewProject()
 }
 
-func (l *localLoader) addMethodInfosOfTypes() {
-	for _, struc := range l.proj.Structs {
-		name := struc.Spec.Name.Name
-		struc.Methods = l.methods[name]
+func (l *localLoader) objectOf(pkg *packages.Package, ident *ast.Ident) (types.Object, error) {
+	obj := pkg.TypesInfo.ObjectOf(ident)
+	if obj == nil {
+		return nil, fmt.Errorf("object not found: %v\n", ident)
 	}
-	for _, named := range l.proj.Named {
-		name := named.Spec.Name.Name
-		named.Methods = l.methods[name]
-	}
-}
-
-func (l *localLoader) addMethod(info sdk.FuncInfo) {
-	expr := info.Decl.Recv.List[0].Type
-	name := sdkutil.ExprName(expr)
-	infos, ok := l.methods[name]
-	if ok {
-		l.methods[name] = append(infos, info)
-		return
-	}
-	l.methods[name] = []sdk.FuncInfo{info}
+	return obj, nil
 }
 
 func (l *localLoader) extractInfosFromFile(pkg *packages.Package, file *ast.File) error {
@@ -164,7 +147,20 @@ func (l *localLoader) extractMethodInfo(pkg *packages.Package, decl *ast.FuncDec
 		Decl: decl,
 		Defs: defs,
 	}
-	l.addMethod(info)
+	rec := decl.Recv.List[0].Type
+	recIdent, isIdent := rec.(*ast.Ident)
+	if !isIdent {
+		return fmt.Errorf("is not *ast.Ident: %v\n", rec)
+	}
+	recObj, err := l.objectOf(pkg, recIdent)
+	if err != nil {
+		return err
+	}
+	methObj, err := l.objectOf(pkg, decl.Name)
+	if err != nil {
+		return err
+	}
+	l.proj.Structs[recObj].Methods[methObj] = info
 	return nil
 }
 
@@ -174,12 +170,16 @@ func (l *localLoader) extractFuncInfo(pkg *packages.Package, decl *ast.FuncDecl)
 	if err != nil {
 		return err
 	}
+	obj, err := l.objectOf(pkg, decl.Name)
+	if err != nil {
+		return err
+	}
 	info := sdk.FuncInfo{
 		Pkg:  pkg,
 		Decl: decl,
 		Defs: defs,
 	}
-	l.proj.Funcs = append(l.proj.Funcs, info)
+	l.proj.Funcs[obj] = info
 	return nil
 }
 
@@ -190,11 +190,10 @@ func (l *localLoader) extractPkgInfo(pkg *packages.Package, file *ast.File) erro
 		return err
 	}
 	info := sdk.PkgInfo{
-		Pkg:  pkg,
 		File: file,
 		Defs: defs,
 	}
-	l.proj.Pkgs = append(l.proj.Pkgs, info)
+	l.proj.Pkgs[pkg] = info
 	return nil
 }
 
@@ -212,7 +211,11 @@ func (l *localLoader) extractImportInfo(pkg *packages.Package, decl *ast.GenDecl
 			Decl: decl,
 			Defs: defs,
 		}
-		l.proj.Imports = append(l.proj.Imports, info)
+		obj, err := l.objectOf(pkg, spec.Name)
+		if err != nil {
+			return err
+		}
+		l.proj.Imports[obj] = info
 	}
 	return nil
 }
@@ -221,17 +224,23 @@ func (l *localLoader) extractVarInfo(pkg *packages.Package, decl *ast.GenDecl) e
 	specs := sdkutil.ConvertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
-		defs, err := l.mngr.ParseDefs(doc, sdk.TargetVar)
-		if err != nil {
-			return err
+		for _, name := range spec.Names {
+			defs, err := l.mngr.ParseDefs(doc, sdk.TargetVar)
+			if err != nil {
+				return err
+			}
+			info := sdk.VarInfo{
+				Pkg:  pkg,
+				Spec: spec,
+				Decl: decl,
+				Defs: defs,
+			}
+			obj, err := l.objectOf(pkg, name)
+			if err != nil {
+				return err
+			}
+			l.proj.Vars[obj] = info
 		}
-		info := sdk.VarInfo{
-			Pkg:  pkg,
-			Spec: spec,
-			Decl: decl,
-			Defs: defs,
-		}
-		l.proj.Vars = append(l.proj.Vars, info)
 	}
 	return nil
 }
@@ -240,17 +249,23 @@ func (l *localLoader) extractConstInfo(pkg *packages.Package, decl *ast.GenDecl)
 	specs := sdkutil.ConvertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
-		defs, err := l.mngr.ParseDefs(doc, sdk.TargetConst)
-		if err != nil {
-			return err
+		for _, name := range spec.Names {
+			defs, err := l.mngr.ParseDefs(doc, sdk.TargetConst)
+			if err != nil {
+				return err
+			}
+			info := sdk.ConstInfo{
+				Pkg:  pkg,
+				Spec: spec,
+				Decl: decl,
+				Defs: defs,
+			}
+			obj, err := l.objectOf(pkg, name)
+			if err != nil {
+				return err
+			}
+			l.proj.Consts[obj] = info
 		}
-		info := sdk.ConstInfo{
-			Pkg:  pkg,
-			Spec: spec,
-			Decl: decl,
-			Defs: defs,
-		}
-		l.proj.Consts = append(l.proj.Consts, info)
 	}
 	return nil
 }
@@ -267,7 +282,11 @@ func (l *localLoader) extractNamedTypeInfo(pkg *packages.Package, decl *ast.GenD
 		Decl: decl,
 		Defs: defs,
 	}
-	l.proj.Named = append(l.proj.Named, &info)
+	obj, err := l.objectOf(pkg, spec.Name)
+	if err != nil {
+		return err
+	}
+	l.proj.Named[obj] = &info
 	return nil
 }
 
@@ -289,7 +308,11 @@ func (l *localLoader) extractIfaceInfo(pkg *packages.Package, decl *ast.GenDecl,
 		Defs:       defs,
 		Signatures: sigs,
 	}
-	l.proj.Ifaces = append(l.proj.Ifaces, info)
+	obj, err := l.objectOf(pkg, spec.Name)
+	if err != nil {
+		return err
+	}
+	l.proj.Ifaces[obj] = info
 	return nil
 }
 
@@ -325,7 +348,11 @@ func (l *localLoader) extractAliasInfo(pkg *packages.Package, decl *ast.GenDecl,
 		Spec: spec,
 		Defs: defs,
 	}
-	l.proj.Aliases = append(l.proj.Aliases, info)
+	obj, err := l.objectOf(pkg, spec.Name)
+	if err != nil {
+		return err
+	}
+	l.proj.Aliases[obj] = info
 	return nil
 }
 
@@ -335,25 +362,30 @@ func (l *localLoader) extractStructInfo(pkg *packages.Package, decl *ast.GenDecl
 	if err != nil {
 		return err
 	}
+	obj, err := l.objectOf(pkg, spec.Name)
+	if err != nil {
+		return err
+	}
 	structType := spec.Type.(*ast.StructType)
 	info := sdk.StructInfo{
-		Defs:   defs,
-		Spec:   spec,
-		Decl:   decl,
-		Pkg:    pkg,
-		Fields: make([]sdk.FieldInfo, 0, structType.Fields.NumFields()),
+		Defs:    defs,
+		Spec:    spec,
+		Decl:    decl,
+		Pkg:     pkg,
+		Fields:  make(map[types.Object]sdk.FieldInfo, structType.Fields.NumFields()),
+		Methods: make(map[types.Object]sdk.FuncInfo, 0),
 	}
-	fieldInfos, err := l.extractFieldInfo(structType)
+	fieldInfos, err := l.extractFieldInfo(pkg, structType)
 	if err != nil {
 		return err
 	}
 	info.Fields = fieldInfos
-	l.proj.Structs = append(l.proj.Structs, &info)
+	l.proj.Structs[obj] = &info
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(spec *ast.StructType) ([]sdk.FieldInfo, error) {
-	infos := make([]sdk.FieldInfo, 0, 0)
+func (l *localLoader) extractFieldInfo(pkg *packages.Package, spec *ast.StructType) (map[types.Object]sdk.FieldInfo, error) {
+	infos := make(map[types.Object]sdk.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
 		if sdkutil.IsEmbedded(field) {
@@ -370,7 +402,11 @@ func (l *localLoader) extractFieldInfo(spec *ast.StructType) ([]sdk.FieldInfo, e
 				Field: field,
 				Defs:  defs,
 			}
-			infos = append(infos, info)
+			obj, err := l.objectOf(pkg, name)
+			if err != nil {
+				return nil, err
+			}
+			infos[obj] = info
 		}
 	}
 	return infos, nil

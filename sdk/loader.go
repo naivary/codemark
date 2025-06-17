@@ -3,6 +3,7 @@ package sdk
 import (
 	"errors"
 	"go/ast"
+	"go/types"
 
 	"golang.org/x/tools/go/packages"
 )
@@ -12,15 +13,29 @@ var (
 )
 
 type Project struct {
-	Structs []*StructInfo
-	Ifaces  []IfaceInfo
-	Aliases []AliasInfo
-	Named   []*NamedInfo
-	Consts  []ConstInfo
-	Vars    []VarInfo
-	Imports []ImportInfo
-	Funcs   []FuncInfo
-	Pkgs    []PkgInfo
+	Structs map[types.Object]*StructInfo
+	Ifaces  map[types.Object]IfaceInfo
+	Aliases map[types.Object]AliasInfo
+	Named   map[types.Object]*NamedInfo
+	Consts  map[types.Object]ConstInfo
+	Vars    map[types.Object]VarInfo
+	Imports map[types.Object]ImportInfo
+	Funcs   map[types.Object]FuncInfo
+	Pkgs    map[*packages.Package]PkgInfo
+}
+
+func NewProject() *Project {
+	return &Project{
+		Structs: make(map[types.Object]*StructInfo),
+		Ifaces:  make(map[types.Object]IfaceInfo),
+		Aliases: make(map[types.Object]AliasInfo),
+		Named:   make(map[types.Object]*NamedInfo),
+		Consts:  make(map[types.Object]ConstInfo),
+		Vars:    make(map[types.Object]VarInfo),
+		Imports: make(map[types.Object]ImportInfo),
+		Funcs:   make(map[types.Object]FuncInfo),
+		Pkgs:    make(map[*packages.Package]PkgInfo),
+	}
 }
 
 // TODO: I think its not needed to make loader extensible because the existence
@@ -37,7 +52,6 @@ type FuncInfo struct {
 }
 
 type PkgInfo struct {
-	Pkg  *packages.Package
 	File *ast.File
 	Defs map[string][]any
 }
@@ -100,8 +114,8 @@ type StructInfo struct {
 	Pkg  *packages.Package
 	Defs map[string][]any
 
-	Fields  []FieldInfo
-	Methods []FuncInfo
+	Fields  map[types.Object]FieldInfo
+	Methods map[types.Object]FuncInfo
 }
 
 type FieldInfo struct {
