@@ -39,7 +39,7 @@ func TestLoaderLocal(t *testing.T) {
 
 // TODO: what should be the logic to verify the corretnes of the loader?
 // check the number of got and wanted informations about types
-// did it load the correct marker?
+// did it load the correct marker? (name and value)
 func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
 	// check quantities
 	if len(tc.Structs) != len(proj.Structs) {

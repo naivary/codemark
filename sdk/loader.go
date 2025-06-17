@@ -23,6 +23,9 @@ type Project struct {
 	Pkgs    []PkgInfo
 }
 
+// TODO: I think its not needed to make loader extensible because the existence
+// of a project before loading it is required and must be provided independent
+// of the loader.
 type Loader interface {
 	Load(patterns ...string) ([]*Project, error)
 }
