@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/lexer"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 type DefinitionMaker interface {
@@ -51,7 +51,7 @@ func (d *Definition) IsDeprecated() (*string, bool) {
 }
 
 func (d *Definition) IsValid() error {
-	if err := lexer.IsValidIdent(d.Ident); err != nil {
+	if err := sdkutil.IsValidIdent(d.Ident); err != nil {
 		return err
 	}
 	if d.Output == nil {

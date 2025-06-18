@@ -3,6 +3,9 @@ package lexer
 import (
 	"strings"
 	"unicode"
+
+	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/sdk/utils"
 )
 
 func ignoreSpace(l *Lexer) {
@@ -62,7 +65,7 @@ func lexText(l *Lexer) stateFunc {
 
 func lexPlus(l *Lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindPlus)
+	l.emit(token.PLUS)
 	switch r := l.peek(); {
 	case !isAlphaLower(r):
 		return l.errorf("after a `+` an immediate identifier is expected. The identifier can only be in lower letters and has to contain two `:` describing the path")
@@ -79,7 +82,7 @@ func lexIdent(l *Lexer) stateFunc {
 	}
 	l.acceptFunc(valid)
 	ident := l.currentValue()
-	if err := IsValidIdent(ident); err != nil {
+	if err := utils.IsValidIdent(ident); err != nil {
 		return l.errorf("err: %s\n", err.Error())
 	}
 	l.emit(TokenKindIdent)

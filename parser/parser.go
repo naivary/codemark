@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/lexer"
+	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/sdk"
 )
 
 const (
@@ -42,12 +44,12 @@ func parseComplex128(v string) (complex128, error) {
 // should be passed instead
 type parseFunc func(*parser, lexer.Token) (parseFunc, bool)
 
-func Parse(input string) ([]Marker, error) {
+func Parse(input string) ([]sdk.Marker, error) {
 	const minMarker = 1
 	p := &parser{
 		l:       lexer.Lex(input),
 		state:   parsePlus,
-		markers: make([]Marker, 0, minMarker),
+		markers: make([]sdk.Marker, 0, minMarker),
 		m:       &marker{},
 	}
 	p.run()
@@ -60,7 +62,7 @@ type parser struct {
 	state parseFunc
 
 	// all the markers which have been built, including error markers
-	markers []Marker
+	markers []sdk.Marker
 
 	// the current marker which is being built
 	m *marker
@@ -75,7 +77,7 @@ func (p *parser) run() {
 		if next {
 			token = p.l.NextToken()
 		}
-		if token.Kind == lexer.TokenKindError {
+		if token.Kind == token.ERROR {
 			state, next = p.errorf("failed while lexing: %s", token.Value)
 			// we can either break or use continue. To convey to the usual
 			// pattern of returning the next state and _next or _keep it's
@@ -172,13 +174,13 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse complex value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = MarkerKindComplex
+	p.m.kind = sdk.MarkerKindComplex
 	p.m.value = reflect.ValueOf(c)
 	return parseEOF, _next
 }
 
 func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = MarkerKindList
+	p.m.kind = sdk.MarkerKindList
 	// slice of type any because the choosen output type of the user might be
 	// []any.
 	rtype := reflect.TypeOf([]any{})
@@ -188,7 +190,7 @@ func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
-	case lexer.TokenKindString:
+	case token.STRING:
 		return parseListStringElem, _keep
 	case lexer.TokenKindInt:
 		return parseListIntElem, _keep
