@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -28,8 +29,8 @@ func (s *stringConverter) SupportedTypes() []reflect.Type {
 }
 
 func (s *stringConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
-	if m.Kind() != parser.MarkerKindString {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), parser.MarkerKindString)
+	if m.Kind() != marker.STRING {
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), marker.STRING)
 	}
 	return nil
 }

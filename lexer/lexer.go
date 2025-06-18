@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/naivary/codemark/lexer/token"
 )
 
 const (
@@ -62,7 +64,7 @@ func (l *Lexer) run() {
 }
 
 func (l *Lexer) errorf(format string, args ...any) stateFunc {
-	l.tokens <- NewToken(TokenKindError, fmt.Sprintf(format, args...))
+	l.tokens <- NewToken(token.ERROR, fmt.Sprintf(format, args...))
 	l.start = 0
 	l.pos = 0
 	l.input = l.input[:0]
@@ -81,7 +83,7 @@ func (l *Lexer) next() rune {
 	return r
 }
 
-func (l *Lexer) emit(kind TokenKind) {
+func (l *Lexer) emit(kind token.Kind) {
 	l.tokens <- NewToken(kind, l.currentValue())
 	l.start = l.pos
 }

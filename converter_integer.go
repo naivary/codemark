@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -53,13 +54,13 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 func (i *intConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
 	mkind := m.Kind()
 	out := sdkutil.Deref(def.Output)
-	if mkind == parser.MarkerKindInt {
+	if mkind == marker.INT {
 		return nil
 	}
-	if mkind == parser.MarkerKindString && out.Kind() == _byte || out.Kind() == _rune {
+	if mkind == marker.STRING && out.Kind() == _byte || out.Kind() == _rune {
 		return nil
 	}
-	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s\n", m.Kind(), parser.MarkerKindInt, parser.MarkerKindString)
+	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s\n", m.Kind(), marker.INT, marker.STRING)
 }
 
 func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
@@ -80,7 +81,7 @@ func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Va
 func (i *intConverter) integer(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	n := m.Value().Int()
 	if i.isOverflowingInt(def.Output, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)
 	}
 	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
@@ -88,7 +89,7 @@ func (i *intConverter) integer(m parser.Marker, def *sdk.Definition) (reflect.Va
 func (i *intConverter) uinteger(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	n := m.Value().Int()
 	if i.isOverflowingUint(def.Output, uint64(n)) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)
 	}
 	return sdkutil.ConvertTo(m.Value(), def.Output)
 }
@@ -119,14 +120,14 @@ func (i *intConverter) isOverflowingUint(out reflect.Type, n uint64) bool {
 	return sdkutil.Deref(out).OverflowUint(n)
 }
 
-func (i *intConverter) isInteger(typeID string, mkind parser.MarkerKind) bool {
-	return (strings.HasPrefix(typeID, "int") || strings.HasPrefix(typeID, "ptr.int")) && mkind == parser.MarkerKindInt
+func (i *intConverter) isInteger(typeID string, mkind marker.Kind) bool {
+	return (strings.HasPrefix(typeID, "int") || strings.HasPrefix(typeID, "ptr.int")) && mkind == marker.INT
 }
 
-func (i *intConverter) isUint(typeID string, mkind parser.MarkerKind) bool {
-	return (strings.HasPrefix(typeID, "uint") || strings.HasPrefix(typeID, "ptr.uint")) && mkind == parser.MarkerKindInt
+func (i *intConverter) isUint(typeID string, mkind marker.Kind) bool {
+	return (strings.HasPrefix(typeID, "uint") || strings.HasPrefix(typeID, "ptr.uint")) && mkind == marker.INT
 }
 
-func (i *intConverter) isByte(typeID string, mkind parser.MarkerKind) bool {
-	return (strings.HasPrefix(typeID, "ptr.int32") || strings.HasPrefix(typeID, "int32")) && mkind == parser.MarkerKindString
+func (i *intConverter) isByte(typeID string, mkind marker.Kind) bool {
+	return (strings.HasPrefix(typeID, "ptr.int32") || strings.HasPrefix(typeID, "int32")) && mkind == marker.STRING
 }

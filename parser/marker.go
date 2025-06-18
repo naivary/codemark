@@ -5,32 +5,29 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/parser/marker"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-var _ sdk.Marker = (*marker)(nil)
-
-type marker struct {
+type Marker struct {
 	ident string
-	kind  sdk.MarkerKind
+	kind  marker.Kind
 	value reflect.Value
 }
 
-func NewMarker(ident string, kind sdk.MarkerKind, value reflect.Value) sdk.Marker {
-	m := &marker{
+func NewMarker(ident string, kind marker.Kind, value reflect.Value) Marker {
+	return Marker{
 		ident: ident,
 		kind:  kind,
 		value: value,
 	}
-	return m
 }
 
-func (m *marker) String() string {
-	if m.kind == sdk.MarkerKindString {
+func (m *Marker) String() string {
+	if m.kind == marker.STRING {
 		return fmt.Sprintf(`%s="%v"`, m.ident, m.value)
 	}
-	if m.kind == sdk.MarkerKindList {
+	if m.kind == marker.LIST {
 		list := fmt.Sprintf(`%#v`, m.value)
 		list, _ = strings.CutPrefix(list, "[]interface {}")
 		list = strings.ReplaceAll(list, "{", "[")
@@ -39,7 +36,7 @@ func (m *marker) String() string {
 		list = strings.ReplaceAll(list, ")", "")
 		return fmt.Sprintf("%s=%s", m.ident, list)
 	}
-	if m.kind == sdk.MarkerKindComplex {
+	if m.kind == marker.COMPLEX {
 		c := fmt.Sprintf("%v", m.value)
 		c = strings.ReplaceAll(c, "(", "")
 		c = strings.ReplaceAll(c, ")", "")
@@ -48,18 +45,18 @@ func (m *marker) String() string {
 	return fmt.Sprintf("%s=%v", m.ident, m.value)
 }
 
-func (m *marker) Ident() string {
+func (m *Marker) Ident() string {
 	return m.ident
 }
 
-func (m *marker) Kind() sdk.MarkerKind {
+func (m *Marker) Kind() marker.Kind {
 	return m.kind
 }
 
-func (m *marker) Value() reflect.Value {
+func (m *Marker) Value() reflect.Value {
 	return m.value
 }
 
-func (m *marker) IsValid() error {
+func (m *Marker) IsValid() error {
 	return sdkutil.IsValidIdent(m.ident)
 }

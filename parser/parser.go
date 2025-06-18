@@ -8,7 +8,7 @@ import (
 
 	"github.com/naivary/codemark/lexer"
 	"github.com/naivary/codemark/lexer/token"
-	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/parser/marker"
 )
 
 const (
@@ -44,13 +44,13 @@ func parseComplex128(v string) (complex128, error) {
 // should be passed instead
 type parseFunc func(*parser, lexer.Token) (parseFunc, bool)
 
-func Parse(input string) ([]sdk.Marker, error) {
+func Parse(input string) ([]Marker, error) {
 	const minMarker = 1
 	p := &parser{
 		l:       lexer.Lex(input),
 		state:   parsePlus,
-		markers: make([]sdk.Marker, 0, minMarker),
-		m:       &marker{},
+		markers: make([]Marker, 0, minMarker),
+		m:       &Marker{},
 	}
 	p.run()
 	return p.markers, p.err
@@ -62,35 +62,35 @@ type parser struct {
 	state parseFunc
 
 	// all the markers which have been built, including error markers
-	markers []sdk.Marker
+	markers []Marker
 
 	// the current marker which is being built
-	m *marker
+	m *Marker
 
 	err error
 }
 
 func (p *parser) run() {
 	next := false
-	token := p.l.NextToken()
+	t := p.l.NextToken()
 	for state := p.state; state != nil; {
 		if next {
-			token = p.l.NextToken()
+			t = p.l.NextToken()
 		}
-		if token.Kind == token.ERROR {
-			state, next = p.errorf("failed while lexing: %s", token.Value)
+		if t.Kind == token.ERROR {
+			state, next = p.errorf("failed while lexing: %s", t.Value)
 			// we can either break or use continue. To convey to the usual
 			// pattern of returning the next state and _next or _keep it's
 			// better to use conutinue
 			continue
 		}
-		state, next = state(p, token)
+		state, next = state(p, t)
 	}
 }
 
 func (p *parser) emit() {
-	p.markers = append(p.markers, p.m)
-	p.m = &marker{}
+	p.markers = append(p.markers, *p.m)
+	p.m = &Marker{}
 }
 
 func (p *parser) errorf(format string, args ...any) (parseFunc, bool) {
@@ -99,7 +99,7 @@ func (p *parser) errorf(format string, args ...any) (parseFunc, bool) {
 }
 
 func parsePlus(p *parser, t lexer.Token) (parseFunc, bool) {
-	if t.Kind == lexer.TokenKindEOF {
+	if t.Kind == token.EOF {
 		return nil, _keep
 	}
 	return parseIdent, _next
@@ -116,17 +116,17 @@ func parseAssignment(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseValue(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
-	case lexer.TokenKindString:
+	case token.STRING:
 		return parseString, _keep
-	case lexer.TokenKindInt:
+	case token.INT:
 		return parseInt, _keep
-	case lexer.TokenKindComplex:
+	case token.COMPLEX:
 		return parseComplex, _keep
-	case lexer.TokenKindFloat:
+	case token.FLOAT:
 		return parseFloat, _keep
-	case lexer.TokenKindBool:
+	case token.BOOL:
 		return parseBool, _keep
-	case lexer.TokenKindOpenSquareBracket:
+	case token.LBRACK:
 		return parseListStart, _keep
 	default:
 		return p.errorf("A wrong kind is passed as a TokenKind from the lexer. This should usually never happen! Found kind is: `%s`", t)
@@ -138,13 +138,13 @@ func parseBool(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse boolean value: %s", t.Value)
 	}
-	p.m.kind = MarkerKindBool
+	p.m.kind = marker.BOOL
 	p.m.value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
 func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = MarkerKindString
+	p.m.kind = marker.STRING
 	p.m.value = reflect.ValueOf(t.Value)
 	return parseEOF, _next
 }
@@ -154,7 +154,7 @@ func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse int value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = MarkerKindInt
+	p.m.kind = marker.INT
 	p.m.value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
@@ -164,7 +164,7 @@ func parseFloat(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse float value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = MarkerKindFloat
+	p.m.kind = marker.FLOAT
 	p.m.value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
@@ -174,15 +174,15 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse complex value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = sdk.MarkerKindComplex
+	p.m.kind = marker.COMPLEX
 	p.m.value = reflect.ValueOf(c)
 	return parseEOF, _next
 }
 
 func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = sdk.MarkerKindList
-	// slice of type any because the choosen output type of the user might be
-	// []any.
+	p.m.kind = marker.LIST
+	// slice of type any because the choosen output type of the
+	// user might be []any.
 	rtype := reflect.TypeOf([]any{})
 	p.m.value = reflect.MakeSlice(rtype, 0, 1)
 	return parseListElem, _next
@@ -192,13 +192,13 @@ func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
 	case token.STRING:
 		return parseListStringElem, _keep
-	case lexer.TokenKindInt:
+	case token.INT:
 		return parseListIntElem, _keep
-	case lexer.TokenKindFloat:
+	case token.FLOAT:
 		return parseListFloatElem, _keep
-	case lexer.TokenKindComplex:
+	case token.COMPLEX:
 		return parseListComplexElem, _keep
-	case lexer.TokenKindBool:
+	case token.BOOL:
 		return parseListBoolElem, _keep
 	default:
 		return parseListEnd, _keep

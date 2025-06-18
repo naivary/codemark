@@ -2,6 +2,8 @@ package lexer
 
 import (
 	"testing"
+
+	"github.com/naivary/codemark/lexer/token"
 )
 
 func TestScanString(t *testing.T) {
@@ -46,67 +48,67 @@ func TestScanNumber(t *testing.T) {
 		name    string
 		input   string
 		isValid bool
-		kind    TokenKind
+		kind    token.Kind
 	}{
 		{
 			name:    "real positive number",
 			input:   "3",
 			isValid: true,
-			kind:    TokenKindInt,
+			kind:    token.INT,
 		},
 		{
 			name:    "real positive number with sign",
 			input:   "+3",
 			isValid: true,
-			kind:    TokenKindInt,
+			kind:    token.INT,
 		},
 		{
 			name:    "negative real number",
 			input:   "-3",
 			isValid: true,
-			kind:    TokenKindInt,
+			kind:    token.INT,
 		},
 		{
 			name:    "positive float number",
 			input:   "3.02",
 			isValid: true,
-			kind:    TokenKindFloat,
+			kind:    token.FLOAT,
 		},
 		{
 			name:    "negative float number",
 			input:   "-3.02",
 			isValid: true,
-			kind:    TokenKindFloat,
+			kind:    token.FLOAT,
 		},
 		{
 			name:    "positive complex number",
 			input:   "3+2i",
 			isValid: true,
-			kind:    TokenKindComplex,
+			kind:    token.COMPLEX,
 		},
 		{
 			name:    "negative complex number",
 			input:   "-3-2i",
 			isValid: true,
-			kind:    TokenKindComplex,
+			kind:    token.COMPLEX,
 		},
 		{
 			name:    "complex number wrong order",
 			input:   "2i+3",
 			isValid: false,
-			kind:    TokenKindError,
+			kind:    token.ERROR,
 		},
 		{
 			name:    "big positive int number",
 			input:   "293123901273",
 			isValid: true,
-			kind:    TokenKindInt,
+			kind:    token.INT,
 		},
 		{
 			name:    "big positive float number",
 			input:   "293123901273.2831739",
 			isValid: true,
-			kind:    TokenKindFloat,
+			kind:    token.FLOAT,
 		},
 	}
 

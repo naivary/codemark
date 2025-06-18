@@ -85,7 +85,7 @@ func lexIdent(l *Lexer) stateFunc {
 	if err := utils.IsValidIdent(ident); err != nil {
 		return l.errorf("err: %s\n", err.Error())
 	}
-	l.emit(TokenKindIdent)
+	l.emit(token.IDENT)
 	switch r := l.peek(); {
 	case r == '=':
 		return lexAssignment
@@ -98,7 +98,7 @@ func lexIdent(l *Lexer) stateFunc {
 
 func lexAssignment(l *Lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindAssignment)
+	l.emit(token.ASSIGN)
 	switch r := l.peek(); {
 	case r == '[':
 		return lexOpenSquareBracket
@@ -114,9 +114,9 @@ func lexAssignment(l *Lexer) stateFunc {
 }
 
 func lexBoolWithoutAssignment(l *Lexer) stateFunc {
-	assignToken := NewToken(TokenKindAssignment, "=")
+	assignToken := NewToken(token.ASSIGN, "=")
 	l.emitToken(assignToken)
-	t := NewToken(TokenKindBool, "true")
+	t := NewToken(token.BOOL, "true")
 	l.emitToken(t)
 	return lexEndOfExpr
 }
@@ -134,7 +134,7 @@ func lexBool(l *Lexer) stateFunc {
 		}
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
-	l.emit(TokenKindBool)
+	l.emit(token.BOOL)
 	return lexEndOfExpr
 }
 
@@ -149,7 +149,7 @@ func lexNumber(l *Lexer) stateFunc {
 
 func lexOpenSquareBracket(l *Lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindOpenSquareBracket)
+	l.emit(token.LBRACK)
 	switch r := l.peek(); {
 	case r == ']':
 		return lexCloseSquareBracket
@@ -192,7 +192,7 @@ func lexBoolArrayValue(l *Lexer) stateFunc {
 		}
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
-	l.emit(TokenKindBool)
+	l.emit(token.BOOL)
 	return lexArraySequence
 }
 
@@ -229,7 +229,7 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 	if err := scanString(l); err != nil {
 		return l.errorf("error: %s\n", err.Error())
 	}
-	l.emit(TokenKindString)
+	l.emit(token.STRING)
 	switch r := l.peek(); {
 	case r == '"':
 		return lexEndDoubleQuotationMarkString
@@ -250,7 +250,7 @@ func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	if err := scanString(l); err != nil {
 		return l.errorf("error: %s\n", err.Error())
 	}
-	l.emit(TokenKindString)
+	l.emit(token.STRING)
 	switch r := l.peek(); {
 	case r == '"':
 		return lexEndDoubleQuotationMarkStringArray
@@ -267,7 +267,7 @@ func lexEndDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 
 func lexCloseSquareBracket(l *Lexer) stateFunc {
 	l.next()
-	l.emit(TokenKindCloseSquareBracket)
+	l.emit(token.RBRACK)
 	return lexEndOfExpr
 }
 
@@ -285,6 +285,6 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 }
 
 func lexEOF(l *Lexer) stateFunc {
-	l.emit(TokenKindEOF)
+	l.emit(token.EOF)
 	return nil
 }

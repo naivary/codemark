@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -30,8 +31,8 @@ func (f *floatConverter) SupportedTypes() []reflect.Type {
 }
 
 func (f *floatConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
-	if m.Kind() != parser.MarkerKindFloat {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a float. valid option is: %s\n", m.Kind(), parser.MarkerKindFloat)
+	if m.Kind() != marker.FLOAT {
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a float. valid option is: %s\n", m.Kind(), marker.FLOAT)
 	}
 	return nil
 }
@@ -43,7 +44,7 @@ func (f *floatConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.
 func (f *floatConverter) float(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
 	n := m.Value().Float()
 	if f.isOverflowing(def.Output, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m, def.Output)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)
 	}
 	return sdkutil.ConvertTo(m.Value(), def.Output)
 }

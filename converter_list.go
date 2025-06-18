@@ -5,7 +5,9 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 var _ sdk.Converter = (*listConverter)(nil)
@@ -81,8 +83,8 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 }
 
 func (l *listConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
-	if m.Kind() != parser.MarkerKindList {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), parser.MarkerKindString)
+	if m.Kind() != marker.LIST {
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), marker.LIST)
 	}
 	return nil
 }
@@ -111,7 +113,7 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	if err != nil {
 		return _rvzero, err
 	}
-	markerKind := parser.MarkerKindOf(rvalue.Type())
+	markerKind := sdkutil.MarkerKindOf(rvalue.Type())
 	fakeMarker := parser.NewMarker("codemark:list:fake", markerKind, rvalue)
 	fakeDef, err := MakeDef("codemark:list:fake", typ, sdk.TargetAny)
 	if err != nil {

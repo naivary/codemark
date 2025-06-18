@@ -3,10 +3,12 @@ package lexer
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/naivary/codemark/lexer/token"
 )
 
-func scanRealNumber(l *Lexer) (TokenKind, error) {
-	kind := TokenKindInt
+func scanRealNumber(l *Lexer) (token.Kind, error) {
+	kind := token.INT
 	l.accept("+-")
 	digits := "0123456789_"
 	// Is it hex?
@@ -22,7 +24,7 @@ func scanRealNumber(l *Lexer) (TokenKind, error) {
 	}
 	l.acceptRun(digits)
 	if l.accept(".") {
-		kind = TokenKindFloat
+		kind = token.FLOAT
 		l.acceptRun(digits)
 	}
 	if len(digits) == 10+1 && l.accept("eE") {
@@ -32,31 +34,32 @@ func scanRealNumber(l *Lexer) (TokenKind, error) {
 	return kind, nil
 }
 
-func scanNumber(l *Lexer) (TokenKind, error) {
+func scanNumber(l *Lexer) (token.Kind, error) {
+	// TODO: I think we can set before the return kind = token.COMPLEX
 	var err error
-	kind := TokenKindInt
+	kind := token.INT
 	kind, err = scanRealNumber(l)
 	if err != nil {
-		return TokenKindError, err
+		return token.ERROR, err
 	}
 	if l.accept("i") {
 		if l.accept("+-") {
-			return TokenKindError, ErrRealBeforeComplex
+			return token.ERROR, ErrRealBeforeComplex
 		}
-		kind = TokenKindComplex
+		kind = token.COMPLEX
 	}
 	r := l.peek()
 	// Next thing mustn't be alphanumeric.
 	if isAlphaNumeric(r) {
 		l.next()
-		return TokenKindError, ErrBadSyntaxForNumber
+		return token.ERROR, ErrBadSyntaxForNumber
 	}
 	if l.accept("+-") {
 		_, err = scanRealNumber(l)
 		if !l.accept("i") {
-			return TokenKindError, ErrImagMissing
+			return token.ERROR, ErrImagMissing
 		}
-		kind = TokenKindComplex
+		kind = token.COMPLEX
 	}
 	return kind, err
 }

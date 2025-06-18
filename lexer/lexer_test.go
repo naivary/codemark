@@ -2,6 +2,8 @@ package lexer
 
 import (
 	"testing"
+
+	"github.com/naivary/codemark/lexer/token"
 )
 
 func TestLexer_Lex(t *testing.T) {
@@ -258,13 +260,13 @@ this is the doc`,
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			l := Lex(tc.input)
-			for token := range l.tokens {
-				t.Log(token)
-				if token.Kind == TokenKindError && tc.isValid {
-					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, token.Value)
+			for tk := range l.tokens {
+				t.Log(tk)
+				if tk.Kind == token.ERROR && tc.isValid {
+					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, tk.Value)
 				}
 
-				if token.Kind == TokenKindEOF && !tc.isValid {
+				if tk.Kind == token.EOF && !tc.isValid {
 					t.Fatalf("expected an error and didn't get one for `%s`", tc.input)
 				}
 			}

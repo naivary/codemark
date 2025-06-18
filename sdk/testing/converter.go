@@ -8,7 +8,7 @@ import (
 	"github.com/naivary/codemark/sdk"
 )
 
-type RandomMarkerFunc func(rtype reflect.Type) parser.Marker
+type RandomMarkerFunc func(rtype reflect.Type) *parser.Marker
 
 type ValidValueFunc func(got, want reflect.Value) bool
 

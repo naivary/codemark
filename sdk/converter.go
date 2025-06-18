@@ -2,6 +2,8 @@ package sdk
 
 import (
 	"reflect"
+
+	"github.com/naivary/codemark/parser"
 )
 
 type TypeID = string
@@ -15,10 +17,10 @@ type Converter interface {
 	// possible. You can be sure that the convert is choosen correctly by the
 	// ConverterManager and do not have to check if the `def.Output` is
 	// convertible using this converter.
-	CanConvert(m Marker, def *Definition) error
+	CanConvert(m parser.Marker, def *Definition) error
 
 	// Convert converts the marker to `def.Output`
-	Convert(m Marker, def *Definition) (reflect.Value, error)
+	Convert(m parser.Marker, def *Definition) (reflect.Value, error)
 }
 
 type ConverterManager interface {
@@ -28,7 +30,7 @@ type ConverterManager interface {
 
 	AddConvByRefType(rtype reflect.Type, conv Converter) error
 
-	Convert(mrk Marker, target Target) (any, error)
+	Convert(mrk parser.Marker, target Target) (any, error)
 
 	ParseDefs(doc string, t Target) (map[string][]any, error)
 }

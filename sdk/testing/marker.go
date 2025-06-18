@@ -29,18 +29,20 @@ func NewIdent(typeID string) string {
 	return fmt.Sprintf("codemark:testing:%s", typeID)
 }
 
-func RandMarkerWithIdent(ident string, rtype reflect.Type) sdk.Marker {
+func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
 	typeID := sdkutil.TypeIDOf(rtype)
 	v := randValueFromTypeID(typeID)
 	value := reflect.ValueOf(v)
-	return parser.NewMarker(ident, sdk.MarkerKindOf(rtype), value)
+	m := parser.NewMarker(ident, sdkutil.MarkerKindOf(rtype), value)
+	return &m
 }
 
-func RandMarker(rtype reflect.Type) sdk.Marker {
+func RandMarker(rtype reflect.Type) *parser.Marker {
 	typeID := sdkutil.TypeIDOf(rtype)
 	v := randValueFromTypeID(typeID)
 	value := reflect.ValueOf(v)
-	return parser.NewMarker(NewIdent(typeID), sdk.MarkerKindOf(rtype), value)
+	m := parser.NewMarker(NewIdent(typeID), sdkutil.MarkerKindOf(rtype), value)
+	return &m
 }
 
 func randValueFromTypeID(typeID string) any {

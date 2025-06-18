@@ -112,7 +112,7 @@ func randMarkers() []parser.Marker {
 	markerQuantity := (randInt64() % 5) + 1
 	markers := make([]parser.Marker, 0, markerQuantity)
 	for range markerQuantity {
-		markers = append(markers, RandMarker(randType()))
+		markers = append(markers, *RandMarker(randType()))
 	}
 	return markers
 }

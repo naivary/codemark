@@ -1,3 +1,5 @@
+//go:generate stringer -type=Kind
+
 package token
 
 type Kind int

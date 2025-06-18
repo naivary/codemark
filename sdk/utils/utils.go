@@ -2,9 +2,33 @@ package utils
 
 import (
 	"fmt"
+	"reflect"
 	"strings"
 	"unicode"
+
+	"github.com/naivary/codemark/parser/marker"
 )
+
+func MarkerKindOf(typ reflect.Type) marker.Kind {
+	kind := Deref(typ).Kind()
+	switch kind {
+	case reflect.Slice:
+		return marker.LIST
+	// rune=int32 & byte=uint8
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return marker.INT
+	case reflect.Float32, reflect.Float64:
+		return marker.FLOAT
+	case reflect.Complex64, reflect.Complex128:
+		return marker.COMPLEX
+	case reflect.Bool:
+		return marker.BOOL
+	case reflect.String:
+		return marker.STRING
+	}
+	return 0
+}
 
 func IsValidIdent(ident string) error {
 	plus := "+"

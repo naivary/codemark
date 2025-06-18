@@ -14,7 +14,7 @@ var _ ConverterTester = (*converterTester)(nil)
 
 type converterTester struct {
 	conv  sdk.Converter
-	rand  func(rtype reflect.Type) parser.Marker
+	rand  func(rtype reflect.Type) *parser.Marker
 	vvfns map[sdk.TypeID]ValidValueFunc
 	types map[sdk.TypeID]reflect.Type
 }
@@ -55,7 +55,7 @@ func (c *converterTester) NewTest(rtype reflect.Type, isValidCase bool, target s
 	name := fmt.Sprintf("marker[%s] to %v", marker.Ident(), to)
 	tc := ConverterTestCase{
 		Name:         name,
-		Marker:       marker,
+		Marker:       *marker,
 		Target:       target,
 		ToType:       to,
 		IsValidCase:  isValidCase,
