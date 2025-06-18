@@ -13,8 +13,8 @@ import (
 
 type LoaderTestCase struct {
 	Dir     string
-	Structs []Struct
-	Funcs   []Func
+	Structs map[string]Struct
+	Funcs   map[string]Func
 }
 
 type Func struct {
@@ -36,14 +36,19 @@ type Field struct {
 }
 
 func NewGoFiles() (LoaderTestCase, error) {
-	tc := LoaderTestCase{}
+	tc := LoaderTestCase{
+		Structs: make(map[string]Struct),
+		Funcs: make(map[string]Func),
+	}
 	structQuantity := quantity(6)
 	funcQuantity := quantity(4)
 	for range structQuantity {
-		tc.Structs = append(tc.Structs, RandStruct())
+		s := RandStruct()
+		tc.Structs[s.Name] = s
 	}
 	for range funcQuantity {
-		tc.Funcs = append(tc.Funcs, randFunc())
+		fn := RandFunc()
+		tc.Funcs[fn.Name] = fn
 	}
 	tmpl, err := template.ParseGlob("sdk/testing/tmpl/*")
 	if err != nil {
@@ -78,7 +83,7 @@ func RandStruct() Struct {
 		fields = append(fields, randField())
 	}
 	for range methodQuantity {
-		methods = append(methods, randFunc())
+		methods = append(methods, RandFunc())
 	}
 	s := Struct{
 		Name:    randName(),
@@ -99,7 +104,7 @@ func randField() Field {
 	}
 }
 
-func randFunc() Func {
+func RandFunc() Func {
 	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
 	return Func{
 		Name:    randName(),

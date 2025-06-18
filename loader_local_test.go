@@ -48,6 +48,5 @@ func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
 	if len(tc.Funcs) != len(proj.Funcs) {
 		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(tc.Funcs), len(proj.Funcs))
 	}
-
 	return nil
 }
