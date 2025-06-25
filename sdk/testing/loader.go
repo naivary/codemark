@@ -15,6 +15,7 @@ type LoaderTestCase struct {
 	Dir     string
 	Structs map[string]Struct
 	Funcs   map[string]Func
+	Consts  map[string]Const
 }
 
 type Func struct {
@@ -26,8 +27,8 @@ type Func struct {
 type Struct struct {
 	Name    string
 	Markers []parser.Marker
-	Fields  []Field
-	Methods []Func
+	Fields  map[string]Field
+	Methods map[string]Func
 }
 
 type Field struct {
@@ -35,13 +36,21 @@ type Field struct {
 	Markers []parser.Marker
 }
 
+type Const struct {
+	Name    string
+	Value   int64
+	Markers []parser.Marker
+}
+
 func NewGoFiles() (LoaderTestCase, error) {
 	tc := LoaderTestCase{
 		Structs: make(map[string]Struct),
-		Funcs: make(map[string]Func),
+		Funcs:   make(map[string]Func),
+		Consts:  make(map[string]Const),
 	}
 	structQuantity := quantity(6)
 	funcQuantity := quantity(4)
+	constQuantity := quantity(10)
 	for range structQuantity {
 		s := RandStruct()
 		tc.Structs[s.Name] = s
@@ -49,6 +58,11 @@ func NewGoFiles() (LoaderTestCase, error) {
 	for range funcQuantity {
 		fn := RandFunc()
 		tc.Funcs[fn.Name] = fn
+	}
+
+	for range constQuantity {
+		c := RandConst()
+		tc.Consts[c.Name] = c
 	}
 	tmpl, err := template.ParseGlob("sdk/testing/tmpl/*")
 	if err != nil {
@@ -77,13 +91,15 @@ func NewGoFiles() (LoaderTestCase, error) {
 func RandStruct() Struct {
 	fieldQuantity := (randInt64() % 6) + 1
 	methodQuantity := (randInt64() % 2) + 1
-	fields := make([]Field, 0, fieldQuantity)
-	methods := make([]Func, 0, methodQuantity)
+	fields := make(map[string]Field, fieldQuantity)
+	methods := make(map[string]Func, methodQuantity)
 	for range fieldQuantity {
-		fields = append(fields, randField())
+		f := randField()
+		fields[f.F.Name] = f
 	}
 	for range methodQuantity {
-		methods = append(methods, RandFunc())
+		m := RandFunc()
+		methods[m.Name] = m
 	}
 	s := Struct{
 		Name:    randName(),
@@ -94,21 +110,29 @@ func RandStruct() Struct {
 	return s
 }
 
+func RandFunc() Func {
+	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
+	return Func{
+		Name:    randName(),
+		Fn:      fn,
+		Markers: randMarkers(),
+	}
+}
+
+func RandConst() Const {
+	return Const{
+		Name:    randName(),
+		Markers: randMarkers(),
+		Value:   randInt64(),
+	}
+}
+
 func randField() Field {
 	return Field{
 		F: reflect.StructField{
 			Name: randName(),
 			Type: randType(),
 		},
-		Markers: randMarkers(),
-	}
-}
-
-func RandFunc() Func {
-	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
-	return Func{
-		Name:    randName(),
-		Fn:      fn,
 		Markers: randMarkers(),
 	}
 }

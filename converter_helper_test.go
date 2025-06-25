@@ -100,7 +100,7 @@ func isValidList(got, want reflect.Value) bool {
 	if vvfn == nil {
 		return false
 	}
-	for i := 0; i < want.Len(); i++ {
+	for i := range want.Len() {
 		wantElem := want.Index(i)
 		gotElem := got.Index(i)
 		if !vvfn(gotElem, wantElem) {
