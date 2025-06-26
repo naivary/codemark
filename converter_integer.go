@@ -15,6 +15,10 @@ var _ sdk.Converter = (*intConverter)(nil)
 
 type intConverter struct{}
 
+func (i *intConverter) Name() string {
+	return "codemark.integer"
+}
+
 func (i *intConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		int(0),

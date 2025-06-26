@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 	"unicode"
 
@@ -47,4 +48,54 @@ func IsValidIdent(ident string) error {
 		}
 	}
 	return nil
+}
+
+func IsBool(rtype reflect.Type) bool {
+	return Deref(rtype).Kind() == reflect.Bool
+}
+
+func IsString(rtype reflect.Type) bool {
+	return Deref(rtype).Kind() == reflect.String
+}
+
+func IsInt(rtype reflect.Type) bool {
+	kind := Deref(rtype).Kind()
+	ints := []reflect.Kind{
+		reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+	}
+	return slices.Contains(ints, kind)
+}
+
+func IsUint(rtype reflect.Type) bool {
+	kind := Deref(rtype).Kind()
+	uints := []reflect.Kind{
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+	}
+	return slices.Contains(uints, kind)
+}
+
+func IsFloat(rtype reflect.Type) bool {
+	kind := Deref(rtype).Kind()
+	floats := []reflect.Kind{
+		reflect.Float32,
+		reflect.Float64,
+	}
+	return slices.Contains(floats, kind)
+}
+
+func IsComplex(rtype reflect.Type) bool {
+	kind := Deref(rtype).Kind()
+	complexes := []reflect.Kind{
+		reflect.Complex64,
+		reflect.Complex128,
+	}
+	return slices.Contains(complexes, kind)
 }

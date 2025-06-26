@@ -8,7 +8,14 @@ import (
 
 type TypeID = string
 
+// TODO: should we add a Name()?
 type Converter interface {
+	// Name is a human friendly representation of the converter. It may or may
+	// not be unique depending on the Converter. It is recommended to prefix the
+	// name of the converter with your project. For example the builtin
+	// converters are prefixed with `codemark.*`.
+	Name() string
+
 	// SupportedTypes returns the supported types for which the converter can be
 	// used.
 	SupportedTypes() []reflect.Type
@@ -27,8 +34,6 @@ type ConverterManager interface {
 	GetConverter(rtype reflect.Type) (Converter, error)
 
 	AddConverter(conv Converter) error
-
-	AddConvByRefType(rtype reflect.Type, conv Converter) error
 
 	Convert(mrk parser.Marker, target Target) (any, error)
 

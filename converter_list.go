@@ -16,6 +16,10 @@ type listConverter struct {
 	mngr *ConverterManager
 }
 
+func (l *listConverter) Name() string {
+	return "codemark.list"
+}
+
 func (l *listConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		// int

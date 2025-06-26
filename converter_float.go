@@ -14,6 +14,10 @@ var _ sdk.Converter = (*floatConverter)(nil)
 
 type floatConverter struct{}
 
+func (f *floatConverter) Name() string {
+	return "codemark.float"
+}
+
 func (f *floatConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		float32(0.0),

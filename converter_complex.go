@@ -14,6 +14,10 @@ var _ sdk.Converter = (*complexConverter)(nil)
 
 type complexConverter struct{}
 
+func (c *complexConverter) Name() string {
+	return "codemark.complex"
+}
+
 func (c *complexConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		complex64(0 + 0i),
