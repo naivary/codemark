@@ -134,6 +134,8 @@ func (c *ConverterManager) builtin(rtype reflect.Type) sdk.Converter {
 	if !c.isSupported(rtype) {
 		return nil
 	}
+	// NOTE: The types choose in the function `reflect.TypeFor` are one of the
+	// supported types of the converter.
 	if c.isValidSlice(rtype) {
 		return c.convs[reflect.TypeFor[[]string]()]
 	}
