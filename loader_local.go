@@ -119,6 +119,14 @@ func (l *localLoader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) error {
 	for _, spec := range specs {
 		var err error
 		typ := pkg.TypesInfo.TypeOf(spec.Name)
+		if _, isAlias := typ.(*types.Alias); isAlias {
+			// TODO: this is not clean code
+			err = l.extractAliasInfo(pkg, decl, spec)
+			if err != nil {
+				return err
+			}
+			continue
+		}
 		switch typ.(*types.Named).Underlying().(type) {
 		case *types.Alias:
 			err = l.extractAliasInfo(pkg, decl, spec)

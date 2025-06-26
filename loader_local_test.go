@@ -44,6 +44,7 @@ func TestLoaderLocal(t *testing.T) {
 // responsiblities of the loader but the converter)
 func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
 	// check quantities
+	// TODO: Wrong order of want and got
 	if len(tc.Structs) != len(proj.Structs) {
 		return fmt.Errorf("quantity of structs not equal. got: %d; want: %d", len(tc.Structs), len(proj.Structs))
 	}
@@ -51,9 +52,23 @@ func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
 		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(tc.Funcs), len(proj.Funcs))
 	}
 	if len(tc.Consts) != len(proj.Consts) {
-		return fmt.Errorf("quantity of const not equal. got: %d; want: %d", len(tc.Consts), len(proj.Consts))
+		return fmt.Errorf("quantity of consts not equal. got: %d; want: %d", len(tc.Consts), len(proj.Consts))
 	}
-
+	if len(tc.Vars) != len(proj.Vars) {
+		return fmt.Errorf("quantity of vars not equal. got: %d; want: %d", len(tc.Vars), len(proj.Vars))
+	}
+	if len(tc.Aliases) != len(proj.Aliases) {
+		return fmt.Errorf("quantity of aliases not equal. got: %d; want: %d", len(tc.Aliases), len(proj.Aliases))
+	}
+	if len(tc.Ifaces) != len(proj.Ifaces) {
+		return fmt.Errorf("quantity of interfaces not equal. got: %d; want: %d", len(tc.Ifaces), len(proj.Ifaces))
+	}
+	if len(tc.Named) != len(proj.Named) {
+		return fmt.Errorf("quantity of named not equal. got: %d; want: %d", len(tc.Named), len(proj.Named))
+	}
+	if len(tc.Imports) != len(proj.Imports) {
+		return fmt.Errorf("quantity of imports not equal. got: %d; want: %d", len(tc.Imports), len(proj.Imports))
+	}
 	// check marker existence
 	for typ, fn := range proj.Funcs {
 		name := typ.Name()
@@ -76,7 +91,47 @@ func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
 			return err
 		}
 	}
-
+	for typ, v := range proj.Vars {
+		name := typ.Name()
+		want := tc.Vars[name]
+		if err := isMarkerMatching(want.Markers, v.Defs); err != nil {
+			return err
+		}
+	}
+	for typ, a := range proj.Aliases {
+		name := typ.Name()
+		want := tc.Aliases[name]
+		if err := isMarkerMatching(want.Markers, a.Defs); err != nil {
+			return err
+		}
+	}
+	for typ, i := range proj.Ifaces {
+		name := typ.Name()
+		want := tc.Ifaces[name]
+		if err := isMarkerMatching(want.Markers, i.Defs); err != nil {
+			return err
+		}
+	}
+	for typ, n := range proj.Named {
+		name := typ.Name()
+		want := tc.Named[name]
+		if err := isMarkerMatching(want.Markers, n.Defs); err != nil {
+			return err
+		}
+	}
+	for typ, im := range proj.Imports {
+		name := typ.Name()
+		want := tc.Imports[name]
+		if err := isMarkerMatching(want.Markers, im.Defs); err != nil {
+			return err
+		}
+	}
+	for typ, pkg := range proj.Pkgs {
+		want := tc.Imports[typ.Name]
+		if err := isMarkerMatching(want.Markers, pkg.Defs); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -16,6 +16,29 @@ type LoaderTestCase struct {
 	Structs map[string]Struct
 	Funcs   map[string]Func
 	Consts  map[string]Const
+	Vars    map[string]Var
+	Ifaces  map[string]Iface
+	Aliases map[string]Alias
+	Named   map[string]Named
+	Imports map[string]Import
+	Pkgs    []parser.Marker
+}
+
+type Import struct {
+	Name    string
+	Markers []parser.Marker
+}
+
+type Alias struct {
+	Name    string
+	Type    reflect.Type
+	Markers []parser.Marker
+}
+
+type Named struct {
+	Name    string
+	Type    reflect.Type
+	Markers []parser.Marker
 }
 
 type Func struct {
@@ -42,15 +65,35 @@ type Const struct {
 	Markers []parser.Marker
 }
 
+type Var struct {
+	Name    string
+	Value   int64
+	Markers []parser.Marker
+}
+
+type Iface struct {
+	Name       string
+	Signatures map[string]Func
+	Markers    []parser.Marker
+}
+
 func NewGoFiles() (LoaderTestCase, error) {
 	tc := LoaderTestCase{
 		Structs: make(map[string]Struct),
 		Funcs:   make(map[string]Func),
 		Consts:  make(map[string]Const),
+		Vars:    make(map[string]Var),
+		Ifaces:  make(map[string]Iface),
+		Aliases: make(map[string]Alias),
+		Named:   make(map[string]Named),
+		Imports: make(map[string]Import),
+		Pkgs:    randMarkers(),
 	}
 	structQuantity := quantity(6)
 	funcQuantity := quantity(4)
 	constQuantity := quantity(10)
+	ifaceQuantity := quantity(6)
+	aliasQuantity := quantity(10)
 	for range structQuantity {
 		s := RandStruct()
 		tc.Structs[s.Name] = s
@@ -59,10 +102,37 @@ func NewGoFiles() (LoaderTestCase, error) {
 		fn := RandFunc()
 		tc.Funcs[fn.Name] = fn
 	}
-
 	for range constQuantity {
 		c := RandConst()
 		tc.Consts[c.Name] = c
+	}
+	for range constQuantity {
+		v := RandVar()
+		tc.Vars[v.Name] = v
+	}
+	for range ifaceQuantity {
+		iface := RandIface()
+		tc.Ifaces[iface.Name] = iface
+	}
+	for range aliasQuantity {
+		alias := RandAlias()
+		tc.Aliases[alias.Name] = alias
+	}
+	for range ifaceQuantity {
+		named := RandNamed()
+		tc.Named[named.Name] = named
+	}
+	for range funcQuantity {
+		imported := RandImport()
+		for {
+			_, found := tc.Imports[imported.Name]
+			if found {
+				imported = RandImport()
+				continue
+			}
+			break
+		}
+		tc.Imports[imported.Name] = imported
 	}
 	tmpl, err := template.ParseGlob("sdk/testing/tmpl/*")
 	if err != nil {
@@ -86,6 +156,43 @@ func NewGoFiles() (LoaderTestCase, error) {
 		}
 	}
 	return tc, err
+}
+
+func RandImport() Import {
+	return Import{
+		Name:    randStdPkg(),
+		Markers: randMarkers(),
+	}
+}
+
+func RandNamed() Named {
+	return Named{
+		Name:    randName(),
+		Markers: randMarkers(),
+		Type:    randType(),
+	}
+}
+
+func RandAlias() Alias {
+	return Alias{
+		Name:    randName(),
+		Markers: randMarkers(),
+		Type:    randType(),
+	}
+}
+
+func RandIface() Iface {
+	sigQuantity := quantity(5)
+	iface := Iface{
+		Name:       randName(),
+		Markers:    randMarkers(),
+		Signatures: make(map[string]Func),
+	}
+	for range sigQuantity {
+		fn := RandFunc()
+		iface.Signatures[fn.Name] = fn
+	}
+	return iface
 }
 
 func RandStruct() Struct {
@@ -127,6 +234,14 @@ func RandConst() Const {
 	}
 }
 
+func RandVar() Var {
+	return Var{
+		Name:    randName(),
+		Markers: randMarkers(),
+		Value:   randInt64(),
+	}
+}
+
 func randField() Field {
 	return Field{
 		F: reflect.StructField{
@@ -134,6 +249,28 @@ func randField() Field {
 			Type: randType(),
 		},
 		Markers: randMarkers(),
+	}
+}
+
+func randStdPkg() string {
+	i := (randInt("int64")() % 7) + 1
+	switch i {
+	case 1:
+		return "os"
+	case 2:
+		return "log/slog"
+	case 3:
+		return "fmt"
+	case 4:
+		return "io"
+	case 5:
+		return "bytes"
+	case 6:
+		return "flag"
+	case 7:
+		return "net/http"
+	default:
+		return "slices"
 	}
 }
 
