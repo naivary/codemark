@@ -6,7 +6,6 @@ import (
 	"math/rand/v2"
 	"reflect"
 	"strconv"
-	"time"
 
 	"github.com/naivary/codemark/parser"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -19,14 +18,16 @@ func AlmostEqual(a, b float64) bool {
 	return math.Abs(a-b) <= float64EqualityThreshold
 }
 
-// NewIdent returns a identifier which can be used for both marker and
-// definition. This function should only be used for test purposes and if the
-// marker should be included in the codemark:testing:* namespace. For custom
-// identifier naming it's recommneded to create your own function.
+// NewIdent returns a identifier which can be used for both marker and definition.
+// This function should only be used for test purposes. The produced marker is in
+// the codemark:testing:* namespace. For custom identifier naming it's recommneded
+// to create your own function.
 func NewIdent(name string) string {
 	return fmt.Sprintf("codemark:testing:%s", name)
 }
 
+// RandMarkerWithIdent is the same as RandMarker but allows to set a custom
+// identifier for the marker.
 func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
 	v := randValueFor(rtype)
 	value := reflect.ValueOf(v)
@@ -34,12 +35,12 @@ func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
 	return &m
 }
 
+// RandMarker returns a random marker based on the given rtype. The returned
+// marker is always valid.
 func RandMarker(rtype reflect.Type) *parser.Marker {
-	v := randValueFor(rtype)
-	value := reflect.ValueOf(v)
 	name := sdkutil.NameFor(rtype)
-	m := parser.NewMarker(NewIdent(name), sdkutil.MarkerKindOf(rtype), value)
-	return &m
+	ident := NewIdent(name)
+	return RandMarkerWithIdent(ident, rtype)
 }
 
 func randValueFor(rtype reflect.Type) any {
@@ -87,7 +88,7 @@ func randList(rtype reflect.Type) []any {
 
 func randInt(rtype reflect.Type) func() int64 {
 	kind := sdkutil.Deref(rtype).Kind()
-	maxs := map[reflect.Kind]int64{
+	maximums := map[reflect.Kind]int64{
 		reflect.Int:    math.MaxInt,
 		reflect.Int8:   math.MaxInt8,
 		reflect.Int16:  math.MaxInt16,
@@ -100,7 +101,7 @@ func randInt(rtype reflect.Type) func() int64 {
 		reflect.Uint64: math.MaxInt64,
 	}
 	return func() int64 {
-		return rand.Int64N(maxs[kind])
+		return rand.Int64N(maximums[kind])
 	}
 }
 
@@ -117,7 +118,7 @@ func randFloat64() float64 {
 }
 
 func randBool() bool {
-	return rand.Int64N(time.Now().Unix())%2 == 1
+	return randInt64()%2 == 1
 }
 
 func randString() string {
