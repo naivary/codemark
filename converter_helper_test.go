@@ -56,48 +56,39 @@ func fromMapOfList() map[reflect.Type]reflect.Type {
 		reflect.TypeFor[[]int16](): reflect.TypeFor[sdktesting.I16List](),
 		reflect.TypeFor[[]int32](): reflect.TypeFor[sdktesting.I32List](),
 		reflect.TypeFor[[]int64](): reflect.TypeFor[sdktesting.I64List](),
-
 		// Unsigned integer slices
 		reflect.TypeFor[[]uint]():   reflect.TypeFor[sdktesting.UintList](),
 		reflect.TypeFor[[]uint8]():  reflect.TypeFor[sdktesting.U8List](),
 		reflect.TypeFor[[]uint16](): reflect.TypeFor[sdktesting.U16List](),
 		reflect.TypeFor[[]uint32](): reflect.TypeFor[sdktesting.U32List](),
 		reflect.TypeFor[[]uint64](): reflect.TypeFor[sdktesting.U64List](),
-
 		// Float slices
 		reflect.TypeFor[[]float32](): reflect.TypeFor[sdktesting.F32List](),
 		reflect.TypeFor[[]float64](): reflect.TypeFor[sdktesting.F64List](),
-
 		// Complex slices
 		reflect.TypeFor[[]complex64]():  reflect.TypeFor[sdktesting.C64List](),
 		reflect.TypeFor[[]complex128](): reflect.TypeFor[sdktesting.C128List](),
-
 		// String and bool slices
 		reflect.TypeFor[[]string](): reflect.TypeFor[sdktesting.StringList](),
 		reflect.TypeFor[[]bool]():   reflect.TypeFor[sdktesting.BoolList](),
-
 		// Pointer to signed integer slices
 		reflect.TypeFor[[]*int]():   reflect.TypeFor[sdktesting.PtrIntList](),
 		reflect.TypeFor[[]*int8]():  reflect.TypeFor[sdktesting.PtrI8List](),
 		reflect.TypeFor[[]*int16](): reflect.TypeFor[sdktesting.PtrI16List](),
 		reflect.TypeFor[[]*int32](): reflect.TypeFor[sdktesting.PtrI32List](),
 		reflect.TypeFor[[]*int64](): reflect.TypeFor[sdktesting.PtrI64List](),
-
 		// Pointer to unsigned integer slices
 		reflect.TypeFor[[]*uint]():   reflect.TypeFor[sdktesting.PtrUintList](),
 		reflect.TypeFor[[]*uint8]():  reflect.TypeFor[sdktesting.PtrU8List](),
 		reflect.TypeFor[[]*uint16](): reflect.TypeFor[sdktesting.PtrU16List](),
 		reflect.TypeFor[[]*uint32](): reflect.TypeFor[sdktesting.PtrU32List](),
 		reflect.TypeFor[[]*uint64](): reflect.TypeFor[sdktesting.PtrU64List](),
-
 		// Pointer to float slices
 		reflect.TypeFor[[]*float32](): reflect.TypeFor[sdktesting.PtrF32List](),
 		reflect.TypeFor[[]*float64](): reflect.TypeFor[sdktesting.PtrF64List](),
-
 		// Pointer to complex slices
 		reflect.TypeFor[[]*complex64]():  reflect.TypeFor[sdktesting.PtrC64List](),
 		reflect.TypeFor[[]*complex128](): reflect.TypeFor[sdktesting.PtrC128List](),
-
 		// Pointer to string and bool slices
 		reflect.TypeFor[[]*string](): reflect.TypeFor[sdktesting.PtrStringList](),
 		reflect.TypeFor[[]*bool]():   reflect.TypeFor[sdktesting.PtrBoolList](),
@@ -117,7 +108,6 @@ func fromMapOfInteger() map[reflect.Type]reflect.Type {
 		reflect.TypeFor[*int16](): reflect.TypeFor[sdktesting.PtrI16](),
 		reflect.TypeFor[*int32](): reflect.TypeFor[sdktesting.PtrI32](),
 		reflect.TypeFor[*int64](): reflect.TypeFor[sdktesting.PtrI64](),
-
 		// Unsigned integers
 		reflect.TypeFor[uint]():    reflect.TypeFor[sdktesting.Uint](),
 		reflect.TypeFor[uint8]():   reflect.TypeFor[sdktesting.U8](),
