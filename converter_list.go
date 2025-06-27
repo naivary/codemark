@@ -17,7 +17,7 @@ type listConverter struct {
 }
 
 func (l *listConverter) Name() string {
-	return "codemark.list"
+	return buildName("list")
 }
 
 func (l *listConverter) SupportedTypes() []reflect.Type {

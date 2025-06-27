@@ -15,7 +15,7 @@ var _ sdk.Converter = (*stringConverter)(nil)
 type stringConverter struct{}
 
 func (s *stringConverter) Name() string {
-	return "codemark.string"
+	return buildName("string")
 }
 
 func (s *stringConverter) SupportedTypes() []reflect.Type {

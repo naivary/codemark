@@ -12,8 +12,6 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-const _namePrefix = "codemark"
-
 var _ sdk.ConverterManager = (*ConverterManager)(nil)
 
 type ConverterManager struct {

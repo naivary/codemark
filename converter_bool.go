@@ -15,7 +15,7 @@ var _ sdk.Converter = (*boolConverter)(nil)
 type boolConverter struct{}
 
 func (b *boolConverter) Name() string {
-	return "codemark.bool"
+	return buildName("bool")
 }
 
 func (b *boolConverter) SupportedTypes() []reflect.Type {
