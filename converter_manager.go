@@ -132,8 +132,14 @@ func (c *ConverterManager) builtin(rtype reflect.Type) sdk.Converter {
 	if !c.isSupported(rtype) {
 		return nil
 	}
+	// rtype can be a native type e.g. string and for that the converter can be
+	// retrieved without further validation.
+	conv, found := c.convs[rtype]
+	if found {
+		return conv
+	}
 	// NOTE: The types choose in the function `reflect.TypeFor` are one of the
-	// supported types of the converter.
+	// supported types of the converter. The concrete choice has no meaning.
 	if c.isValidSlice(rtype) {
 		return c.convs[reflect.TypeFor[[]string]()]
 	}
