@@ -5,61 +5,47 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 var _ ConverterTester = (*converterTester)(nil)
 
 type converterTester struct {
-	conv  sdk.Converter
-	rand  func(rtype reflect.Type) *parser.Marker
-	vvfns map[sdk.TypeID]ValidValueFunc
-	types map[sdk.TypeID]reflect.Type
+	conv    sdk.Converter
+	vvfns   map[reflect.Type]ValidValueFunc
+	toTypes map[reflect.Type]reflect.Type
 }
 
-func NewConverterTester(conv sdk.Converter, rand RandomMarkerFunc) (ConverterTester, error) {
-	if rand == nil {
-		rand = RandMarker
-	}
+func NewConvTester(conv sdk.Converter, toTypes map[reflect.Type]reflect.Type) (ConverterTester, error) {
 	c := &converterTester{
-		conv:  conv,
-		rand:  rand,
-		vvfns: make(map[sdk.TypeID]ValidValueFunc),
-		types: make(map[sdk.TypeID]reflect.Type),
+		conv:    conv,
+		vvfns:   make(map[reflect.Type]ValidValueFunc),
+		toTypes: toTypes,
 	}
 	return c, nil
 }
 
-func (c *converterTester) ValidTests() ([]ConverterTestCase, error) {
-	types := c.conv.SupportedTypes()
-	tests := make([]ConverterTestCase, 0, len(types))
-	for _, rtype := range types {
-		tc, err := c.NewTest(rtype, true, sdk.TargetAny)
-		if err != nil {
-			return nil, err
-		}
-		tests = append(tests, tc)
-	}
-	return tests, nil
-}
-
-func (c *converterTester) NewTest(rtype reflect.Type, isValidCase bool, target sdk.Target) (ConverterTestCase, error) {
-	typeID := sdkutil.TypeIDOf(rtype)
-	marker := c.rand(rtype)
+func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, target sdk.Target) (ConverterTestCase, error) {
+	marker := RandMarker(from)
 	if marker == nil {
-		return ConverterTestCase{}, fmt.Errorf("no valid marker found: %v\n", rtype)
+		return ConverterTestCase{}, fmt.Errorf("no valid marker found: %v\n", from)
 	}
-	to := c.types[typeID]
+	to := c.toTypes[from]
+	if to == nil {
+		return ConverterTestCase{}, fmt.Errorf("no to reflect.Type found: %v\n", from)
+	}
 	name := fmt.Sprintf("marker[%s] to %v", marker.Ident(), to)
+	vvfn := c.vvfns[to]
+	if vvfn == nil {
+		return ConverterTestCase{}, fmt.Errorf("ValidValueFunc not found: %v\n", from)
+	}
 	tc := ConverterTestCase{
 		Name:         name,
 		Marker:       *marker,
 		Target:       target,
-		ToType:       to,
+		To:           to,
 		IsValidCase:  isValidCase,
-		IsValidValue: c.vvfns[typeID],
+		IsValidValue: vvfn,
 	}
 	return tc, nil
 }
@@ -71,33 +57,35 @@ func (c *converterTester) Run(t *testing.T, tc ConverterTestCase, mngr sdk.Conve
 			t.Errorf("err occured: %s\n", err)
 		}
 		gotType := reflect.TypeOf(v)
-		if gotType != tc.ToType {
-			t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.ToType)
+		if gotType != tc.To {
+			t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.To)
 		}
 		gotValue := reflect.ValueOf(v)
 		if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
 			t.Fatalf("value is not correct. got: %v; wanted: %v\n", gotValue, tc.Marker.Value())
 		}
-		t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.ToType)
+		t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.To)
 	})
 }
 
-func (c *converterTester) AddVVFunc(rtype reflect.Type, fn ValidValueFunc) error {
-	typeID := sdkutil.TypeIDOf(rtype)
-	_, found := c.vvfns[typeID]
+func (c *converterTester) AddVVFunc(to reflect.Type, fn ValidValueFunc) error {
+	_, found := c.vvfns[to]
 	if found {
-		return fmt.Errorf("ValidValueFunc already exists: %s\n", typeID)
+		return fmt.Errorf("ValidValueFunc already exists: %s\n", to)
 	}
-	c.vvfns[typeID] = fn
+	c.vvfns[to] = fn
 	return nil
 }
 
-func (c *converterTester) AddType(rtype reflect.Type) error {
-	typeID := sdkutil.TypeIDOf(rtype)
-	_, found := c.types[typeID]
-	if found {
-		return fmt.Errorf("reflect.Type already exists: %s\n", typeID)
+func (c *converterTester) ValidTests() ([]ConverterTestCase, error) {
+	types := c.conv.SupportedTypes()
+	tests := make([]ConverterTestCase, 0, len(types))
+	for _, from := range types {
+		tc, err := c.NewTest(from, true, sdk.TargetAny)
+		if err != nil {
+			return nil, err
+		}
+		tests = append(tests, tc)
 	}
-	c.types[typeID] = rtype
-	return nil
+	return tests, nil
 }

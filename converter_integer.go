@@ -80,7 +80,7 @@ func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Va
 	if i.isRune(def.Output, mkind) {
 		return i.runee(m, def)
 	}
-	return _rvzero, fmt.Errorf("cannot converter %s to %v\n", m, def.Output)
+	return _rvzero, fmt.Errorf("cannot converter %s to %v\n", m.Ident(), def.Output)
 }
 
 func (i *intConverter) integer(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {

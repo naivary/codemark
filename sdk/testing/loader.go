@@ -253,7 +253,8 @@ func randField() Field {
 }
 
 func randStdPkg() string {
-	i := (randInt("int64")() % 7) + 1
+	rtype := reflect.TypeFor[int64]()
+	i := (randInt(rtype)() % 7) + 1
 	switch i {
 	case 1:
 		return "os"
@@ -285,7 +286,8 @@ func randMarkers() []parser.Marker {
 
 func randType() reflect.Type {
 	// string, int, float32, complex64, bool, uint
-	i := (randInt("int64")() % 11) + 1
+	rtype := reflect.TypeFor[int64]()
+	i := (randInt(rtype)() % 11) + 1
 	switch i {
 	case 1:
 		return reflect.TypeFor[string]()

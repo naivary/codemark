@@ -16,7 +16,7 @@ type ConverterTestCase struct {
 	Name         string
 	Marker       parser.Marker
 	Target       sdk.Target
-	ToType       reflect.Type
+	To           reflect.Type
 	IsValidCase  bool
 	IsValidValue ValidValueFunc
 }
@@ -24,11 +24,9 @@ type ConverterTestCase struct {
 type ConverterTester interface {
 	NewTest(rtype reflect.Type, isValidCase bool, t sdk.Target) (ConverterTestCase, error)
 
-	ValidTests() ([]ConverterTestCase, error)
-
 	AddVVFunc(rtype reflect.Type, fn ValidValueFunc) error
 
-	AddType(rtype reflect.Type) error
+	ValidTests() ([]ConverterTestCase, error)
 
 	Run(t *testing.T, tc ConverterTestCase, mngr sdk.ConverterManager)
 }

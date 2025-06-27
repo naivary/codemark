@@ -2,13 +2,10 @@ package utils
 
 import (
 	"reflect"
-	"regexp"
 	"strings"
 )
 
-const (
-	TypeIDSep = "."
-)
+const NameSep = "."
 
 func DeRefValue(v reflect.Value) reflect.Value {
 	if IsPointer(v.Type()) {
@@ -49,45 +46,40 @@ func ConvertTo(v reflect.Value, typ reflect.Type) (reflect.Value, error) {
 	return out.Elem(), nil
 }
 
-func MatchTypeID(typeID, pattern string) bool {
-	exp := regexp.MustCompile(pattern)
-	return exp.MatchString(typeID)
-}
-
-func TypeIDOf(rtype reflect.Type) string {
+func NameFor(rtype reflect.Type) string {
 	var b strings.Builder
-	return typeID(rtype, &b)
+	return nameFor(rtype, &b)
 }
 
-func typeID(typ reflect.Type, b *strings.Builder) string {
+func nameFor(typ reflect.Type, b *strings.Builder) string {
 	if typ == nil {
 		return b.String()
 	}
 	if len(b.String()) > 0 {
-		b.WriteString(TypeIDSep)
+		b.WriteString(NameSep)
 	}
 	kind := typ.Kind()
 	if _, err := b.WriteString(kind.String()); err != nil {
 		panic(err)
 	}
 	if kind == reflect.Pointer {
-		return typeID(typ.Elem(), b)
+		return nameFor(typ.Elem(), b)
 	}
 	if kind == reflect.Map {
 		var keyBuilder strings.Builder
-		key := typeID(typ.Key(), &keyBuilder)
-		b.WriteString(TypeIDSep)
+		key := nameFor(typ.Key(), &keyBuilder)
+		b.WriteString(NameSep)
 		b.WriteString(key)
-		return typeID(typ.Elem(), b)
+		return nameFor(typ.Elem(), b)
 	}
 	if kind == reflect.Slice {
-		return typeID(typ.Elem(), b)
+		return nameFor(typ.Elem(), b)
 	}
 	if kind == reflect.Chan {
-		return typeID(typ.Elem(), b)
+		return nameFor(typ.Elem(), b)
 	}
 	if kind == reflect.Array {
-		return typeID(typ.Elem(), b)
+		return nameFor(typ.Elem(), b)
 	}
-	return typeID(nil, b)
+	return nameFor(nil, b)
 }

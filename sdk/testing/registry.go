@@ -155,8 +155,8 @@ func AllTypes() []any {
 func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
-		typeID := sdkutil.TypeIDOf(rtype)
-		ident := NewIdent(typeID)
+		name := sdkutil.NameFor(rtype)
+		ident := NewIdent(name)
 		def, err := b.MakeDef(ident, rtype, sdk.TargetAny)
 		if err != nil {
 			return nil, err
@@ -165,7 +165,7 @@ func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Defi
 			return nil, err
 		}
 	}
-	// add special definitions which cannot be added using TypeID because they
+	// add special definitions which cannot be added using NameFor because they
 	// are aliases to other types e.g. byte=int32 and rune=uint8
 	defs := []*sdk.Definition{
 		b.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), sdk.TargetAny),

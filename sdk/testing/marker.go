@@ -23,8 +23,8 @@ func AlmostEqual(a, b float64) bool {
 // definition. This function should only be used for test purposes and if the
 // marker should be included in the codemark:testing:* namespace. For custom
 // identifier naming it's recommneded to create your own function.
-func NewIdent(typeID string) string {
-	return fmt.Sprintf("codemark:testing:%s", typeID)
+func NewIdent(name string) string {
+	return fmt.Sprintf("codemark:testing:%s", name)
 }
 
 func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
@@ -37,13 +37,27 @@ func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
 func RandMarker(rtype reflect.Type) *parser.Marker {
 	v := randValueFor(rtype)
 	value := reflect.ValueOf(v)
-	m := parser.NewMarker(NewIdent(typeID), sdkutil.MarkerKindOf(rtype), value)
+	name := sdkutil.NameFor(rtype)
+	m := parser.NewMarker(NewIdent(name), sdkutil.MarkerKindOf(rtype), value)
 	return &m
 }
 
 func randValueFor(rtype reflect.Type) any {
-	if sdkutil.IsInt(rtype) {
-		return randInt(rtype)
+	if !sdkutil.IsSupported(rtype) {
+		return nil
+	}
+	if sdkutil.IsPrimitive(rtype) {
+		return randPrimitiveValue(rtype)
+	}
+	if sdkutil.IsValidSlice(rtype) {
+		return randList(rtype.Elem())
+	}
+	return nil
+}
+
+func randPrimitiveValue(rtype reflect.Type) any {
+	if sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) {
+		return randInt(rtype)()
 	}
 	if sdkutil.IsString(rtype) {
 		return randString()
@@ -57,9 +71,6 @@ func randValueFor(rtype reflect.Type) any {
 	if sdkutil.IsComplex(rtype) {
 		return randComplex()
 	}
-	if sdkutil.IsValidSlice(rtype) {
-		return randList(rtype.Elem())
-	}
 	return nil
 }
 
@@ -69,7 +80,7 @@ func randList(rtype reflect.Type) []any {
 	// `randValueFor` to get a correct value.
 	values := make([]any, 0, n)
 	for range n {
-		values = append(values, randValueFor(rtype))
+		values = append(values, randPrimitiveValue(rtype))
 	}
 	return values
 }
