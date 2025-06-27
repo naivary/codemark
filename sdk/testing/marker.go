@@ -6,11 +6,9 @@ import (
 	"math/rand/v2"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/naivary/codemark/parser"
-	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
@@ -30,86 +28,74 @@ func NewIdent(typeID string) string {
 }
 
 func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
-	typeID := sdkutil.TypeIDOf(rtype)
-	v := randValueFromTypeID(typeID)
+	v := randValueFor(rtype)
 	value := reflect.ValueOf(v)
 	m := parser.NewMarker(ident, sdkutil.MarkerKindOf(rtype), value)
 	return &m
 }
 
 func RandMarker(rtype reflect.Type) *parser.Marker {
-	typeID := sdkutil.TypeIDOf(rtype)
-	v := randValueFromTypeID(typeID)
+	v := randValueFor(rtype)
 	value := reflect.ValueOf(v)
 	m := parser.NewMarker(NewIdent(typeID), sdkutil.MarkerKindOf(rtype), value)
 	return &m
 }
 
-func randValueFromTypeID(typeID string) any {
-	typeID, _ = strings.CutPrefix(typeID, "ptr.")
-	if strings.HasPrefix(typeID, "slice") {
-		typeID, _ = strings.CutPrefix(typeID, "slice.")
-		return randList(typeID)
+func randValueFor(rtype reflect.Type) any {
+	if sdkutil.IsInt(rtype) {
+		return randInt(rtype)
 	}
-	if strings.HasPrefix(typeID, "string") {
+	if sdkutil.IsString(rtype) {
 		return randString()
 	}
-	if strings.HasPrefix(typeID, "bool") {
+	if sdkutil.IsBool(rtype) {
 		return randBool()
 	}
-	if sdkutil.MatchTypeID(typeID, `int[1-6]{0,2}`) {
-		return randInt(typeID)()
-	}
-	if sdkutil.MatchTypeID(typeID, `float\d{2}`) {
+	if sdkutil.IsFloat(rtype) {
 		return randFloat64()
 	}
-	if sdkutil.MatchTypeID(typeID, `complex\d{2,3}`) {
+	if sdkutil.IsComplex(rtype) {
 		return randComplex()
 	}
-	return nil
-}
-
-func randList(typeID string) []any {
-	listLen := rand.IntN(8) + 1
-	if sdkutil.MatchTypeID(typeID, `(ptr\.)?int\d{0,2}`) {
-		return randListT(listLen, randInt(typeID))
-	}
-	if sdkutil.MatchTypeID(typeID, `(ptr\.)?float\d{2}`) {
-		return randListT(listLen, randFloat64)
-	}
-	if sdkutil.MatchTypeID(typeID, `(ptr\.)?complex\d{2,3}`) {
-		return randListT(listLen, randComplex)
-	}
-	if sdkutil.MatchTypeID(typeID, `(ptr\.)?bool`) {
-		return randListT(listLen, randBool)
-	}
-	if sdkutil.MatchTypeID(typeID, `(ptr\.)?string`) {
-		return randListT(listLen, randString)
+	if sdkutil.IsValidSlice(rtype) {
+		return randList(rtype.Elem())
 	}
 	return nil
 }
 
-func randInt(typeID string) func() int64 {
-	typeID, _ = strings.CutPrefix(typeID, "ptr.")
-	maxs := map[sdk.TypeID]int64{
-		"int":    math.MaxInt,
-		"int8":   math.MaxInt8,
-		"int16":  math.MaxInt16,
-		"int32":  math.MaxInt32,
-		"int64":  math.MaxInt64,
-		"uint":   math.MaxInt,
-		"uint8":  math.MaxInt8,
-		"uint16": math.MaxInt16,
-		"uint32": math.MaxInt32,
-		"uint64": math.MaxInt64,
+func randList(rtype reflect.Type) []any {
+	n := rand.IntN(8) + 1
+	// rtype is definetly a supported primitive type which means we can use
+	// `randValueFor` to get a correct value.
+	values := make([]any, 0, n)
+	for range n {
+		values = append(values, randValueFor(rtype))
+	}
+	return values
+}
+
+func randInt(rtype reflect.Type) func() int64 {
+	kind := sdkutil.Deref(rtype).Kind()
+	maxs := map[reflect.Kind]int64{
+		reflect.Int:    math.MaxInt,
+		reflect.Int8:   math.MaxInt8,
+		reflect.Int16:  math.MaxInt16,
+		reflect.Int32:  math.MaxInt32,
+		reflect.Int64:  math.MaxInt64,
+		reflect.Uint:   math.MaxInt,
+		reflect.Uint8:  math.MaxInt8,
+		reflect.Uint16: math.MaxInt16,
+		reflect.Uint32: math.MaxInt32,
+		reflect.Uint64: math.MaxInt64,
 	}
 	return func() int64 {
-		return rand.Int64N(maxs[typeID])
+		return rand.Int64N(maxs[kind])
 	}
 }
 
 func randInt64() int64 {
-	return randInt("int64")()
+	typ := reflect.TypeFor[int64]()
+	return randInt(typ)()
 }
 
 func randFloat64() float64 {
@@ -142,13 +128,4 @@ func randComplex() complex128 {
 		panic(err)
 	}
 	return comp
-}
-
-func randListT[T any](n int, rnd func() T) []any {
-	vals := make([]any, 0, n)
-	for range n {
-		val := rnd()
-		vals = append(vals, val)
-	}
-	return vals
 }

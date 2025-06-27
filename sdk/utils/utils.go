@@ -99,3 +99,19 @@ func IsComplex(rtype reflect.Type) bool {
 	}
 	return slices.Contains(complexes, kind)
 }
+
+// isSupported is returning true iff the given rtype is supported by the default
+// converters.
+func IsSupported(rtype reflect.Type) bool {
+	return IsPrimitive(rtype) || rtype.Kind() == reflect.Slice
+}
+
+// isPrimitive is returning true iff the given type is non-slice and a type
+// which can be converted by a builtin converter.
+func IsPrimitive(rtype reflect.Type) bool {
+	return IsInt(rtype) || IsUint(rtype) || IsFloat(rtype) || IsString(rtype) || IsBool(rtype) || IsComplex(rtype)
+}
+
+func IsValidSlice(rtype reflect.Type) bool {
+	return rtype.Kind() == reflect.Slice && IsPrimitive(rtype.Elem())
+}

@@ -60,7 +60,6 @@ func TypeIDOf(rtype reflect.Type) string {
 }
 
 func typeID(typ reflect.Type, b *strings.Builder) string {
-	// TODO: add struct to it
 	if typ == nil {
 		return b.String()
 	}

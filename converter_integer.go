@@ -3,7 +3,6 @@ package codemark
 import (
 	"fmt"
 	"reflect"
-	"strings"
 
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
@@ -68,18 +67,20 @@ func (i *intConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
 }
 
 func (i *intConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
-	typeID := sdkutil.TypeIDOf(def.Output)
-	markerKind := m.Kind()
-	if i.isInteger(typeID, markerKind) {
+	mkind := m.Kind()
+	if i.isInteger(def.Output, mkind) {
 		return i.integer(m, def)
 	}
-	if i.isUint(typeID, markerKind) {
+	if i.isUint(def.Output, mkind) {
 		return i.uinteger(m, def)
 	}
-	if i.isByte(typeID, markerKind) {
+	if i.isByte(def.Output, mkind) {
 		return i.bytee(m, def)
 	}
-	return i.runee(m, def)
+	if i.isRune(def.Output, mkind) {
+		return i.runee(m, def)
+	}
+	return _rvzero, fmt.Errorf("cannot converter %s to %v\n", m, def.Output)
 }
 
 func (i *intConverter) integer(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
@@ -124,14 +125,18 @@ func (i *intConverter) isOverflowingUint(out reflect.Type, n uint64) bool {
 	return sdkutil.Deref(out).OverflowUint(n)
 }
 
-func (i *intConverter) isInteger(typeID string, mkind marker.Kind) bool {
-	return (strings.HasPrefix(typeID, "int") || strings.HasPrefix(typeID, "ptr.int")) && mkind == marker.INT
+func (i *intConverter) isInteger(rtype reflect.Type, mkind marker.Kind) bool {
+	return sdkutil.IsInt(rtype) && mkind == marker.INT
 }
 
-func (i *intConverter) isUint(typeID string, mkind marker.Kind) bool {
-	return (strings.HasPrefix(typeID, "uint") || strings.HasPrefix(typeID, "ptr.uint")) && mkind == marker.INT
+func (i *intConverter) isUint(rtype reflect.Type, mkind marker.Kind) bool {
+	return sdkutil.IsUint(rtype) || mkind == marker.INT
 }
 
-func (i *intConverter) isByte(typeID string, mkind marker.Kind) bool {
-	return (strings.HasPrefix(typeID, "ptr.int32") || strings.HasPrefix(typeID, "int32")) && mkind == marker.STRING
+func (i *intConverter) isByte(rtype reflect.Type, mkind marker.Kind) bool {
+	return sdkutil.IsInt(rtype) && mkind == marker.STRING
+}
+
+func (i *intConverter) isRune(rtype reflect.Type, mkind marker.Kind) bool {
+	return sdkutil.IsUint(rtype) && mkind == marker.STRING
 }

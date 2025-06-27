@@ -6,9 +6,6 @@ import (
 	"github.com/naivary/codemark/parser"
 )
 
-type TypeID = string
-
-// TODO: should we add a Name()?
 type Converter interface {
 	// Name is a human friendly representation of the converter. It may or may
 	// not be unique depending on the Converter. It is recommended to prefix the
