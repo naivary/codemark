@@ -1,4 +1,4 @@
-package codemark
+package loader
 
 import (
 	"errors"
@@ -16,12 +16,12 @@ import (
 var _ sdk.Loader = (*localLoader)(nil)
 
 type localLoader struct {
-	mngr *ConverterManager
+	mngr sdk.ConverterManager
 	cfg  *packages.Config
 	proj *sdk.Project
 }
 
-func NewLocalLoader(mngr *ConverterManager, cfg *packages.Config) sdk.Loader {
+func New(mngr sdk.ConverterManager, cfg *packages.Config) sdk.Loader {
 	l := &localLoader{
 		mngr: mngr,
 		proj: sdk.NewProject(),

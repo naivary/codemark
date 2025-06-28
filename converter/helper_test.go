@@ -1,14 +1,36 @@
-package codemark
+package converter
 
 import (
 	"math"
 	"reflect"
 	"slices"
 
+	"github.com/naivary/codemark/maker"
+	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
+
+var defsSet = newDefsSet()
+
+var mngr = newManager()
+
+func newManager() sdk.ConverterManager {
+	mngr, err := NewManager(defsSet)
+	if err != nil {
+		panic(err)
+	}
+	return mngr
+}
+
+func newDefsSet() sdk.Registry {
+	reg, err := sdktesting.NewDefsSet(registry.InMemory(), maker.New())
+	if err != nil {
+		panic(err)
+	}
+	return reg
+}
 
 func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
 	tester, err := sdktesting.NewConvTester(conv, fromMap(conv))

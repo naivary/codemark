@@ -1,4 +1,4 @@
-package codemark
+package registry
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/naivary/codemark/sdk"
 )
 
-func NewInMemoryRegistry() sdk.Registry {
+func InMemory() sdk.Registry {
 	return &inmemoryRegistry{
 		defs: make(map[string]*sdk.Definition),
 	}

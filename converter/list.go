@@ -1,9 +1,10 @@
-package codemark
+package converter
 
 import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
@@ -13,7 +14,11 @@ import (
 var _ sdk.Converter = (*listConverter)(nil)
 
 type listConverter struct {
-	mngr *ConverterManager
+	mngr sdk.ConverterManager
+}
+
+func List(mngr sdk.ConverterManager) sdk.Converter {
+	return &listConverter{mngr}
 }
 
 func (l *listConverter) Name() string {
@@ -119,7 +124,7 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	}
 	markerKind := sdkutil.MarkerKindOf(rvalue.Type())
 	fakeMarker := parser.NewMarker("codemark:list:fake", markerKind, rvalue)
-	fakeDef, err := MakeDef("codemark:list:fake", typ, sdk.TargetAny)
+	fakeDef, err := maker.MakeDef("codemark:list:fake", typ, sdk.TargetAny)
 	if err != nil {
 		return _rvzero, err
 	}

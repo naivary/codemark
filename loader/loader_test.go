@@ -1,32 +1,35 @@
-package codemark
+package loader
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 	"golang.org/x/tools/go/packages"
 )
 
 func TestLoaderLocal(t *testing.T) {
-	tc, err := sdktesting.RandLoaderTestCase()
+	tc, err := RandLoaderTestCase()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
-	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
+	reg, err := sdktesting.NewDefsSet(registry.InMemory(), maker.New())
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	mngr, err := NewConvMngr(reg)
+	mngr, err := converter.NewManager(reg)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	l := NewLocalLoader(mngr, cfg)
+	l := New(mngr, cfg)
 	projs, err := l.Load(".")
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -38,7 +41,7 @@ func TestLoaderLocal(t *testing.T) {
 	}
 }
 
-func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
+func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 	// check quantities
 	if len(tc.Structs) != len(proj.Structs) {
 		return fmt.Errorf("quantity of structs not equal. got: %d; want: %d", len(proj.Structs), len(tc.Structs))

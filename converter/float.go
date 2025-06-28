@@ -1,4 +1,4 @@
-package codemark
+package converter
 
 import (
 	"fmt"
@@ -13,6 +13,10 @@ import (
 var _ sdk.Converter = (*floatConverter)(nil)
 
 type floatConverter struct{}
+
+func Float() sdk.Converter {
+	return &floatConverter{}
+}
 
 func (f *floatConverter) Name() string {
 	return buildName("float")

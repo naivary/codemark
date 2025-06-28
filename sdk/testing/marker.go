@@ -6,12 +6,13 @@ import (
 	"math/rand/v2"
 	"reflect"
 	"strconv"
+	"unicode"
 
 	"github.com/naivary/codemark/parser"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-const _randomLen = -1
+const RandLen = -1
 
 // AlmostEqual checks if the two float values a and b are equal with respect to
 // some threshold.
@@ -45,6 +46,19 @@ func RandMarker(rtype reflect.Type) *parser.Marker {
 	return RandMarkerWithIdent(ident, rtype)
 }
 
+// RandName returns a random string which is valid to use for go variables
+func RandName() string {
+	name := RandString(RandLen)
+	for {
+		firstLetter := rune(name[0])
+		if !unicode.IsDigit(firstLetter) {
+			break
+		}
+		name = RandString(RandLen)
+	}
+	return name
+}
+
 func randValue(rtype reflect.Type) any {
 	if !sdkutil.IsSupported(rtype) {
 		return nil
@@ -53,7 +67,7 @@ func randValue(rtype reflect.Type) any {
 		return randPrimitiveValue(rtype)
 	}
 	if sdkutil.IsValidSlice(rtype) {
-		return randList(rtype.Elem(), _randomLen)
+		return randList(rtype.Elem(), RandLen)
 	}
 	return nil
 }
@@ -65,16 +79,16 @@ func randPrimitiveValue(rtype reflect.Type) any {
 		return randInt(rtype)()
 	}
 	if sdkutil.IsString(rtype) {
-		return randString(_randomLen)
+		return RandString(RandLen)
 	}
 	if sdkutil.IsBool(rtype) {
-		return randBool()
+		return RandBool()
 	}
 	if sdkutil.IsFloat(rtype) {
-		return randFloat64()
+		return RandFloat64()
 	}
 	if sdkutil.IsComplex(rtype) {
-		return randComplex()
+		return RandComplex()
 	}
 	return nil
 }
@@ -114,23 +128,23 @@ func randInt(rtype reflect.Type) func() int64 {
 	}
 }
 
-func randInt64() int64 {
+func RandInt64() int64 {
 	typ := reflect.TypeFor[int64]()
 	return randInt(typ)()
 }
 
-func randFloat64() float64 {
+func RandFloat64() float64 {
 	const minN = 1
 	const maxN = 100
 	f := minN + rand.Float64()*(maxN-minN)
 	return f
 }
 
-func randBool() bool {
-	return randInt64()%2 == 1
+func RandBool() bool {
+	return RandInt64()%2 == 1
 }
 
-func randString(n int) string {
+func RandString(n int) string {
 	if n <= 0 {
 		n = 12
 	}
@@ -142,7 +156,7 @@ func randString(n int) string {
 	return string(b)
 }
 
-func randComplex() complex128 {
+func RandComplex() complex128 {
 	r := rand.IntN(100)
 	c := rand.IntN(100)
 	compString := fmt.Sprintf("%d+%di", r, c)

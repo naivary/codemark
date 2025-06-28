@@ -1,20 +1,10 @@
-package codemark
+package converter
 
 import (
 	"testing"
-
-	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 func TestIntConverter(t *testing.T) {
-	reg, err := sdktesting.NewDefsSet(NewInMemoryRegistry(), &DefinitionMarker{})
-	if err != nil {
-		t.Errorf("err occured: %s\n", err)
-	}
-	mngr, err := NewConvMngr(reg)
-	if err != nil {
-		t.Errorf("err occured: %s\n", err)
-	}
 	tester, err := newConvTester(&intConverter{})
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

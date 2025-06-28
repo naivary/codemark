@@ -1,30 +1,10 @@
-package codemark
+package maker
 
 import (
 	"reflect"
 
 	"github.com/naivary/codemark/sdk"
 )
-
-var _ sdk.DefinitionMaker = (*DefinitionMarker)(nil)
-
-type DefinitionMarker struct{}
-
-func (d DefinitionMarker) MakeDef(ident string, output reflect.Type, targets ...sdk.Target) (*sdk.Definition, error) {
-	return MakeDef(ident, output, targets...)
-}
-
-func (d DefinitionMarker) MakeDefWithHelp(ident string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) (*sdk.Definition, error) {
-	return MakeDefWithHelp(ident, output, help, targets...)
-}
-
-func (d DefinitionMarker) MustMakeDef(ident string, output reflect.Type, targets ...sdk.Target) *sdk.Definition {
-	return MustMakeDef(ident, output, targets...)
-}
-
-func (d DefinitionMarker) MustMakeDefWithHelp(ident string, output reflect.Type, help *sdk.DefinitionHelp, targets ...sdk.Target) *sdk.Definition {
-	return MustMakeDefWithHelp(ident, output, help, targets...)
-}
 
 func MakeDef(idn string, output reflect.Type, targets ...sdk.Target) (*sdk.Definition, error) {
 	def := &sdk.Definition{

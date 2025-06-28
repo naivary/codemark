@@ -1,4 +1,4 @@
-package testing
+package loader
 
 import (
 	"reflect"

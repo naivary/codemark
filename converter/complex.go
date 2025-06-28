@@ -1,4 +1,4 @@
-package codemark
+package converter
 
 import (
 	"fmt"
@@ -13,6 +13,10 @@ import (
 var _ sdk.Converter = (*complexConverter)(nil)
 
 type complexConverter struct{}
+
+func Complex() sdk.Converter {
+	return &complexConverter{}
+}
 
 func (c *complexConverter) Name() string {
 	return buildName("complex")

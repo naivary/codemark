@@ -1,4 +1,4 @@
-package codemark
+package converter
 
 import (
 	"fmt"
@@ -12,18 +12,18 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-var _ sdk.ConverterManager = (*ConverterManager)(nil)
+var _ sdk.ConverterManager = (*Manager)(nil)
 
-type ConverterManager struct {
+type Manager struct {
 	reg   sdk.Registry
 	convs map[reflect.Type]sdk.Converter
 }
 
-func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, error) {
+func NewManager(reg sdk.Registry, convs ...sdk.Converter) (*Manager, error) {
 	if len(reg.All()) == 0 {
 		return nil, sdk.ErrRegistryEmpty
 	}
-	mngr := &ConverterManager{
+	mngr := &Manager{
 		reg:   reg,
 		convs: make(map[reflect.Type]sdk.Converter),
 	}
@@ -36,7 +36,7 @@ func NewConvMngr(reg sdk.Registry, convs ...sdk.Converter) (*ConverterManager, e
 	return mngr, nil
 }
 
-func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
+func (c *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 	conv := c.builtin(rtype)
 	if conv != nil {
 		return conv, nil
@@ -48,7 +48,7 @@ func (c *ConverterManager) GetConverter(rtype reflect.Type) (sdk.Converter, erro
 	return conv, nil
 }
 
-func (c *ConverterManager) AddConverter(conv sdk.Converter) error {
+func (c *Manager) AddConverter(conv sdk.Converter) error {
 	if !c.isValidName(conv.Name()) {
 		return fmt.Errorf("%s is reserverd for internal usage: %s\n", _namePrefix, conv.Name())
 	}
@@ -62,7 +62,7 @@ func (c *ConverterManager) AddConverter(conv sdk.Converter) error {
 	return nil
 }
 
-func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
+func (c *Manager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
 	idn := mrk.Ident()
 	def, err := c.reg.Get(idn)
 	if err != nil {
@@ -89,7 +89,7 @@ func (c *ConverterManager) Convert(mrk parser.Marker, target sdk.Target) (any, e
 	return out.Interface(), nil
 }
 
-func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) {
+func (c *Manager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) {
 	markers, err := parser.Parse(doc)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (c *ConverterManager) ParseDefs(doc string, t sdk.Target) (map[string][]any
 	return defs, nil
 }
 
-func (c *ConverterManager) defaultConvs() []sdk.Converter {
+func (c *Manager) defaultConvs() []sdk.Converter {
 	return []sdk.Converter{
 		&stringConverter{},
 		&intConverter{},
@@ -122,13 +122,13 @@ func (c *ConverterManager) defaultConvs() []sdk.Converter {
 	}
 }
 
-func (c *ConverterManager) isValidName(name string) bool {
+func (c *Manager) isValidName(name string) bool {
 	return strings.HasPrefix(name, _namePrefix)
 }
 
 // builtin is checking if the given rtype is convertible using a builtin
 // converter. If not nil will be returned.
-func (c *ConverterManager) builtin(rtype reflect.Type) sdk.Converter {
+func (c *Manager) builtin(rtype reflect.Type) sdk.Converter {
 	if !c.isSupported(rtype) {
 		return nil
 	}
@@ -163,16 +163,16 @@ func (c *ConverterManager) builtin(rtype reflect.Type) sdk.Converter {
 
 // isSupported is returning true iff the given rtype is supported by the default
 // converters.
-func (c *ConverterManager) isSupported(rtype reflect.Type) bool {
+func (c *Manager) isSupported(rtype reflect.Type) bool {
 	return c.isPrimitive(rtype) || rtype.Kind() == reflect.Slice
 }
 
 // isPrimitive is returning true iff the given type is non-slice and a type
 // which can be converted by a builtin converter.
-func (c *ConverterManager) isPrimitive(rtype reflect.Type) bool {
+func (c *Manager) isPrimitive(rtype reflect.Type) bool {
 	return sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) || sdkutil.IsFloat(rtype) || sdkutil.IsString(rtype) || sdkutil.IsBool(rtype) || sdkutil.IsComplex(rtype)
 }
 
-func (c *ConverterManager) isValidSlice(rtype reflect.Type) bool {
+func (c *Manager) isValidSlice(rtype reflect.Type) bool {
 	return rtype.Kind() == reflect.Slice && c.isPrimitive(rtype.Elem())
 }

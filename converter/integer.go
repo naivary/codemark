@@ -1,4 +1,4 @@
-package codemark
+package converter
 
 import (
 	"fmt"
@@ -13,6 +13,10 @@ import (
 var _ sdk.Converter = (*intConverter)(nil)
 
 type intConverter struct{}
+
+func Integer() sdk.Converter {
+	return &intConverter{}
+}
 
 func (i *intConverter) Name() string {
 	return buildName("integer")

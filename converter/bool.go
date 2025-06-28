@@ -1,4 +1,4 @@
-package codemark
+package converter
 
 import (
 	"fmt"
@@ -13,6 +13,10 @@ import (
 var _ sdk.Converter = (*boolConverter)(nil)
 
 type boolConverter struct{}
+
+func Bool() sdk.Converter {
+	return &boolConverter{}
+}
 
 func (b *boolConverter) Name() string {
 	return buildName("bool")

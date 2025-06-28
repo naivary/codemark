@@ -1,4 +1,4 @@
-package testing
+package loader
 
 import (
 	"os"
@@ -6,9 +6,9 @@ import (
 	"reflect"
 	"strings"
 	"text/template"
-	"unicode"
 
 	"github.com/naivary/codemark/parser"
+	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 // RandLoaderTestCase returns a random LaoderTestCase which can be used to test
@@ -16,7 +16,7 @@ import (
 func RandLoaderTestCase() (LoaderTestCase, error) {
 	tc := newLoaderTestCase()
 	tc.randomize()
-	return tc, genRandFiles("sdk/testing/tmpl/*", &tc)
+	return tc, genRandFiles("tmpl/*", &tc)
 }
 
 func genRandFiles(glob string, tc *LoaderTestCase) error {
@@ -75,13 +75,13 @@ func newLoaderTestCase() LoaderTestCase {
 }
 
 func (l LoaderTestCase) randomize() {
-	l.randStructs(_randomLen)
-	l.randFuncs(_randomLen)
-	l.randAliases(_randomLen)
-	l.randVars(_randomLen)
-	l.randConsts(_randomLen)
-	l.randIfaces(_randomLen)
-	l.randImports(_randomLen)
+	l.randStructs(sdktesting.RandLen)
+	l.randFuncs(sdktesting.RandLen)
+	l.randAliases(sdktesting.RandLen)
+	l.randVars(sdktesting.RandLen)
+	l.randConsts(sdktesting.RandLen)
+	l.randIfaces(sdktesting.RandLen)
+	l.randImports(sdktesting.RandLen)
 }
 
 func (l *LoaderTestCase) randStructs(n int) {
@@ -178,7 +178,7 @@ func RandImport() Import {
 
 func RandNamed() Named {
 	return Named{
-		Name:    randName(),
+		Name:    sdktesting.RandName(),
 		Markers: randMarkers(),
 		Type:    randType(),
 	}
@@ -186,7 +186,7 @@ func RandNamed() Named {
 
 func RandAlias() Alias {
 	return Alias{
-		Name:    randName(),
+		Name:    sdktesting.RandName(),
 		Markers: randMarkers(),
 		Type:    randType(),
 	}
@@ -195,7 +195,7 @@ func RandAlias() Alias {
 func RandIface() Iface {
 	sigQuantity := quantity(5)
 	iface := Iface{
-		Name:       randName(),
+		Name:       sdktesting.RandName(),
 		Markers:    randMarkers(),
 		Signatures: make(map[string]Func),
 	}
@@ -220,7 +220,7 @@ func RandStruct() Struct {
 		methods[m.Name] = m
 	}
 	s := Struct{
-		Name:    randName(),
+		Name:    sdktesting.RandName(),
 		Fields:  fields,
 		Markers: randMarkers(),
 		Methods: methods,
@@ -231,7 +231,7 @@ func RandStruct() Struct {
 func randField() Field {
 	return Field{
 		F: reflect.StructField{
-			Name: randName(),
+			Name: sdktesting.RandName(),
 			Type: randType(),
 		},
 		Markers: randMarkers(),
@@ -241,7 +241,7 @@ func randField() Field {
 func RandFunc() Func {
 	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
 	return Func{
-		Name:    randName(),
+		Name:    sdktesting.RandName(),
 		Fn:      fn,
 		Markers: randMarkers(),
 	}
@@ -249,17 +249,17 @@ func RandFunc() Func {
 
 func RandConst() Const {
 	return Const{
-		Name:    randName(),
+		Name:    sdktesting.RandName(),
 		Markers: randMarkers(),
-		Value:   randInt64(),
+		Value:   sdktesting.RandInt64(),
 	}
 }
 
 func RandVar() Var {
 	return Var{
-		Name:    randName(),
+		Name:    sdktesting.RandName(),
 		Markers: randMarkers(),
-		Value:   randInt64(),
+		Value:   sdktesting.RandInt64(),
 	}
 }
 
@@ -289,7 +289,7 @@ func randMarkers() []parser.Marker {
 	q := quantity(5)
 	markers := make([]parser.Marker, 0, q)
 	for range q {
-		markers = append(markers, *RandMarker(randType()))
+		markers = append(markers, *sdktesting.RandMarker(randType()))
 	}
 	return markers
 }
@@ -323,21 +323,8 @@ func randType() reflect.Type {
 	return nil
 }
 
-// randName returns a random string which is valid to use for go variables
-func randName() string {
-	name := randString(_randomLen)
-	for {
-		firstLetter := rune(name[0])
-		if !unicode.IsDigit(firstLetter) {
-			break
-		}
-		name = randString(_randomLen)
-	}
-	return name
-}
-
 // quantity returns a random number from [1, n)
 func quantity(mx int) int {
-	q := (randInt64() % int64(mx)) + 1
+	q := (sdktesting.RandInt64() % int64(mx)) + 1
 	return int(q)
 }
