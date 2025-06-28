@@ -38,38 +38,33 @@ func TestLoaderLocal(t *testing.T) {
 	}
 }
 
-// TODO: what should be the logic to verify the corretnes of the loader?
-// check the number of got and wanted informations about types
-// did it load the correct marker? (names only because values are not the
-// responsiblities of the loader but the converter)
 func isValid(tc sdktesting.LoaderTestCase, proj *sdk.Project) error {
 	// check quantities
-	// TODO: Wrong order of want and got
 	if len(tc.Structs) != len(proj.Structs) {
-		return fmt.Errorf("quantity of structs not equal. got: %d; want: %d", len(tc.Structs), len(proj.Structs))
+		return fmt.Errorf("quantity of structs not equal. got: %d; want: %d", len(proj.Structs), len(tc.Structs))
 	}
 	if len(tc.Funcs) != len(proj.Funcs) {
-		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(tc.Funcs), len(proj.Funcs))
+		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(proj.Funcs), len(tc.Funcs))
 	}
 	if len(tc.Consts) != len(proj.Consts) {
-		return fmt.Errorf("quantity of consts not equal. got: %d; want: %d", len(tc.Consts), len(proj.Consts))
+		return fmt.Errorf("quantity of consts not equal. got: %d; want: %d", len(proj.Consts), len(tc.Consts))
 	}
 	if len(tc.Vars) != len(proj.Vars) {
-		return fmt.Errorf("quantity of vars not equal. got: %d; want: %d", len(tc.Vars), len(proj.Vars))
+		return fmt.Errorf("quantity of vars not equal. got: %d; want: %d", len(proj.Vars), len(tc.Vars))
 	}
 	if len(tc.Aliases) != len(proj.Aliases) {
-		return fmt.Errorf("quantity of aliases not equal. got: %d; want: %d", len(tc.Aliases), len(proj.Aliases))
+		return fmt.Errorf("quantity of aliases not equal. got: %d; want: %d", len(proj.Aliases), len(tc.Aliases))
 	}
 	if len(tc.Ifaces) != len(proj.Ifaces) {
-		return fmt.Errorf("quantity of interfaces not equal. got: %d; want: %d", len(tc.Ifaces), len(proj.Ifaces))
+		return fmt.Errorf("quantity of interfaces not equal. got: %d; want: %d", len(proj.Ifaces), len(tc.Ifaces))
 	}
 	if len(tc.Named) != len(proj.Named) {
-		return fmt.Errorf("quantity of named not equal. got: %d; want: %d", len(tc.Named), len(proj.Named))
+		return fmt.Errorf("quantity of named not equal. got: %d; want: %d", len(proj.Named), len(tc.Named))
 	}
 	if len(tc.Imports) != len(proj.Imports) {
-		return fmt.Errorf("quantity of imports not equal. got: %d; want: %d", len(tc.Imports), len(proj.Imports))
+		return fmt.Errorf("quantity of imports not equal. got: %d; want: %d", len(proj.Imports), len(tc.Imports))
 	}
-	// check marker existence
+	// check if the correct markers were loaded
 	for typ, fn := range proj.Funcs {
 		name := typ.Name()
 		want := tc.Funcs[name]
