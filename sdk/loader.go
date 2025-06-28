@@ -41,6 +41,9 @@ func NewProject() *Project {
 // TODO: I think its not needed to make loader extensible because the existence
 // of a project before loading it is required and must be provided independent
 // of the loader.
+// TODO: change return to map[*packages.Package]*Project
+// and only ionclude one PkgInfo in the Prject return which includes all the
+// markers of the packaghes over all the files
 type Loader interface {
 	Load(patterns ...string) ([]*Project, error)
 }
