@@ -50,18 +50,25 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 	}
 	projs := make([]*sdk.Project, 0, len(pkgs))
 	for _, pkg := range pkgs {
-		for _, file := range pkg.Syntax {
-			if err := l.extractInfosFromFile(pkg, file); err != nil {
-				return nil, err
-			}
-			if err := l.extractPkgInfo(pkg, file); err != nil {
-				return nil, err
-			}
+		if err := l.exctractInfosFromPkg(pkg); err != nil {
+			return nil, err
 		}
 		projs = append(projs, l.proj)
 		l.reset()
 	}
 	return projs, nil
+}
+
+func (l *localLoader) exctractInfosFromPkg(pkg *packages.Package) error {
+	for _, file := range pkg.Syntax {
+		if err := l.extractInfosFromFile(pkg, file); err != nil {
+			return err
+		}
+		if err := l.extractPkgInfo(pkg, file); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (l *localLoader) reset() {
