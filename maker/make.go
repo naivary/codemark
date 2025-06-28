@@ -1,9 +1,13 @@
 package maker
 
 import (
+	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/sdk/utils"
 )
 
 func MakeDef(idn string, output reflect.Type, targets ...sdk.Target) (*sdk.Definition, error) {
@@ -43,4 +47,14 @@ func MustMakeDefWithHelp(name string, output reflect.Type, help *sdk.DefinitionH
 	}
 	def.Help = help
 	return def
+}
+
+func MakeFakeDef(out reflect.Type) (*sdk.Definition, error) {
+	ident := fmt.Sprintf("codemark:fake:%s", utils.NameFor(out))
+	return MakeDef(ident, out, sdk.TargetAny)
+}
+
+func MakeFakeMarker(mkind marker.Kind, value reflect.Value) parser.Marker {
+	ident := fmt.Sprintf("codemark:fake:%s", mkind.String())
+	return parser.NewMarker(ident, mkind, value)
 }

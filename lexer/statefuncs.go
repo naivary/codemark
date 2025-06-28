@@ -5,7 +5,7 @@ import (
 	"unicode"
 
 	"github.com/naivary/codemark/lexer/token"
-	"github.com/naivary/codemark/sdk/utils"
+	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
 func ignoreSpace(l *Lexer) {
@@ -82,7 +82,7 @@ func lexIdent(l *Lexer) stateFunc {
 	}
 	l.acceptFunc(valid)
 	ident := l.currentValue()
-	if err := utils.IsValidIdent(ident); err != nil {
+	if err := sdkutil.IsValidIdent(ident); err != nil {
 		return l.errorf("err: %s\n", err.Error())
 	}
 	l.emit(token.IDENT)

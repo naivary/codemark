@@ -26,9 +26,9 @@ func NewConvTester(conv sdk.Converter, toTypes map[reflect.Type]reflect.Type) (C
 }
 
 func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, target sdk.Target) (ConverterTestCase, error) {
-	marker := RandMarker(from)
-	if marker == nil {
-		return ConverterTestCase{}, fmt.Errorf("no valid marker found: %v\n", from)
+	marker, err := RandMarker(from)
+	if err != nil {
+		return ConverterTestCase{}, err
 	}
 	to := c.toTypes[from]
 	if to == nil {

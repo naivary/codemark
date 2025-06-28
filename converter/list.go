@@ -122,9 +122,9 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	if err != nil {
 		return _rvzero, err
 	}
-	markerKind := sdkutil.MarkerKindOf(rvalue.Type())
-	fakeMarker := parser.NewMarker("codemark:list:fake", markerKind, rvalue)
-	fakeDef, err := maker.MakeDef("codemark:list:fake", typ, sdk.TargetAny)
+	mkind := sdkutil.MarkerKindOf(rvalue.Type())
+	fakeMarker := maker.MakeFakeMarker(mkind, rvalue)
+	fakeDef, err := maker.MakeFakeDef(typ)
 	if err != nil {
 		return _rvzero, err
 	}

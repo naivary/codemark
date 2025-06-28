@@ -289,7 +289,11 @@ func randMarkers() []parser.Marker {
 	q := quantity(5)
 	markers := make([]parser.Marker, 0, q)
 	for range q {
-		markers = append(markers, *sdktesting.RandMarker(randType()))
+		m, err := sdktesting.RandMarker(randType())
+		if err != nil {
+			panic(err)
+		}
+		markers = append(markers, *m)
 	}
 	return markers
 }

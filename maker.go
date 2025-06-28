@@ -11,3 +11,7 @@ var MakeDefWithHelp = maker.MakeDefWithHelp
 var MustMakeDef = maker.MustMakeDef
 
 var MustMakeDefWithHelp = maker.MustMakeDefWithHelp
+
+var MakeFakeDef = maker.MakeFakeDef
+
+var MakeFakeMarker = maker.MakeFakeMarker

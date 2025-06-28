@@ -31,16 +31,19 @@ func NewIdent(name string) string {
 
 // RandMarkerWithIdent is the same as RandMarker but allows to set a custom
 // identifier for the marker.
-func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
+func RandMarkerWithIdent(ident string, rtype reflect.Type) (*parser.Marker, error) {
 	v := randValue(rtype)
+	if v == nil {
+		return nil, fmt.Errorf("no value could be generated for given type: %v\n", rtype)
+	}
 	value := reflect.ValueOf(v)
 	m := parser.NewMarker(ident, sdkutil.MarkerKindOf(rtype), value)
-	return &m
+	return &m, nil
 }
 
 // RandMarker returns a random marker based on the given rtype. The returned
 // marker is always valid.
-func RandMarker(rtype reflect.Type) *parser.Marker {
+func RandMarker(rtype reflect.Type) (*parser.Marker, error) {
 	name := sdkutil.NameFor(rtype)
 	ident := NewIdent(name)
 	return RandMarkerWithIdent(ident, rtype)
