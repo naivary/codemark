@@ -11,7 +11,7 @@ import (
 )
 
 func TestLoaderLocal(t *testing.T) {
-	tc, err := sdktesting.NewGoFiles()
+	tc, err := sdktesting.RandLoaderTestCase()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

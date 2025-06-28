@@ -11,6 +11,8 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
+const _randomLen = -1
+
 // AlmostEqual checks if the two float values a and b are equal with respect to
 // some threshold.
 func AlmostEqual(a, b float64) bool {
@@ -29,7 +31,7 @@ func NewIdent(name string) string {
 // RandMarkerWithIdent is the same as RandMarker but allows to set a custom
 // identifier for the marker.
 func RandMarkerWithIdent(ident string, rtype reflect.Type) *parser.Marker {
-	v := randValueFor(rtype)
+	v := randValue(rtype)
 	value := reflect.ValueOf(v)
 	m := parser.NewMarker(ident, sdkutil.MarkerKindOf(rtype), value)
 	return &m
@@ -43,7 +45,7 @@ func RandMarker(rtype reflect.Type) *parser.Marker {
 	return RandMarkerWithIdent(ident, rtype)
 }
 
-func randValueFor(rtype reflect.Type) any {
+func randValue(rtype reflect.Type) any {
 	if !sdkutil.IsSupported(rtype) {
 		return nil
 	}
@@ -51,17 +53,19 @@ func randValueFor(rtype reflect.Type) any {
 		return randPrimitiveValue(rtype)
 	}
 	if sdkutil.IsValidSlice(rtype) {
-		return randList(rtype.Elem())
+		return randList(rtype.Elem(), _randomLen)
 	}
 	return nil
 }
 
+// randPrimitiveValue returns a random value for the given rtype iff rtype is a
+// primitive marker type e.g. non LIST.
 func randPrimitiveValue(rtype reflect.Type) any {
 	if sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) {
 		return randInt(rtype)()
 	}
 	if sdkutil.IsString(rtype) {
-		return randString()
+		return randString(_randomLen)
 	}
 	if sdkutil.IsBool(rtype) {
 		return randBool()
@@ -75,8 +79,13 @@ func randPrimitiveValue(rtype reflect.Type) any {
 	return nil
 }
 
-func randList(rtype reflect.Type) []any {
-	n := rand.IntN(8) + 1
+// randList returns a list of len `n` for rtype. For example if rtype is string
+// and n is 10 a list of type any will be returned containing 10 random strings.
+// If n is <= 0 then the length of the list will be choosen randomly.
+func randList(rtype reflect.Type, n int) []any {
+	if n <= 0 {
+		n = rand.IntN(8) + 1
+	}
 	// rtype is definetly a supported primitive type which means we can use
 	// `randValueFor` to get a correct value.
 	values := make([]any, 0, n)
@@ -121,8 +130,10 @@ func randBool() bool {
 	return randInt64()%2 == 1
 }
 
-func randString() string {
-	const n = 12
+func randString(n int) string {
+	if n <= 0 {
+		n = 12
+	}
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, n)
 	for i := range b {

@@ -11,7 +11,43 @@ import (
 	"github.com/naivary/codemark/parser"
 )
 
+// RandLoaderTestCase returns a random LaoderTestCase which can be used to test
+// the local loader against randomized markers on any types.
+func RandLoaderTestCase() (LoaderTestCase, error) {
+	tc := newLoaderTestCase()
+	tc.randomize()
+	return tc, genRandFiles("sdk/testing/tmpl/*", &tc)
+}
+
+func genRandFiles(glob string, tc *LoaderTestCase) error {
+	tmpl, err := template.ParseGlob(glob)
+	if err != nil {
+		return err
+	}
+	tmpDir := os.TempDir()
+	dir, err := os.MkdirTemp(tmpDir, "cm-project")
+	if err != nil {
+		return err
+	}
+	tc.Dir = dir
+	for _, t := range tmpl.Templates() {
+		name, _ := strings.CutSuffix(t.Name(), ".tmpl")
+		path := path.Join(dir, name)
+		file, err := os.Create(path)
+		if err != nil {
+			return err
+		}
+		if err := t.Execute(file, &tc); err != nil {
+			return err
+		}
+	}
+	return err
+
+}
+
 type LoaderTestCase struct {
+	// Absolute Path to a directory containing all the randomly generated files
+	// for testing.
 	Dir     string
 	Structs map[string]Struct
 	Funcs   map[string]Func
@@ -24,61 +60,8 @@ type LoaderTestCase struct {
 	Pkgs    []parser.Marker
 }
 
-type Import struct {
-	Name    string
-	Markers []parser.Marker
-}
-
-type Alias struct {
-	Name    string
-	Type    reflect.Type
-	Markers []parser.Marker
-}
-
-type Named struct {
-	Name    string
-	Type    reflect.Type
-	Markers []parser.Marker
-}
-
-type Func struct {
-	Name    string
-	Fn      reflect.Type
-	Markers []parser.Marker
-}
-
-type Struct struct {
-	Name    string
-	Markers []parser.Marker
-	Fields  map[string]Field
-	Methods map[string]Func
-}
-
-type Field struct {
-	F       reflect.StructField
-	Markers []parser.Marker
-}
-
-type Const struct {
-	Name    string
-	Value   int64
-	Markers []parser.Marker
-}
-
-type Var struct {
-	Name    string
-	Value   int64
-	Markers []parser.Marker
-}
-
-type Iface struct {
-	Name       string
-	Signatures map[string]Func
-	Markers    []parser.Marker
-}
-
-func NewGoFiles() (LoaderTestCase, error) {
-	tc := LoaderTestCase{
+func newLoaderTestCase() LoaderTestCase {
+	return LoaderTestCase{
 		Structs: make(map[string]Struct),
 		Funcs:   make(map[string]Func),
 		Consts:  make(map[string]Const),
@@ -89,73 +72,101 @@ func NewGoFiles() (LoaderTestCase, error) {
 		Imports: make(map[string]Import),
 		Pkgs:    randMarkers(),
 	}
-	structQuantity := quantity(6)
-	funcQuantity := quantity(4)
-	constQuantity := quantity(10)
-	ifaceQuantity := quantity(6)
-	aliasQuantity := quantity(10)
-	for range structQuantity {
+}
+
+func (l LoaderTestCase) randomize() {
+	l.randStructs(_randomLen)
+	l.randFuncs(_randomLen)
+	l.randAliases(_randomLen)
+	l.randVars(_randomLen)
+	l.randConsts(_randomLen)
+	l.randIfaces(_randomLen)
+	l.randImports(_randomLen)
+}
+
+func (l *LoaderTestCase) randStructs(n int) {
+	if n <= 0 {
+		n = 10
+	}
+	q := quantity(n)
+	for range q {
 		s := RandStruct()
-		tc.Structs[s.Name] = s
+		l.Structs[s.Name] = s
 	}
-	for range funcQuantity {
+}
+
+func (l *LoaderTestCase) randFuncs(n int) {
+	if n <= 0 {
+		n = 6
+	}
+	q := quantity(n)
+	for range q {
 		fn := RandFunc()
-		tc.Funcs[fn.Name] = fn
+		l.Funcs[fn.Name] = fn
 	}
-	for range constQuantity {
+}
+
+func (l *LoaderTestCase) randConsts(n int) {
+	if n <= 0 {
+		n = 10
+	}
+	q := quantity(n)
+	for range q {
 		c := RandConst()
-		tc.Consts[c.Name] = c
+		l.Consts[c.Name] = c
 	}
-	for range constQuantity {
-		v := RandVar()
-		tc.Vars[v.Name] = v
+}
+
+func (l *LoaderTestCase) randIfaces(n int) {
+	if n <= 0 {
+		n = 6
 	}
-	for range ifaceQuantity {
+	q := quantity(n)
+	for range q {
 		iface := RandIface()
-		tc.Ifaces[iface.Name] = iface
+		l.Ifaces[iface.Name] = iface
 	}
-	for range aliasQuantity {
+}
+
+func (l *LoaderTestCase) randAliases(n int) {
+	if n <= 0 {
+		n = 10
+	}
+	q := quantity(n)
+	for range q {
 		alias := RandAlias()
-		tc.Aliases[alias.Name] = alias
+		l.Aliases[alias.Name] = alias
 	}
-	for range ifaceQuantity {
-		named := RandNamed()
-		tc.Named[named.Name] = named
+}
+
+func (l *LoaderTestCase) randVars(n int) {
+	if n <= 0 {
+		n = 10
 	}
-	for range funcQuantity {
+	q := quantity(n)
+	for range q {
+		v := RandVar()
+		l.Vars[v.Name] = v
+	}
+}
+
+func (l *LoaderTestCase) randImports(n int) {
+	if n <= 0 {
+		n = 4
+	}
+	q := quantity(n)
+	for range q {
 		imported := RandImport()
 		for {
-			_, found := tc.Imports[imported.Name]
+			_, found := l.Imports[imported.Name]
 			if found {
 				imported = RandImport()
 				continue
 			}
 			break
 		}
-		tc.Imports[imported.Name] = imported
+		l.Imports[imported.Name] = imported
 	}
-	tmpl, err := template.ParseGlob("sdk/testing/tmpl/*")
-	if err != nil {
-		return tc, err
-	}
-	tmpDir := os.TempDir()
-	dir, err := os.MkdirTemp(tmpDir, "cm-project")
-	if err != nil {
-		return tc, err
-	}
-	tc.Dir = dir
-	for _, t := range tmpl.Templates() {
-		name, _ := strings.CutSuffix(t.Name(), ".tmpl")
-		path := path.Join(dir, name)
-		file, err := os.Create(path)
-		if err != nil {
-			return tc, err
-		}
-		if err := t.Execute(file, &tc); err != nil {
-			return tc, err
-		}
-	}
-	return tc, err
 }
 
 func RandImport() Import {
@@ -196,8 +207,8 @@ func RandIface() Iface {
 }
 
 func RandStruct() Struct {
-	fieldQuantity := (randInt64() % 6) + 1
-	methodQuantity := (randInt64() % 2) + 1
+	fieldQuantity := quantity(6)
+	methodQuantity := quantity(2)
 	fields := make(map[string]Field, fieldQuantity)
 	methods := make(map[string]Func, methodQuantity)
 	for range fieldQuantity {
@@ -215,6 +226,16 @@ func RandStruct() Struct {
 		Methods: methods,
 	}
 	return s
+}
+
+func randField() Field {
+	return Field{
+		F: reflect.StructField{
+			Name: randName(),
+			Type: randType(),
+		},
+		Markers: randMarkers(),
+	}
 }
 
 func RandFunc() Func {
@@ -242,19 +263,8 @@ func RandVar() Var {
 	}
 }
 
-func randField() Field {
-	return Field{
-		F: reflect.StructField{
-			Name: randName(),
-			Type: randType(),
-		},
-		Markers: randMarkers(),
-	}
-}
-
 func randStdPkg() string {
-	rtype := reflect.TypeFor[int64]()
-	i := (randInt(rtype)() % 7) + 1
+	i := quantity(7)
 	switch i {
 	case 1:
 		return "os"
@@ -276,18 +286,16 @@ func randStdPkg() string {
 }
 
 func randMarkers() []parser.Marker {
-	markerQuantity := (randInt64() % 5) + 1
-	markers := make([]parser.Marker, 0, markerQuantity)
-	for range markerQuantity {
+	q := quantity(5)
+	markers := make([]parser.Marker, 0, q)
+	for range q {
 		markers = append(markers, *RandMarker(randType()))
 	}
 	return markers
 }
 
 func randType() reflect.Type {
-	// string, int, float32, complex64, bool, uint
-	rtype := reflect.TypeFor[int64]()
-	i := (randInt(rtype)() % 11) + 1
+	i := quantity(11)
 	switch i {
 	case 1:
 		return reflect.TypeFor[string]()
@@ -315,18 +323,20 @@ func randType() reflect.Type {
 	return nil
 }
 
+// randName returns a random string which is valid to use for go variables
 func randName() string {
-	name := randString()
+	name := randString(_randomLen)
 	for {
 		firstLetter := rune(name[0])
 		if !unicode.IsDigit(firstLetter) {
 			break
 		}
-		name = randString()
+		name = randString(_randomLen)
 	}
 	return name
 }
 
+// quantity returns a random number from [1, n)
 func quantity(mx int) int {
 	q := (randInt64() % int64(mx)) + 1
 	return int(q)
