@@ -133,6 +133,7 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 			return err
 		}
 	}
+
 	for typ, im := range proj.Imports {
 		name := typ.Name()
 		want := tc.Imports[name]

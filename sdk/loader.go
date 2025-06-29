@@ -12,11 +12,6 @@ var (
 	ErrPkgsEmpty = errors.New("loaded packages are empty. check that the defined patterns are matching any files")
 )
 
-type Info interface {
-	Defs() map[string][]any
-	Name() string
-}
-
 type Filename = string
 
 type Project struct {
