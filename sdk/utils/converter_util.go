@@ -47,6 +47,16 @@ func ConvertTo(v reflect.Value, typ reflect.Type) (reflect.Value, error) {
 	return out.Elem(), nil
 }
 
+// NameFor returns a string representation of a given reflect.Type. It is NOT
+// unique. The returned string is like reading the type from left to right. Some
+// examples are:
+// map[string]string -> map.string.string
+// []int -> slice.int
+// *int -> ptr.int
+// The uniqueness is not given because some types are aliases of others e.g:
+// *byte -> ptr.uint8
+// *uint8 -> ptr.uint8
+// and others can not be uniquely identified like structs and interfaces.
 func NameFor(rtype reflect.Type) string {
 	var b strings.Builder
 	return nameFor(rtype, &b)

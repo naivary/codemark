@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/parser/marker"
-	"github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/syntax"
 )
 
 type Marker struct {
@@ -60,7 +60,7 @@ func (m *Marker) Value() reflect.Value {
 }
 
 func (m *Marker) IsValid() error {
-	if err := utils.IsValidIdent(m.ident); err != nil {
+	if err := syntax.Ident(m.ident); err != nil {
 		return fmt.Errorf("marker identifier is invalid: %s\n", m.ident)
 	}
 	if !m.value.IsValid() {

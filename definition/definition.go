@@ -5,16 +5,15 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/definition/target"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/syntax"
 )
 
 type Definition struct {
 	// Name of the definition in the correct format
-	// e.g. +path:to:mark
+	// e.g. path:to:mark (without the plus)
 	Ident string
 
-	// Target defines on which type the Definition is appliable
-	// e.g. Struct, Package, Field, VAR, CONST etc.
+	// Target defines on which kind of go expression (Struct etc.) the Definition is appliable
 	Targets []target.Target
 
 	// Doc provides documentation for the user to inform about the usage and
@@ -43,7 +42,7 @@ func (d *Definition) HasDoc() bool {
 }
 
 func (d *Definition) IsValid() error {
-	if err := sdkutil.IsValidIdent(d.Ident); err != nil {
+	if err := syntax.Ident(d.Ident); err != nil {
 		return err
 	}
 	if d.Output == nil {
