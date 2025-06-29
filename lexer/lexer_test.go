@@ -131,7 +131,7 @@ this is a normal docs string`,
 		{
 			name:    "complex number",
 			input:   `+jsonschema:validation:max=2i+3`,
-			isValid: false,
+			isValid: true,
 		},
 		{
 			name:    "complex number valid",

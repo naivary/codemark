@@ -93,10 +93,10 @@ func TestScanNumber(t *testing.T) {
 			kind:    token.COMPLEX,
 		},
 		{
-			name:    "complex number wrong order",
+			name:    "complex number different order",
 			input:   "2i+3",
-			isValid: false,
-			kind:    token.ERROR,
+			isValid: true,
+			kind:    token.COMPLEX,
 		},
 		{
 			name:    "big positive int number",
@@ -123,7 +123,7 @@ func TestScanNumber(t *testing.T) {
 				t.Fatalf("Expected to be valid. Got an error: %s", err.Error())
 			}
 			if tc.kind != kind {
-				t.Fatalf("Kinds are not equal. Expected `%d` got `%d`", tc.kind, kind)
+				t.Fatalf("Kinds are not equal. Expected `%s` got `%s`", tc.kind, kind)
 			}
 		})
 	}

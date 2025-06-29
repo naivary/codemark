@@ -31,37 +31,30 @@ func scanRealNumber(l *Lexer) (token.Kind, error) {
 		l.accept("+-")
 		l.acceptRun("0123456789_")
 	}
+
 	return kind, nil
 }
 
 func scanNumber(l *Lexer) (token.Kind, error) {
-	// TODO: I think we can set before the return kind = token.COMPLEX
 	var err error
-	kind := token.INT
+	var kind token.Kind
 	kind, err = scanRealNumber(l)
 	if err != nil {
 		return token.ERROR, err
 	}
-	if l.accept("i") {
-		if l.accept("+-") {
-			return token.ERROR, ErrRealBeforeComplex
-		}
-		kind = token.COMPLEX
-	}
 	r := l.peek()
-	// Next thing mustn't be alphanumeric.
-	if isAlphaNumeric(r) {
-		l.next()
-		return token.ERROR, ErrBadSyntaxForNumber
+	if r != 'i' && r != '+' && r != '-' {
+		return kind, nil
 	}
-	if l.accept("+-") {
+	if l.accept("i") {
 		_, err = scanRealNumber(l)
-		if !l.accept("i") {
-			return token.ERROR, ErrImagMissing
-		}
-		kind = token.COMPLEX
+		return token.COMPLEX, err
 	}
-	return kind, err
+	_, err = scanRealNumber(l)
+	if !l.accept("i") {
+		return token.ERROR, fmt.Errorf("you can not define a number as a addition between two. Two numbers can only be defined if you want to define an complex number e.g. 2+3i")
+	}
+	return token.COMPLEX, nil
 }
 
 func scanString(l *Lexer) error {

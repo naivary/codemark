@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 
 	"github.com/naivary/codemark/lexer"
 	"github.com/naivary/codemark/lexer/token"
@@ -25,12 +24,15 @@ func parseInt64(val string) (int64, error) {
 }
 
 func parseComplex128(v string) (complex128, error) {
-	re, img, _ := strings.Cut(v, "+")
-	i, err := strconv.ParseInt(re, 0, 64)
+	// NOTE: order of the imaginary and real part is not clear yet hence the
+	// naming x and y
+	var err error
+	img, re := complexOrder(v)
+	reInt, err := strconv.ParseInt(re, 0, 64)
 	if err != nil {
 		return 0, err
 	}
-	val := fmt.Sprintf("%d+%s", i, img)
+	val := fmt.Sprintf("%d+%s", reInt, img)
 	c, err := strconv.ParseComplex(val, 128)
 	if err != nil {
 		return 0, err
