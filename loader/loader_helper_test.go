@@ -48,7 +48,8 @@ func genRandFiles(glob string, tc *LoaderTestCase) error {
 type LoaderTestCase struct {
 	// Absolute Path to a directory containing all the randomly generated files
 	// for testing.
-	Dir     string
+	Dir string
+
 	Structs map[string]Struct
 	Funcs   map[string]Func
 	Consts  map[string]Const
