@@ -9,20 +9,20 @@ import (
 )
 
 func InMemory() sdk.Registry {
-	return &inmemoryRegistry{
+	return &inmemory{
 		defs: make(map[string]*definition.Definition),
 	}
 }
 
-var _ sdk.Registry = (*inmemoryRegistry)(nil)
+var _ sdk.Registry = (*inmemory)(nil)
 
-type inmemoryRegistry struct {
+type inmemory struct {
 	mu sync.Mutex
 
 	defs map[string]*definition.Definition
 }
 
-func (mem *inmemoryRegistry) Define(d *definition.Definition) error {
+func (mem *inmemory) Define(d *definition.Definition) error {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -34,7 +34,7 @@ func (mem *inmemoryRegistry) Define(d *definition.Definition) error {
 	return nil
 }
 
-func (mem *inmemoryRegistry) Get(idn string) (*definition.Definition, error) {
+func (mem *inmemory) Get(idn string) (*definition.Definition, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -45,6 +45,14 @@ func (mem *inmemoryRegistry) Get(idn string) (*definition.Definition, error) {
 	return nil, fmt.Errorf("definition not found: `%s`", idn)
 }
 
-func (mem *inmemoryRegistry) All() map[string]*definition.Definition {
+func (mem *inmemory) DocOf(ident string) (string, error) {
+	def, err := mem.Get(ident)
+	if err != nil {
+		return "", nil
+	}
+	return def.Doc, nil
+}
+
+func (mem *inmemory) All() map[string]*definition.Definition {
 	return mem.defs
 }
