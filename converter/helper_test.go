@@ -25,7 +25,7 @@ func newManager() sdk.ConverterManager {
 }
 
 func newDefsSet() sdk.Registry {
-	reg, err := sdktesting.NewDefsSet(registry.InMemory(), maker.New())
+	reg, err := sdktesting.NewRegistry(registry.InMemory(), maker.New())
 	if err != nil {
 		panic(err)
 	}
@@ -259,7 +259,7 @@ func isValidList(got, want reflect.Value) bool {
 func isValidFloat(got, want reflect.Value) bool {
 	got = sdkutil.DeRefValue(got)
 	w := want.Interface().(float64)
-	return sdktesting.AlmostEqual(got.Float(), w)
+	return almostEqual(got.Float(), w)
 }
 
 func isValidBool(got, want reflect.Value) bool {
@@ -278,4 +278,9 @@ func isValidComplex(got, want reflect.Value) bool {
 	got = sdkutil.DeRefValue(got)
 	w := want.Interface().(complex128)
 	return got.Complex() == w
+}
+
+func almostEqual(a, b float64) bool {
+	const float64EqualityThreshold = 1e-5
+	return math.Abs(a-b) <= float64EqualityThreshold
 }

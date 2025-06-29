@@ -198,7 +198,7 @@ func (l *localLoader) extractFuncInfo(pkg *packages.Package, decl *ast.FuncDecl)
 	return nil
 }
 
-func (l *localLoader) extractFileInfo(pkg *packages.Package, file *ast.File) error {
+func (l *localLoader) extractFileInfo(_ *packages.Package, file *ast.File) error {
 	doc := file.Doc.Text()
 	defs, err := l.mngr.ParseDefs(doc, sdk.TargetType)
 	if err != nil {

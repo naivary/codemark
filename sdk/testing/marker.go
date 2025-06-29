@@ -14,13 +14,6 @@ import (
 
 const RandLen = -1
 
-// AlmostEqual checks if the two float values a and b are equal with respect to
-// some threshold.
-func AlmostEqual(a, b float64) bool {
-	const float64EqualityThreshold = 1e-5
-	return math.Abs(a-b) <= float64EqualityThreshold
-}
-
 // NewIdent returns a identifier which can be used for both marker and definition.
 // This function should only be used for test purposes. The produced marker is in
 // the codemark:testing:* namespace. For custom identifier naming it's recommneded
@@ -42,14 +35,14 @@ func RandMarkerWithIdent(ident string, rtype reflect.Type) (*parser.Marker, erro
 }
 
 // RandMarker returns a random marker based on the given rtype. The returned
-// marker is always valid.
+// marker is always valid if not error is returned.
 func RandMarker(rtype reflect.Type) (*parser.Marker, error) {
 	name := sdkutil.NameFor(rtype)
 	ident := NewIdent(name)
 	return RandMarkerWithIdent(ident, rtype)
 }
 
-// RandName returns a random string which is valid to use for go variables
+// RandName returns a random string which is valid to use as go variable name.
 func RandName() string {
 	name := RandString(RandLen)
 	for {
@@ -62,6 +55,7 @@ func RandName() string {
 	return name
 }
 
+// randValue returns a valid marker value for the given rtype.
 func randValue(rtype reflect.Type) any {
 	if !sdkutil.IsSupported(rtype) {
 		return nil
@@ -96,15 +90,13 @@ func randPrimitiveValue(rtype reflect.Type) any {
 	return nil
 }
 
-// randList returns a list of len `n` for rtype. For example if rtype is string
+// randList returns a list of length `n` for rtype. For example if rtype is string
 // and n is 10 a list of type any will be returned containing 10 random strings.
 // If n is <= 0 then the length of the list will be choosen randomly.
 func randList(rtype reflect.Type, n int) []any {
 	if n <= 0 {
 		n = rand.IntN(8) + 1
 	}
-	// rtype is definetly a supported primitive type which means we can use
-	// `randValueFor` to get a correct value.
 	values := make([]any, 0, n)
 	for range n {
 		values = append(values, randPrimitiveValue(rtype))

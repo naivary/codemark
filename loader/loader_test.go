@@ -21,7 +21,7 @@ func TestLoaderLocal(t *testing.T) {
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
-	reg, err := sdktesting.NewDefsSet(registry.InMemory(), maker.New())
+	reg, err := sdktesting.NewRegistry(registry.InMemory(), maker.New())
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

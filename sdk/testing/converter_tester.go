@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
@@ -16,7 +17,14 @@ type converterTester struct {
 	toTypes map[reflect.Type]reflect.Type
 }
 
+// NewConvTester returns a new ConverterTester for the given converter. The
+// parameter `toTypes` is providing a map of a supported type to an example
+// custom type which is being used by the converter as a test. For example the
+// built in integer converter is converter an int to a type Int int.
 func NewConvTester(conv sdk.Converter, toTypes map[reflect.Type]reflect.Type) (ConverterTester, error) {
+	if toTypes == nil {
+		return nil, errors.New("missing toTypes map")
+	}
 	c := &converterTester{
 		conv:    conv,
 		vvfns:   make(map[reflect.Type]ValidValueFunc),

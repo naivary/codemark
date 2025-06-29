@@ -152,7 +152,9 @@ func AllTypes() []any {
 	)
 }
 
-func NewDefsSet(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
+// NewRegistry returns a registry which includes definitions for all the
+// default types which can be converterd using the builtin converter.
+func NewRegistry(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		name := sdkutil.NameFor(rtype)
