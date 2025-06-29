@@ -29,7 +29,7 @@ func NewManager(reg sdk.Registry, convs ...sdk.Converter) (*Manager, error) {
 	}
 	convs = slices.Concat(mngr.defaultConvs(), convs)
 	for _, conv := range convs {
-		if err := mngr.AddConverter(conv); err != nil {
+		if err := mngr.addConverter(conv); err != nil {
 			return nil, err
 		}
 	}
@@ -48,10 +48,9 @@ func (c *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 	return conv, nil
 }
 
-func (c *Manager) AddConverter(conv sdk.Converter) error {
-	if !c.isValidName(conv.Name()) {
-		return fmt.Errorf("%s is reserverd for internal usage: %s\n", _namePrefix, conv.Name())
-	}
+// addConverter is exactly the same as AddConverter but does not include name
+// assertions to be able to use it for internal usage.
+func (c *Manager) addConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		_, found := c.convs[rtype]
 		if found {
@@ -62,6 +61,15 @@ func (c *Manager) AddConverter(conv sdk.Converter) error {
 	return nil
 }
 
+func (c *Manager) AddConverter(conv sdk.Converter) error {
+	if err := c.isValidName(conv.Name()); err != nil {
+		return fmt.Errorf("converter is not following naming conventions: %s\n", err.Error())
+	}
+	return c.addConverter(conv)
+}
+
+// Convert converts the marker by finding the correlating definition in the
+// registry with respect to the target.
 func (c *Manager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
 	idn := mrk.Ident()
 	def, err := c.reg.Get(idn)
@@ -96,17 +104,19 @@ func (c *Manager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) 
 	}
 	defs := make(map[string][]any, len(markers))
 	for _, marker := range markers {
-		def, err := c.Convert(marker, t)
+		value, err := c.Convert(marker, t)
 		if err != nil {
 			return nil, err
 		}
+		// check if marker is used multiple times and if so append it to the
+		// values.
 		midn := marker.Ident()
-		defss, ok := defs[midn]
+		values, ok := defs[midn]
 		if !ok {
-			defs[midn] = []any{def}
+			defs[midn] = []any{value}
 			continue
 		}
-		defs[midn] = append(defss, def)
+		defs[midn] = append(values, value)
 	}
 	return defs, nil
 }
@@ -122,14 +132,23 @@ func (c *Manager) defaultConvs() []sdk.Converter {
 	}
 }
 
-func (c *Manager) isValidName(name string) bool {
-	return strings.HasPrefix(name, _namePrefix)
+// isValidName checks if the choosen name of a custom converter is following the
+// convention of prefixing the name with the project name and that the project
+// name is not "codemark".
+func (c *Manager) isValidName(name string) error {
+	if strings.HasPrefix(name, _namePrefix) {
+		return fmt.Errorf(`the name of your custom converter cannot start with "codemark" because it is reserved for the builtin converters: %s`, name)
+	}
+	if len(strings.Split(name, ".")) != 2 {
+		return fmt.Errorf(`the name of your custom converter has to be seperated with "%s" and must be composed of two segments e.g. "codemark.integer"`, ".")
+	}
+	return nil
 }
 
 // builtin is checking if the given rtype is convertible using a builtin
 // converter. If not nil will be returned.
 func (c *Manager) builtin(rtype reflect.Type) sdk.Converter {
-	if !c.isSupported(rtype) {
+	if !sdkutil.IsSupported(rtype) {
 		return nil
 	}
 	// rtype can be a native type e.g. string and for that the converter can be
@@ -140,7 +159,7 @@ func (c *Manager) builtin(rtype reflect.Type) sdk.Converter {
 	}
 	// NOTE: The types choose in the function `reflect.TypeFor` are one of the
 	// supported types of the converter. The concrete choice has no meaning.
-	if c.isValidSlice(rtype) {
+	if sdkutil.IsValidSlice(rtype) {
 		return c.convs[reflect.TypeFor[[]string]()]
 	}
 	if sdkutil.IsBool(rtype) {
@@ -159,20 +178,4 @@ func (c *Manager) builtin(rtype reflect.Type) sdk.Converter {
 		return c.convs[reflect.TypeFor[complex64]()]
 	}
 	return nil
-}
-
-// isSupported is returning true iff the given rtype is supported by the default
-// converters.
-func (c *Manager) isSupported(rtype reflect.Type) bool {
-	return c.isPrimitive(rtype) || rtype.Kind() == reflect.Slice
-}
-
-// isPrimitive is returning true iff the given type is non-slice and a type
-// which can be converted by a builtin converter.
-func (c *Manager) isPrimitive(rtype reflect.Type) bool {
-	return sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) || sdkutil.IsFloat(rtype) || sdkutil.IsString(rtype) || sdkutil.IsBool(rtype) || sdkutil.IsComplex(rtype)
-}
-
-func (c *Manager) isValidSlice(rtype reflect.Type) bool {
-	return rtype.Kind() == reflect.Slice && c.isPrimitive(rtype.Elem())
 }

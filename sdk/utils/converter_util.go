@@ -7,13 +7,6 @@ import (
 
 const NameSep = "."
 
-func DeRefValue(v reflect.Value) reflect.Value {
-	if IsPointer(v.Type()) {
-		return v.Elem()
-	}
-	return v
-}
-
 func Deref(typ reflect.Type) reflect.Type {
 	if typ == nil {
 		return typ

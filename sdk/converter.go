@@ -27,12 +27,21 @@ type Converter interface {
 	Convert(m parser.Marker, def *Definition) (reflect.Value, error)
 }
 
+// ConverterManager is responsible for managing the workflow of converting a
+// marker to a definition.
 type ConverterManager interface {
-	GetConverter(rtype reflect.Type) (Converter, error)
+	// GetConverter returns the converter for the given reflect.Type. If none is
+	// found an error will be returned.
+	GetConverter(from reflect.Type) (Converter, error)
 
+	// AddConverter adds the converter to the manager.
 	AddConverter(conv Converter) error
 
+	// Convert converts the marker with respect to the target to identified
+	// definition in the registry.
 	Convert(mrk parser.Marker, target Target) (any, error)
 
+	// ParseDefs returns all definitions found in the `doc` with respect to the
+	// target.
 	ParseDefs(doc string, t Target) (map[string][]any, error)
 }

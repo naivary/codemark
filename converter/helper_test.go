@@ -221,8 +221,15 @@ func getVVFn(rtype reflect.Type) sdktesting.ValidValueFunc {
 	return nil
 }
 
+func derefValue(v reflect.Value) reflect.Value {
+	if sdkutil.IsPointer(v.Type()) {
+		return v.Elem()
+	}
+	return v
+}
+
 func isValidInteger(got, want reflect.Value) bool {
-	got = sdkutil.DeRefValue(got)
+	got = derefValue(got)
 	var i64 int64
 	switch got.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -257,25 +264,25 @@ func isValidList(got, want reflect.Value) bool {
 }
 
 func isValidFloat(got, want reflect.Value) bool {
-	got = sdkutil.DeRefValue(got)
+	got = derefValue(got)
 	w := want.Interface().(float64)
 	return almostEqual(got.Float(), w)
 }
 
 func isValidBool(got, want reflect.Value) bool {
-	got = sdkutil.DeRefValue(got)
+	got = derefValue(got)
 	w := want.Interface().(bool)
 	return got.Bool() == w
 }
 
 func isValidString(got, want reflect.Value) bool {
-	got = sdkutil.DeRefValue(got)
+	got = derefValue(got)
 	w := want.Interface().(string)
 	return got.String() == w
 }
 
 func isValidComplex(got, want reflect.Value) bool {
-	got = sdkutil.DeRefValue(got)
+	got = derefValue(got)
 	w := want.Interface().(complex128)
 	return got.Complex() == w
 }
