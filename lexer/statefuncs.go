@@ -1,7 +1,5 @@
 package lexer
 
-// TODO: Change the naming from List to List
-
 import (
 	"strings"
 	"unicode"

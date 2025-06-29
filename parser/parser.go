@@ -24,8 +24,6 @@ func parseInt64(val string) (int64, error) {
 }
 
 func parseComplex128(v string) (complex128, error) {
-	// NOTE: order of the imaginary and real part is not clear yet hence the
-	// naming x and y
 	var err error
 	img, re := complexOrder(v)
 	reInt, err := strconv.ParseInt(re, 0, 64)

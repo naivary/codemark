@@ -82,7 +82,7 @@ type NamedInfo struct {
 	Pkg  *packages.Package
 	Defs map[string][]any
 
-	Methods []FuncInfo
+	Methods map[types.Object]FuncInfo
 }
 
 type AliasInfo struct {

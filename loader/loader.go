@@ -175,7 +175,12 @@ func (l *localLoader) extractMethodInfo(pkg *packages.Package, decl *ast.FuncDec
 	if err != nil {
 		return err
 	}
-	l.proj.Structs[recObj].Methods[methObj] = info
+	struc, isStruct := l.proj.Structs[recObj]
+	if isStruct {
+		struc.Methods[methObj] = info
+		return nil
+	}
+	l.proj.Named[recObj].Methods[methObj] = info
 	return nil
 }
 
