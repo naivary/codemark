@@ -46,6 +46,12 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 	if len(tc.Structs) != len(proj.Structs) {
 		return fmt.Errorf("quantity of structs not equal. got: %d; want: %d", len(proj.Structs), len(tc.Structs))
 	}
+	for _, s := range proj.Structs {
+		wantFields := tc.Structs[s.Spec.Name.Name].Fields
+		if len(s.Fields) != len(wantFields) {
+			return fmt.Errorf("quantity of fields not equal. got: %d; want: %d", len(s.Fields), len(wantFields))
+		}
+	}
 	if len(tc.Funcs) != len(proj.Funcs) {
 		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(proj.Funcs), len(tc.Funcs))
 	}
@@ -128,6 +134,7 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 }
 
 func isMarkerMatching(want []parser.Marker, got map[string][]any) error {
+	fmt.Println(got)
 	for _, marker := range want {
 		ident := marker.Ident()
 		_, found := got[ident]

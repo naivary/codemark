@@ -12,6 +12,8 @@ var (
 	ErrPkgsEmpty = errors.New("loaded packages are empty. check that the defined patterns are matching any files")
 )
 
+type Filename = string
+
 type Project struct {
 	Structs map[types.Object]*StructInfo
 	Ifaces  map[types.Object]IfaceInfo
@@ -21,8 +23,7 @@ type Project struct {
 	Vars    map[types.Object]VarInfo
 	Imports map[types.Object]ImportInfo
 	Funcs   map[types.Object]FuncInfo
-	// indexed by filename
-	Files map[string]FileInfo
+	Files   map[Filename]FileInfo
 }
 
 func NewProject() *Project {

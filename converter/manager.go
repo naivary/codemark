@@ -12,6 +12,16 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
+type definitions map[string][]any
+
+func (d definitions) Add(idn string, value any) {
+	defs, ok := d[idn]
+	if !ok {
+		d[idn] = []any{value}
+	}
+	d[idn] = append(defs, value)
+}
+
 var _ sdk.ConverterManager = (*Manager)(nil)
 
 type Manager struct {
@@ -102,21 +112,14 @@ func (c *Manager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) 
 	if err != nil {
 		return nil, err
 	}
-	defs := make(map[string][]any, len(markers))
+	defs := make(definitions, len(markers))
 	for _, marker := range markers {
 		value, err := c.Convert(marker, t)
 		if err != nil {
 			return nil, err
 		}
-		// check if marker is used multiple times and if so append it to the
-		// values.
 		midn := marker.Ident()
-		values, ok := defs[midn]
-		if !ok {
-			defs[midn] = []any{value}
-			continue
-		}
-		defs[midn] = append(values, value)
+		defs.Add(midn, value)
 	}
 	return defs, nil
 }

@@ -12,19 +12,19 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-var defsSet = newDefsSet()
+var reg = newRegistry()
 
 var mngr = newManager()
 
 func newManager() sdk.ConverterManager {
-	mngr, err := NewManager(defsSet)
+	mngr, err := NewManager(reg)
 	if err != nil {
 		panic(err)
 	}
 	return mngr
 }
 
-func newDefsSet() sdk.Registry {
+func newRegistry() sdk.Registry {
 	reg, err := sdktesting.NewRegistry(registry.InMemory(), maker.New())
 	if err != nil {
 		panic(err)
@@ -47,6 +47,7 @@ func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
 	return tester, nil
 }
 
+// TODO: maybe this mapping can be done dynamically?
 func fromMap(conv sdk.Converter) map[reflect.Type]reflect.Type {
 	if _, isList := conv.(*listConverter); isList {
 		return fromMapOfList()
