@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/naivary/codemark/maker"
+	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -153,13 +155,17 @@ func AllTypes() []any {
 }
 
 // NewRegistry returns a registry which includes definitions for all the
-// default types which can be converterd using the builtin converter.
-func NewRegistry(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Definition) (sdk.Registry, error) {
+// default types which can be converterd using the builtin converter. If the
+// provided registry is nil an in-memory registry will be used by default.
+func NewRegistry(reg sdk.Registry, customDefs ...*sdk.Definition) (sdk.Registry, error) {
+	if reg == nil {
+		reg = registry.InMemory()
+	}
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		name := sdkutil.NameFor(rtype)
 		ident := NewIdent(name)
-		def, err := b.MakeDef(ident, rtype, sdk.TargetAny)
+		def, err := maker.MakeDef(ident, rtype, sdk.TargetAny)
 		if err != nil {
 			return nil, err
 		}
@@ -170,14 +176,14 @@ func NewRegistry(reg sdk.Registry, b sdk.DefinitionMaker, customDefs ...*sdk.Def
 	// add special definitions which cannot be added using NameFor because they
 	// are aliases to other types e.g. byte=int32 and rune=uint8
 	defs := []*sdk.Definition{
-		b.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), sdk.TargetAny),
-		b.MustMakeDef(NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), sdk.TargetAny),
+		maker.MustMakeDef(NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), sdk.TargetAny),
 	}
 	for _, def := range slices.Concat(defs, customDefs) {
 		if err := reg.Define(def); err != nil {

@@ -5,9 +5,7 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/converter"
-	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser"
-	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 	"golang.org/x/tools/go/packages"
@@ -21,7 +19,7 @@ func TestLoaderLocal(t *testing.T) {
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
-	reg, err := sdktesting.NewRegistry(registry.InMemory(), maker.New())
+	reg, err := sdktesting.NewRegistry(nil)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
