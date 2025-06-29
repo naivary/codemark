@@ -16,7 +16,7 @@ func scanRealNumber(l *Lexer) (token.Kind, error) {
 	digits := "0123456789_"
 	// Is it hex?
 	if l.accept("0") {
-		// Note: Leading 0 does not mean octal in floats.
+		// NOTE: Leading 0 does not mean octal in floats.
 		if l.accept("xX") {
 			digits = "0123456789abcdefABCDEF_"
 		} else if l.accept("oO") {
@@ -58,7 +58,7 @@ func scanNumber(l *Lexer) (token.Kind, error) {
 	}
 	_, err = scanRealNumber(l)
 	if !l.accept("i") {
-		return token.ERROR, fmt.Errorf("you can not define a number as a addition between two. Two numbers can only be defined if you want to define an complex number e.g. 2+3i")
+		return token.ERROR, fmt.Errorf("you can not define a number as a addition between two. Two numbers can only be defined if you want to define an complex number e.g. 2+3i: %s\n", l.currentValue())
 	}
 	return token.COMPLEX, nil
 }

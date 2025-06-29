@@ -1,6 +1,6 @@
 package lexer
 
-// TODO: Change the naming from Array to List
+// TODO: Change the naming from List to List
 
 import (
 	"strings"
@@ -156,11 +156,11 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	case r == ']':
 		return lexCloseSquareBracket
 	case isDigit(r):
-		return lexNumberArrayValue
+		return lexNumberListValue
 	case r == '"':
-		return lexStartDoubleQuotationMarkStringArray
+		return lexStartDoubleQuotationMarkStringList
 	case r == 't' || r == 'f':
-		return lexBoolArrayValue
+		return lexBoolListValue
 	case isSpace(r):
 		return l.errorf("no space allowed after the opening bracket of an array")
 	case r == ',':
@@ -170,7 +170,7 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	}
 }
 
-func lexArraySequence(l *Lexer) stateFunc {
+func lexListSequence(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == ',':
 		return lexCommaSeperator
@@ -181,7 +181,7 @@ func lexArraySequence(l *Lexer) stateFunc {
 	}
 }
 
-func lexBoolArrayValue(l *Lexer) stateFunc {
+func lexBoolListValue(l *Lexer) stateFunc {
 	spelling := "true"
 	if r := l.peek(); r == 'f' {
 		spelling = "false"
@@ -195,16 +195,16 @@ func lexBoolArrayValue(l *Lexer) stateFunc {
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
 	l.emit(token.BOOL)
-	return lexArraySequence
+	return lexListSequence
 }
 
-func lexNumberArrayValue(l *Lexer) stateFunc {
+func lexNumberListValue(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
 		return l.errorf("error: %s\n", err.Error())
 	}
 	l.emit(kind)
-	return lexArraySequence
+	return lexListSequence
 }
 
 func lexCommaSeperator(l *Lexer) stateFunc {
@@ -213,13 +213,13 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 	ignoreSpace(l)
 	switch r := l.peek(); {
 	case isDigit(r):
-		return lexNumberArrayValue
+		return lexNumberListValue
 	case r == '"':
-		return lexStartDoubleQuotationMarkStringArray
+		return lexStartDoubleQuotationMarkStringList
 	case r == ']':
 		return l.errorf("remove the comma before the closing bracket of the array")
 	case r == 't' || r == 'f':
-		return lexBoolArrayValue
+		return lexBoolListValue
 	default:
 		return l.errorf("expected next value in array after comma")
 	}
@@ -246,7 +246,7 @@ func lexEndDoubleQuotationMarkString(l *Lexer) stateFunc {
 	return lexEndOfExpr
 }
 
-func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
+func lexStartDoubleQuotationMarkStringList(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanString(l); err != nil {
@@ -255,16 +255,16 @@ func lexStartDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
 	l.emit(token.STRING)
 	switch r := l.peek(); {
 	case r == '"':
-		return lexEndDoubleQuotationMarkStringArray
+		return lexEndDoubleQuotationMarkStringList
 	default:
 		return l.errorf("expected `\"` got `%s`", string(r))
 	}
 }
 
-func lexEndDoubleQuotationMarkStringArray(l *Lexer) stateFunc {
+func lexEndDoubleQuotationMarkStringList(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
-	return lexArraySequence
+	return lexListSequence
 }
 
 func lexCloseSquareBracket(l *Lexer) stateFunc {
