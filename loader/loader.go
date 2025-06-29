@@ -61,18 +61,6 @@ func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*sdk.Proje
 	return projs, nil
 }
 
-func (l *localLoader) exctractInfosFromPkg(pkg *packages.Package) error {
-	for _, file := range pkg.Syntax {
-		if err := l.extractInfosFromFile(pkg, file); err != nil {
-			return err
-		}
-		if err := l.extractFileInfo(pkg, file); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (l *localLoader) reset() {
 	l.proj = sdk.NewProject()
 }
@@ -83,6 +71,18 @@ func (l *localLoader) objectOf(pkg *packages.Package, ident *ast.Ident) (types.O
 		return nil, fmt.Errorf("object not found: %v\n", ident)
 	}
 	return obj, nil
+}
+
+func (l *localLoader) exctractInfosFromPkg(pkg *packages.Package) error {
+	for _, file := range pkg.Syntax {
+		if err := l.extractInfosFromFile(pkg, file); err != nil {
+			return err
+		}
+		if err := l.extractFileInfo(pkg, file); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (l *localLoader) extractInfosFromFile(pkg *packages.Package, file *ast.File) error {
