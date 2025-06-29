@@ -52,6 +52,12 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 			return fmt.Errorf("quantity of fields not equal. got: %d; want: %d", len(s.Fields), len(wantFields))
 		}
 	}
+	for _, s := range proj.Structs {
+		wantMethods := tc.Structs[s.Spec.Name.Name].Methods
+		if len(s.Methods) != len(wantMethods) {
+			return fmt.Errorf("quantity of methods not equal. got: %d; want: %d", len(s.Methods), len(wantMethods))
+		}
+	}
 	if len(tc.Funcs) != len(proj.Funcs) {
 		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(proj.Funcs), len(tc.Funcs))
 	}
@@ -66,6 +72,12 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 	}
 	if len(tc.Ifaces) != len(proj.Ifaces) {
 		return fmt.Errorf("quantity of interfaces not equal. got: %d; want: %d", len(proj.Ifaces), len(tc.Ifaces))
+	}
+	for _, iface := range proj.Ifaces {
+		wantSig := tc.Ifaces[iface.Spec.Name.Name].Signatures
+		if len(iface.Signatures) != len(wantSig) {
+			return fmt.Errorf("quantity of signatures not equal. got: %d; want: %d", len(iface.Signatures), len(wantSig))
+		}
 	}
 	if len(tc.Named) != len(proj.Named) {
 		return fmt.Errorf("quantity of named not equal. got: %d; want: %d", len(proj.Named), len(tc.Named))
@@ -134,7 +146,6 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 }
 
 func isMarkerMatching(want []parser.Marker, got map[string][]any) error {
-	fmt.Println(got)
 	for _, marker := range want {
 		ident := marker.Ident()
 		_, found := got[ident]
