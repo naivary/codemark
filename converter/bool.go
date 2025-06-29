@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
@@ -36,13 +37,13 @@ func (b *boolConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (b *boolConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
+func (b *boolConverter) CanConvert(m parser.Marker, def *definition.Definition) error {
 	if m.Kind() != marker.BOOL {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a boolean. valid option is: %s\n", m.Kind(), marker.BOOL)
 	}
 	return nil
 }
 
-func (b *boolConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
+func (b *boolConverter) Convert(m parser.Marker, def *definition.Definition) (reflect.Value, error) {
 	return sdkutil.ConvertTo(m.Value(), def.Output)
 }

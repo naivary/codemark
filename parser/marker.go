@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/parser/marker"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/sdk/utils"
 )
 
 type Marker struct {
@@ -15,6 +15,8 @@ type Marker struct {
 	value reflect.Value
 }
 
+// NewMarker returns a new Marker WITHOUT any validations. If you want to create
+// a marker which is getting validated use `maker.MakeMarker`.
 func NewMarker(ident string, kind marker.Kind, value reflect.Value) Marker {
 	return Marker{
 		ident: ident,
@@ -58,5 +60,11 @@ func (m *Marker) Value() reflect.Value {
 }
 
 func (m *Marker) IsValid() error {
-	return sdkutil.IsValidIdent(m.ident)
+	if err := utils.IsValidIdent(m.ident); err != nil {
+		return fmt.Errorf("marker identifier is invalid: %s\n", m.ident)
+	}
+	if !m.value.IsValid() {
+		return fmt.Errorf("value of markeris not valid: %v\n", m.value)
+	}
+	return nil
 }

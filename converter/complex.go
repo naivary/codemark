@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
@@ -42,18 +43,18 @@ func (c *complexConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (c *complexConverter) CanConvert(m parser.Marker, def *sdk.Definition) error {
+func (c *complexConverter) CanConvert(m parser.Marker, def *definition.Definition) error {
 	if m.Kind() != marker.COMPLEX {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), marker.COMPLEX)
 	}
 	return nil
 }
 
-func (c *complexConverter) Convert(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
+func (c *complexConverter) Convert(m parser.Marker, def *definition.Definition) (reflect.Value, error) {
 	return c.complexx(m, def)
 }
 
-func (c *complexConverter) complexx(m parser.Marker, def *sdk.Definition) (reflect.Value, error) {
+func (c *complexConverter) complexx(m parser.Marker, def *definition.Definition) (reflect.Value, error) {
 	n := m.Value().Complex()
 	if c.isOverflowing(def.Output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)

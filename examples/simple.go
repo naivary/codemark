@@ -6,7 +6,8 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark"
-	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/definition/target"
 )
 
 type Applier interface {
@@ -23,9 +24,9 @@ func (r required) ApplyTo(s *Schema) {
 	s.Required = bool(r)
 }
 
-func defs() []*sdk.Definition {
-	return []*sdk.Definition{
-		codemark.MustMakeDef("openapi_v3:validation:required", reflect.TypeFor[required](), sdk.TargetField),
+func defs() []*definition.Definition {
+	return []*definition.Definition{
+		codemark.MustMakeDef("openapi_v3:validation:required", reflect.TypeFor[required](), target.FIELD),
 	}
 }
 

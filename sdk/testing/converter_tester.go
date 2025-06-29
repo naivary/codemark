@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/sdk"
 )
 
@@ -33,7 +34,7 @@ func NewConvTester(conv sdk.Converter, toTypes map[reflect.Type]reflect.Type) (C
 	return c, nil
 }
 
-func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, target sdk.Target) (ConverterTestCase, error) {
+func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
 	marker, err := RandMarker(from)
 	if err != nil {
 		return ConverterTestCase{}, err
@@ -50,7 +51,7 @@ func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, target sd
 	tc := ConverterTestCase{
 		Name:         name,
 		Marker:       *marker,
-		Target:       target,
+		Target:       t,
 		To:           to,
 		IsValidCase:  isValidCase,
 		IsValidValue: vvfn,
@@ -89,7 +90,7 @@ func (c *converterTester) ValidTests() ([]ConverterTestCase, error) {
 	types := c.conv.SupportedTypes()
 	tests := make([]ConverterTestCase, 0, len(types))
 	for _, from := range types {
-		tc, err := c.NewTest(from, true, sdk.TargetAny)
+		tc, err := c.NewTest(from, true, target.ANY)
 		if err != nil {
 			return nil, err
 		}

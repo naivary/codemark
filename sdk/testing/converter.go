@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 )
@@ -18,7 +19,7 @@ type ConverterTestCase struct {
 	// Marker to convert by the converter
 	Marker parser.Marker
 	// Target of the marker
-	Target sdk.Target
+	Target target.Target
 	// Type to convert the marker to.
 	To reflect.Type
 	// If the test case is a valid or invalid case
@@ -32,7 +33,7 @@ type ConverterTestCase struct {
 // a convenient and easy way.
 type ConverterTester interface {
 	// NewTest returns a new ConverterTestCase.
-	NewTest(from reflect.Type, isValidCase bool, t sdk.Target) (ConverterTestCase, error)
+	NewTest(from reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
 
 	// AddVVFunc defines a ValidValueFunc for an example type to which a
 	// supported type of the converter will be converted.

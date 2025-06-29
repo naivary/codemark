@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/sdk"
 )
 
 func InMemory() sdk.Registry {
 	return &inmemoryRegistry{
-		defs: make(map[string]*sdk.Definition),
+		defs: make(map[string]*definition.Definition),
 	}
 }
 
@@ -18,10 +19,10 @@ var _ sdk.Registry = (*inmemoryRegistry)(nil)
 type inmemoryRegistry struct {
 	mu sync.Mutex
 
-	defs map[string]*sdk.Definition
+	defs map[string]*definition.Definition
 }
 
-func (mem *inmemoryRegistry) Define(d *sdk.Definition) error {
+func (mem *inmemoryRegistry) Define(d *definition.Definition) error {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -33,7 +34,7 @@ func (mem *inmemoryRegistry) Define(d *sdk.Definition) error {
 	return nil
 }
 
-func (mem *inmemoryRegistry) Get(idn string) (*sdk.Definition, error) {
+func (mem *inmemoryRegistry) Get(idn string) (*definition.Definition, error) {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -44,6 +45,6 @@ func (mem *inmemoryRegistry) Get(idn string) (*sdk.Definition, error) {
 	return nil, fmt.Errorf("definition not found: `%s`", idn)
 }
 
-func (mem *inmemoryRegistry) All() map[string]*sdk.Definition {
+func (mem *inmemoryRegistry) All() map[string]*definition.Definition {
 	return mem.defs
 }
