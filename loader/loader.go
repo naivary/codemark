@@ -301,6 +301,7 @@ func (l *localLoader) extractNamedTypeInfo(pkg *packages.Package, decl *ast.GenD
 		Spec: spec,
 		Decl: decl,
 		Defs: defs,
+		Methods: make(map[types.Object]sdk.FuncInfo),
 	}
 	obj, err := l.objectOf(pkg, spec.Name)
 	if err != nil {

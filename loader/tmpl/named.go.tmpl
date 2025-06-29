@@ -6,5 +6,11 @@ package codemark
 // +{{ $marker.String -}}
     {{end}}
 type {{ $name }} {{ $named.Type }}
-{{end}}
 
+    {{- range $methname, $method := $named.Methods}}
+        {{range $mmarker := $method.Markers}}
+// +{{$mmarker.String -}}
+        {{end}}
+func (x {{ $name -}}) {{ $methname -}}() {}
+    {{end}}
+{{end}}

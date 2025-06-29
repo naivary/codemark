@@ -82,6 +82,7 @@ func (l LoaderTestCase) randomize() {
 	l.randConsts(sdktesting.RandLen)
 	l.randIfaces(sdktesting.RandLen)
 	l.randImports(sdktesting.RandLen)
+	l.randNameds(sdktesting.RandLen)
 }
 
 func (l *LoaderTestCase) randStructs(n int) {
@@ -169,6 +170,17 @@ func (l *LoaderTestCase) randImports(n int) {
 	}
 }
 
+func (l *LoaderTestCase) randNameds(n int) {
+	if n <= 0 {
+		n = 8
+	}
+	q := quantity(n)
+	for range q {
+		named := RandNamed()
+		l.Named[named.Name] = named
+	}
+}
+
 func RandImport() Import {
 	return Import{
 		Name:    randStdPkg(),
@@ -177,11 +189,18 @@ func RandImport() Import {
 }
 
 func RandNamed() Named {
-	return Named{
+	n := Named{
 		Name:    sdktesting.RandName(),
 		Markers: randMarkers(),
 		Type:    randType(),
+		Methods: make(map[string]Func),
 	}
+	methodQuantity := quantity(2)
+	for range methodQuantity {
+		method := RandFunc()
+		n.Methods[method.Name] = method
+	}
+	return n
 }
 
 func RandAlias() Alias {

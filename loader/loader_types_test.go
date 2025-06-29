@@ -21,6 +21,8 @@ type Named struct {
 	Name    string
 	Type    reflect.Type
 	Markers []parser.Marker
+
+	Methods map[string]Func
 }
 
 type Func struct {
