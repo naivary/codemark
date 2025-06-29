@@ -1,11 +1,19 @@
 package utils
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 )
 
 const NameSep = "."
+
+// NewConvName is returning a valid converter name. The convention is to prefix
+// every converter with your project name, followed by a custom name for the
+// converter seperated by a dot.
+func NewConvName(proj, conv string) string {
+	return fmt.Sprintf("%s.%s", proj, conv)
+}
 
 func Deref(typ reflect.Type) reflect.Type {
 	if typ == nil {

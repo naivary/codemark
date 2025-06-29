@@ -19,7 +19,7 @@ func Bool() sdk.Converter {
 }
 
 func (b *boolConverter) Name() string {
-	return buildName("bool")
+	return sdkutil.NewConvName(_codemark, "bool")
 }
 
 func (b *boolConverter) SupportedTypes() []reflect.Type {

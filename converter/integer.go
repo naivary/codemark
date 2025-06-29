@@ -12,14 +12,18 @@ import (
 
 var _ sdk.Converter = (*intConverter)(nil)
 
-type intConverter struct{}
+type intConverter struct {
+	name string
+}
 
 func Integer() sdk.Converter {
-	return &intConverter{}
+	return &intConverter{
+		name: "integer",
+	}
 }
 
 func (i *intConverter) Name() string {
-	return buildName("integer")
+	return sdkutil.NewConvName(_codemark, i.name)
 }
 
 func (i *intConverter) SupportedTypes() []reflect.Type {

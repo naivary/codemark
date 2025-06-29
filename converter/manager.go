@@ -46,12 +46,12 @@ func NewManager(reg sdk.Registry, convs ...sdk.Converter) (*Manager, error) {
 	return mngr, nil
 }
 
-func (c *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
-	conv := c.builtin(rtype)
+func (m *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
+	conv := m.builtin(rtype)
 	if conv != nil {
 		return conv, nil
 	}
-	conv, found := c.convs[rtype]
+	conv, found := m.convs[rtype]
 	if !found {
 		return nil, fmt.Errorf("no converter found: %v\n", rtype)
 	}
@@ -60,29 +60,29 @@ func (c *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 
 // addConverter is exactly the same as AddConverter but does not include name
 // assertions to be able to use it for internal usage.
-func (c *Manager) addConverter(conv sdk.Converter) error {
+func (m *Manager) addConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
-		_, found := c.convs[rtype]
+		_, found := m.convs[rtype]
 		if found {
 			return fmt.Errorf("converter already exists: %v\n", conv)
 		}
-		c.convs[rtype] = conv
+		m.convs[rtype] = conv
 	}
 	return nil
 }
 
-func (c *Manager) AddConverter(conv sdk.Converter) error {
-	if err := c.isValidName(conv.Name()); err != nil {
+func (m *Manager) AddConverter(conv sdk.Converter) error {
+	if err := m.isValidName(conv.Name()); err != nil {
 		return fmt.Errorf("converter is not following naming conventions: %s\n", err.Error())
 	}
-	return c.addConverter(conv)
+	return m.addConverter(conv)
 }
 
 // Convert converts the marker by finding the correlating definition in the
 // registry with respect to the target.
-func (c *Manager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
+func (m *Manager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
 	idn := mrk.Ident()
-	def, err := c.reg.Get(idn)
+	def, err := m.reg.Get(idn)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +93,7 @@ func (c *Manager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
 	if !(slices.Contains(def.Targets, target) || slices.Contains(def.Targets, sdk.TargetAny)) {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, def.Targets, target)
 	}
-	conv, err := c.GetConverter(def.Output)
+	conv, err := m.GetConverter(def.Output)
 	if err != nil {
 		return nil, err
 	}
@@ -107,14 +107,14 @@ func (c *Manager) Convert(mrk parser.Marker, target sdk.Target) (any, error) {
 	return out.Interface(), nil
 }
 
-func (c *Manager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) {
+func (m *Manager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) {
 	markers, err := parser.Parse(doc)
 	if err != nil {
 		return nil, err
 	}
 	defs := make(definitions, len(markers))
 	for _, marker := range markers {
-		value, err := c.Convert(marker, t)
+		value, err := m.Convert(marker, t)
 		if err != nil {
 			return nil, err
 		}
@@ -124,22 +124,22 @@ func (c *Manager) ParseDefs(doc string, t sdk.Target) (map[string][]any, error) 
 	return defs, nil
 }
 
-func (c *Manager) defaultConvs() []sdk.Converter {
+func (m *Manager) defaultConvs() []sdk.Converter {
 	return []sdk.Converter{
-		&stringConverter{},
-		&intConverter{},
-		&floatConverter{},
-		&boolConverter{},
-		&complexConverter{},
-		&listConverter{c},
+		String(),
+		Integer(),
+		Float(),
+		Bool(),
+		Complex(),
+		List(m),
 	}
 }
 
 // isValidName checks if the choosen name of a custom converter is following the
 // convention of prefixing the name with the project name and that the project
 // name is not "codemark".
-func (c *Manager) isValidName(name string) error {
-	if strings.HasPrefix(name, _namePrefix) {
+func (m *Manager) isValidName(name string) error {
+	if strings.HasPrefix(name, _codemark) {
 		return fmt.Errorf(`the name of your custom converter cannot start with "codemark" because it is reserved for the builtin converters: %s`, name)
 	}
 	if len(strings.Split(name, ".")) != 2 {
@@ -150,35 +150,35 @@ func (c *Manager) isValidName(name string) error {
 
 // builtin is checking if the given rtype is convertible using a builtin
 // converter. If not nil will be returned.
-func (c *Manager) builtin(rtype reflect.Type) sdk.Converter {
+func (m *Manager) builtin(rtype reflect.Type) sdk.Converter {
 	if !sdkutil.IsSupported(rtype) {
 		return nil
 	}
 	// rtype can be a native type e.g. string and for that the converter can be
 	// retrieved without further validation.
-	conv, found := c.convs[rtype]
+	conv, found := m.convs[rtype]
 	if found {
 		return conv
 	}
 	// NOTE: The types choose in the function `reflect.TypeFor` are one of the
 	// supported types of the converter. The concrete choice has no meaning.
 	if sdkutil.IsValidSlice(rtype) {
-		return c.convs[reflect.TypeFor[[]string]()]
+		return m.convs[reflect.TypeFor[[]string]()]
 	}
 	if sdkutil.IsBool(rtype) {
-		return c.convs[reflect.TypeFor[bool]()]
+		return m.convs[reflect.TypeFor[bool]()]
 	}
 	if sdkutil.IsString(rtype) {
-		return c.convs[reflect.TypeFor[string]()]
+		return m.convs[reflect.TypeFor[string]()]
 	}
 	if sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) {
-		return c.convs[reflect.TypeFor[int]()]
+		return m.convs[reflect.TypeFor[int]()]
 	}
 	if sdkutil.IsFloat(rtype) {
-		return c.convs[reflect.TypeFor[float32]()]
+		return m.convs[reflect.TypeFor[float32]()]
 	}
 	if sdkutil.IsComplex(rtype) {
-		return c.convs[reflect.TypeFor[complex64]()]
+		return m.convs[reflect.TypeFor[complex64]()]
 	}
 	return nil
 }

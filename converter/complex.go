@@ -12,14 +12,18 @@ import (
 
 var _ sdk.Converter = (*complexConverter)(nil)
 
-type complexConverter struct{}
+type complexConverter struct {
+	name string
+}
 
 func Complex() sdk.Converter {
-	return &complexConverter{}
+	return &complexConverter{
+		name: "complex",
+	}
 }
 
 func (c *complexConverter) Name() string {
-	return buildName("complex")
+	return sdkutil.NewConvName(_codemark, c.name)
 }
 
 func (c *complexConverter) SupportedTypes() []reflect.Type {

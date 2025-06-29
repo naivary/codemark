@@ -1,0 +1,70 @@
+package main
+
+import (
+	"fmt"
+	"log"
+	"reflect"
+
+	"github.com/naivary/codemark"
+	"github.com/naivary/codemark/sdk"
+)
+
+type Applier interface {
+	ApplyTo(s *Schema)
+}
+
+type Schema struct {
+	Required bool
+}
+
+type required bool
+
+func (r required) ApplyTo(s *Schema) {
+	s.Required = bool(r)
+}
+
+func defs() []*sdk.Definition {
+	return []*sdk.Definition{
+		codemark.MustMakeDef("openapi_v3:validation:required", reflect.TypeFor[required](), sdk.TargetField),
+	}
+}
+
+func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
+	reg := codemark.NewInMemRegistry()
+	for _, def := range defs() {
+		if err := reg.Define(def); err != nil {
+			return err
+		}
+	}
+	mngr, err := codemark.NewConvManager(reg)
+	if err != nil {
+		return err
+	}
+	l := codemark.NewLoader(mngr, nil)
+	infos, err := l.Load("./proj/")
+	if err != nil {
+		return err
+	}
+
+	sch := &Schema{}
+	for _, proj := range infos {
+		for _, s := range proj.Structs {
+			for _, field := range s.Fields {
+				for _, defs := range field.Defs {
+					for _, def := range defs {
+						marker := def.(Applier)
+						marker.ApplyTo(sch)
+					}
+				}
+			}
+		}
+	}
+	fmt.Println(sch)
+	return nil
+}

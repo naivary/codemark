@@ -12,14 +12,18 @@ import (
 
 var _ sdk.Converter = (*floatConverter)(nil)
 
-type floatConverter struct{}
+type floatConverter struct {
+	name string
+}
 
 func Float() sdk.Converter {
-	return &floatConverter{}
+	return &floatConverter{
+		name: "float",
+	}
 }
 
 func (f *floatConverter) Name() string {
-	return buildName("float")
+	return sdkutil.NewConvName(_codemark, f.name)
 }
 
 func (f *floatConverter) SupportedTypes() []reflect.Type {

@@ -21,6 +21,7 @@ type localLoader struct {
 	proj *sdk.Project
 }
 
+// New Returns a new loader which can be used to read in go-packages.
 func New(mngr sdk.ConverterManager, cfg *packages.Config) sdk.Loader {
 	l := &localLoader{
 		mngr: mngr,

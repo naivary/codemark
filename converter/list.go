@@ -15,14 +15,18 @@ var _ sdk.Converter = (*listConverter)(nil)
 
 type listConverter struct {
 	mngr sdk.ConverterManager
+	name string
 }
 
 func List(mngr sdk.ConverterManager) sdk.Converter {
-	return &listConverter{mngr}
+	return &listConverter{
+		mngr: mngr,
+		name: "list",
+	}
 }
 
 func (l *listConverter) Name() string {
-	return buildName("list")
+	return sdkutil.NewConvName(_codemark, l.name)
 }
 
 func (l *listConverter) SupportedTypes() []reflect.Type {
