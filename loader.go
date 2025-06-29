@@ -1,6 +1,8 @@
 package codemark
 
 import (
+	"fmt"
+
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/loader"
 	"github.com/naivary/codemark/sdk"
@@ -13,6 +15,9 @@ var NewLoader = loader.New
 // you have custom converter to add.
 func LoadWithManager(mngr sdk.ConverterManager, patterns ...string) (map[*packages.Package]*sdk.Project, error) {
 	l := loader.New(mngr, nil)
+	if len(patterns) == 0 {
+		return nil, fmt.Errorf("patterns cannot be empty because no projects can be loaded")
+	}
 	return l.Load(patterns...)
 }
 
