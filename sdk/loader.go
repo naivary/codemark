@@ -21,7 +21,8 @@ type Project struct {
 	Vars    map[types.Object]VarInfo
 	Imports map[types.Object]ImportInfo
 	Funcs   map[types.Object]FuncInfo
-	Pkgs    map[*packages.Package]PkgInfo
+	// indexed by filename
+	Files map[string]FileInfo
 }
 
 func NewProject() *Project {
@@ -34,7 +35,7 @@ func NewProject() *Project {
 		Vars:    make(map[types.Object]VarInfo),
 		Imports: make(map[types.Object]ImportInfo),
 		Funcs:   make(map[types.Object]FuncInfo),
-		Pkgs:    make(map[*packages.Package]PkgInfo),
+		Files:   make(map[string]FileInfo),
 	}
 }
 
@@ -45,7 +46,7 @@ func NewProject() *Project {
 // and only ionclude one PkgInfo in the Prject return which includes all the
 // markers of the packaghes over all the files
 type Loader interface {
-	Load(patterns ...string) ([]*Project, error)
+	Load(patterns ...string) (map[*packages.Package]*Project, error)
 }
 
 type FuncInfo struct {
@@ -54,7 +55,7 @@ type FuncInfo struct {
 	Defs map[string][]any
 }
 
-type PkgInfo struct {
+type FileInfo struct {
 	File *ast.File
 	Defs map[string][]any
 }

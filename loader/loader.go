@@ -37,7 +37,7 @@ func New(mngr sdk.ConverterManager, cfg *packages.Config) sdk.Loader {
 	return l
 }
 
-func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
+func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*sdk.Project, error) {
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -48,12 +48,12 @@ func (l *localLoader) Load(patterns ...string) ([]*sdk.Project, error) {
 	if len(pkgs) == 0 {
 		return nil, sdk.ErrPkgsEmpty
 	}
-	projs := make([]*sdk.Project, 0, len(pkgs))
+	projs := make(map[*packages.Package]*sdk.Project, len(pkgs))
 	for _, pkg := range pkgs {
 		if err := l.exctractInfosFromPkg(pkg); err != nil {
 			return nil, err
 		}
-		projs = append(projs, l.proj)
+		projs[pkg] = l.proj
 		l.reset()
 	}
 	return projs, nil
@@ -64,7 +64,7 @@ func (l *localLoader) exctractInfosFromPkg(pkg *packages.Package) error {
 		if err := l.extractInfosFromFile(pkg, file); err != nil {
 			return err
 		}
-		if err := l.extractPkgInfo(pkg, file); err != nil {
+		if err := l.extractFileInfo(pkg, file); err != nil {
 			return err
 		}
 	}
@@ -198,17 +198,17 @@ func (l *localLoader) extractFuncInfo(pkg *packages.Package, decl *ast.FuncDecl)
 	return nil
 }
 
-func (l *localLoader) extractPkgInfo(pkg *packages.Package, file *ast.File) error {
+func (l *localLoader) extractFileInfo(pkg *packages.Package, file *ast.File) error {
 	doc := file.Doc.Text()
 	defs, err := l.mngr.ParseDefs(doc, sdk.TargetType)
 	if err != nil {
 		return err
 	}
-	info := sdk.PkgInfo{
+	info := sdk.FileInfo{
 		File: file,
 		Defs: defs,
 	}
-	l.proj.Pkgs[pkg] = info
+	l.proj.Files[file.Name.Name] = info
 	return nil
 }
 

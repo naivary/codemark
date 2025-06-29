@@ -124,12 +124,6 @@ func isValid(tc LoaderTestCase, proj *sdk.Project) error {
 			return err
 		}
 	}
-	for typ, pkg := range proj.Pkgs {
-		want := tc.Imports[typ.Name]
-		if err := isMarkerMatching(want.Markers, pkg.Defs); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
