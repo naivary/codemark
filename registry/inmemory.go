@@ -2,6 +2,7 @@ package registry
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/naivary/codemark/sdk"
 )
@@ -15,10 +16,15 @@ func InMemory() sdk.Registry {
 var _ sdk.Registry = (*inmemoryRegistry)(nil)
 
 type inmemoryRegistry struct {
+	mu sync.Mutex
+
 	defs map[string]*sdk.Definition
 }
 
 func (mem *inmemoryRegistry) Define(d *sdk.Definition) error {
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
+
 	def, isDefined := mem.defs[d.Ident]
 	if isDefined {
 		return fmt.Errorf("definition is already defined: %s", def.Ident)
@@ -28,6 +34,9 @@ func (mem *inmemoryRegistry) Define(d *sdk.Definition) error {
 }
 
 func (mem *inmemoryRegistry) Get(idn string) (*sdk.Definition, error) {
+	mem.mu.Lock()
+	defer mem.mu.Unlock()
+
 	def, found := mem.defs[idn]
 	if found {
 		return def, nil
