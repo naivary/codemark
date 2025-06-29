@@ -42,16 +42,10 @@ func run() error {
 			return err
 		}
 	}
-	mngr, err := codemark.NewConvManager(reg)
+	infos, err := codemark.Load(reg, "./project/")
 	if err != nil {
 		return err
 	}
-	l := codemark.NewLoader(mngr, nil)
-	infos, err := l.Load("./proj/")
-	if err != nil {
-		return err
-	}
-
 	sch := &Schema{}
 	for _, proj := range infos {
 		for _, s := range proj.Structs {
