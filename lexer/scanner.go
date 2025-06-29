@@ -7,6 +7,9 @@ import (
 	"github.com/naivary/codemark/lexer/token"
 )
 
+// scanRealNumber is readin in the next characters from the lexer and trying to
+// figure out if it is a FLOAT or INT. It is only a helper function used by the
+// parent function `scanNumber`.
 func scanRealNumber(l *Lexer) (token.Kind, error) {
 	kind := token.INT
 	l.accept("+-")
@@ -35,6 +38,9 @@ func scanRealNumber(l *Lexer) (token.Kind, error) {
 	return kind, nil
 }
 
+// scanNumber is reading in the next characters from the lexer and is trying to
+// figure out which kind of number is provided e.g. INT, FLOAT, COMPLEX. If no
+// number can be recognised then token.ERROR will be returned.
 func scanNumber(l *Lexer) (token.Kind, error) {
 	var err error
 	var kind token.Kind
