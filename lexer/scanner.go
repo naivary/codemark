@@ -58,7 +58,7 @@ func scanNumber(l *Lexer) (token.Kind, error) {
 	}
 	_, err = scanRealNumber(l)
 	if !l.accept("i") {
-		return token.ERROR, fmt.Errorf("you can not define a number as a addition between two. Two numbers can only be defined if you want to define an complex number e.g. 2+3i: %s\n", l.currentValue())
+		return token.ERROR, fmt.Errorf("two numbers can only be defined if you want to define an complex number e.g. 2+3i: %s\n", l.currentValue())
 	}
 	return token.COMPLEX, nil
 }

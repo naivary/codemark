@@ -6,9 +6,17 @@ import (
 	"github.com/naivary/codemark/parser"
 )
 
+type markers interface {
+	markers() []parser.Marker
+}
+
 type Import struct {
 	Name    string
 	Markers []parser.Marker
+}
+
+func (i Import) markers() []parser.Marker {
+	return i.Markers
 }
 
 type Alias struct {
