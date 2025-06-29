@@ -162,7 +162,7 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	case r == 't' || r == 'f':
 		return lexBoolListValue
 	case isSpace(r):
-		return l.errorf("no space allowed after the opening bracket of an array")
+		return l.errorf("no space allowed after the opening bracket of a list")
 	case r == ',':
 		return l.errorf("expected value in array not seperator")
 	default:
@@ -173,7 +173,7 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 func lexListSequence(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case r == ',':
-		return lexCommaSeperator
+		return lexListComma
 	case r == ']':
 		return lexCloseSquareBracket
 	default:
@@ -207,8 +207,9 @@ func lexNumberListValue(l *Lexer) stateFunc {
 	return lexListSequence
 }
 
-func lexCommaSeperator(l *Lexer) stateFunc {
+func lexListComma(l *Lexer) stateFunc {
 	l.next()
+	l.emit(token.COMMA)
 	l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {
@@ -217,11 +218,11 @@ func lexCommaSeperator(l *Lexer) stateFunc {
 	case r == '"':
 		return lexStartDoubleQuotationMarkStringList
 	case r == ']':
-		return l.errorf("remove the comma before the closing bracket of the array")
+		return l.errorf("remove the comma before the closing bracket of the list")
 	case r == 't' || r == 'f':
 		return lexBoolListValue
 	default:
-		return l.errorf("expected next value in array after comma")
+		return l.errorf("expected next value in list after comma")
 	}
 }
 

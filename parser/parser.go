@@ -83,7 +83,7 @@ func (p *parser) run() {
 			state, next = p.errorf("failed while lexing: %s", t.Value)
 			// we can either break or use continue. To convey to the usual
 			// pattern of returning the next state and _next or _keep it's
-			// better to use conutinue
+			// better to use continue
 			continue
 		}
 		state, next = state(p, t)
@@ -192,6 +192,8 @@ func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
+	case token.COMMA:
+		return parseListElem, _next
 	case token.STRING:
 		return parseListStringElem, _keep
 	case token.INT:
