@@ -16,8 +16,6 @@ import (
 
 var _ sdk.Loader = (*localLoader)(nil)
 
-// TODO: add the current package to the struct so it doesnt have to be passed
-// all the time
 type localLoader struct {
 	mngr sdk.ConverterManager
 	cfg  *packages.Config

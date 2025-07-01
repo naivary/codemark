@@ -45,7 +45,6 @@ func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
 	return tester, nil
 }
 
-// TODO: maybe this mapping can be done dynamically?
 func fromMap(conv sdk.Converter) map[reflect.Type]reflect.Type {
 	if _, isList := conv.(*listConverter); isList {
 		return fromMapOfList()

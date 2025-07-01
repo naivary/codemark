@@ -14,6 +14,7 @@ var (
 
 type Filename = string
 
+// TODO: Find a better name than Project
 type Project struct {
 	Structs map[types.Object]*StructInfo
 	Ifaces  map[types.Object]IfaceInfo
