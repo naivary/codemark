@@ -35,9 +35,6 @@ func (mem *inmemory) Define(d *definition.Definition) error {
 }
 
 func (mem *inmemory) Get(idn string) (*definition.Definition, error) {
-	mem.mu.Lock()
-	defer mem.mu.Unlock()
-
 	def, found := mem.defs[idn]
 	if found {
 		return def, nil

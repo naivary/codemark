@@ -22,19 +22,19 @@ type Definition struct {
 
 	// DeprecatedInFavorOf points to the marker identifier which should
 	// be used instead.
-	DeprecatedInFavorOf *string
+	DeprecatedInFavorOf string
 
 	// output is the type to which parser.Marker has to be converted by a
 	// converter.
 	Output reflect.Type
 }
 
-func (d *Definition) DeprecateInFavorOf(marker string) {
-	d.DeprecatedInFavorOf = &marker
+func (d *Definition) DeprecateInFavorOf(ident string) {
+	d.DeprecatedInFavorOf = ident
 }
 
-func (d *Definition) IsDeprecated() (*string, bool) {
-	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != nil
+func (d *Definition) IsDeprecated() (string, bool) {
+	return d.DeprecatedInFavorOf, d.DeprecatedInFavorOf != ""
 }
 
 func (d *Definition) HasDoc() bool {

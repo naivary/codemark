@@ -21,7 +21,11 @@ var _ sdk.Loader = (*localLoader)(nil)
 type localLoader struct {
 	mngr sdk.ConverterManager
 	cfg  *packages.Config
+
+	// proj is the current project being built
 	proj *sdk.Project
+	// pkg is the current package used to extract information from
+	pkg *packages.Package
 }
 
 // New Returns a new loader which can be used to read in go-packages.

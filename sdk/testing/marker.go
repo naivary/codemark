@@ -42,8 +42,8 @@ func RandMarker(rtype reflect.Type) (*parser.Marker, error) {
 	return RandMarkerWithIdent(ident, rtype)
 }
 
-// RandName returns a random string which is valid to use as go variable name.
-func RandName() string {
+// RandGoIdent returns a random string which can be used as a go identifier.
+func RandGoIdent() string {
 	name := RandString(RandLen)
 	for {
 		firstLetter := rune(name[0])

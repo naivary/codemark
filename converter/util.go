@@ -11,5 +11,6 @@ const (
 )
 
 var (
+	// _rvzero is the zero value for a reflect.Value used for convenience
 	_rvzero = reflect.Value{}
 )

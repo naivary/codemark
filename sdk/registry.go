@@ -10,7 +10,7 @@ type Registry interface {
 	// Get the definition by the unique identiffier
 	Get(ident string) (*definition.Definition, error)
 
-	// GetDoc returns the documentation of the definition.
+	// DofOf returns the documentation of the definition
 	DocOf(ident string) (string, error)
 
 	// All returns all Definitions stored in the registry.

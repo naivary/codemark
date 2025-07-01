@@ -38,7 +38,7 @@ func NewManager(reg sdk.Registry, convs ...sdk.Converter) (*Manager, error) {
 		reg:   reg,
 		convs: make(map[reflect.Type]sdk.Converter),
 	}
-	convs = slices.Concat(mngr.defaultConvs(), convs)
+	convs = slices.Concat(mngr.builtinConvs(), convs)
 	for _, conv := range convs {
 		if err := mngr.addConverter(conv); err != nil {
 			return nil, err
@@ -59,7 +59,7 @@ func (m *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 	return conv, nil
 }
 
-// addConverter is exactly the same as AddConverter but does not include name
+// addConverter is exactly the same as AddConverter but does not include any
 // assertions to be able to use it for internal usage.
 func (m *Manager) addConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
@@ -88,7 +88,7 @@ func (m *Manager) Convert(mrk parser.Marker, t target.Target) (any, error) {
 		return nil, err
 	}
 	if inFavorOf, isDepcrecated := def.IsDeprecated(); isDepcrecated {
-		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, *inFavorOf)
+		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
 		slog.Warn(msg)
 	}
 	if !(slices.Contains(def.Targets, t) || slices.Contains(def.Targets, target.ANY)) {
@@ -125,7 +125,7 @@ func (m *Manager) ParseDefs(doc string, t target.Target) (map[string][]any, erro
 	return defs, nil
 }
 
-func (m *Manager) defaultConvs() []sdk.Converter {
+func (m *Manager) builtinConvs() []sdk.Converter {
 	return []sdk.Converter{
 		String(),
 		Integer(),
@@ -149,8 +149,9 @@ func (m *Manager) isValidName(name string) error {
 	return nil
 }
 
-// builtin is checking if the given rtype is convertible using a builtin
-// converter. If not nil will be returned.
+// builtin returns a bultin converter if the given rtype can be converterted by
+// one of the builtin converters. If no converter is found then nil will be
+// returned.
 func (m *Manager) builtin(rtype reflect.Type) sdk.Converter {
 	if !sdkutil.IsSupported(rtype) {
 		return nil
@@ -162,7 +163,7 @@ func (m *Manager) builtin(rtype reflect.Type) sdk.Converter {
 		return conv
 	}
 	// NOTE: The types choose in the function `reflect.TypeFor` are one of the
-	// supported types of the converter. The concrete choice has no meaning.
+	// supported types of the converter. The concrete type choice has no meaning.
 	if sdkutil.IsValidSlice(rtype) {
 		return m.convs[reflect.TypeFor[[]string]()]
 	}

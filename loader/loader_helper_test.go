@@ -198,7 +198,7 @@ func RandImport() Import {
 
 func RandNamed() Named {
 	n := Named{
-		Name:    sdktesting.RandName(),
+		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
 		Type:    randType(),
 		Methods: make(map[string]Func),
@@ -213,7 +213,7 @@ func RandNamed() Named {
 
 func RandAlias() Alias {
 	return Alias{
-		Name:    sdktesting.RandName(),
+		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
 		Type:    randType(),
 	}
@@ -222,7 +222,7 @@ func RandAlias() Alias {
 func RandIface() Iface {
 	sigQuantity := quantity(5)
 	iface := Iface{
-		Name:       sdktesting.RandName(),
+		Name:       sdktesting.RandGoIdent(),
 		Markers:    randMarkers(),
 		Signatures: make(map[string]Func),
 	}
@@ -247,7 +247,7 @@ func RandStruct() Struct {
 		methods[m.Name] = m
 	}
 	s := Struct{
-		Name:    sdktesting.RandName(),
+		Name:    sdktesting.RandGoIdent(),
 		Fields:  fields,
 		Markers: randMarkers(),
 		Methods: methods,
@@ -258,7 +258,7 @@ func RandStruct() Struct {
 func randField() Field {
 	return Field{
 		F: reflect.StructField{
-			Name: sdktesting.RandName(),
+			Name: sdktesting.RandGoIdent(),
 			Type: randType(),
 		},
 		Markers: randMarkers(),
@@ -268,7 +268,7 @@ func randField() Field {
 func RandFunc() Func {
 	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
 	return Func{
-		Name:    sdktesting.RandName(),
+		Name:    sdktesting.RandGoIdent(),
 		Fn:      fn,
 		Markers: randMarkers(),
 	}
@@ -276,7 +276,7 @@ func RandFunc() Func {
 
 func RandConst() Const {
 	return Const{
-		Name:    sdktesting.RandName(),
+		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
 		Value:   sdktesting.RandInt64(),
 	}
@@ -284,7 +284,7 @@ func RandConst() Const {
 
 func RandVar() Var {
 	return Var{
-		Name:    sdktesting.RandName(),
+		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
 		Value:   sdktesting.RandInt64(),
 	}

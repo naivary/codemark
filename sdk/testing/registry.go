@@ -156,9 +156,25 @@ func AllTypes() []any {
 	)
 }
 
+// aliasTypes are the go-native types which are supported by the default
+// converters but cannot be registered using the native types because they are
+// aliases of others e.g. byte and rune.
+func aliasTypes() []*definition.Definition {
+	return []*definition.Definition{
+		maker.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), target.ANY),
+		maker.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), target.ANY),
+		maker.MustMakeDef(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), target.ANY),
+		maker.MustMakeDef(NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), target.ANY),
+		maker.MustMakeDef(NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), target.ANY),
+		maker.MustMakeDef(NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), target.ANY),
+		maker.MustMakeDef(NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), target.ANY),
+		maker.MustMakeDef(NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), target.ANY),
+	}
+}
+
 // NewRegistry returns a registry which includes definitions for all the
 // default types which can be converterd using the builtin converter. If the
-// provided registry is nil an in-memory registry will be used by default.
+// provided registry is nil an in-memory registry is used by default.
 func NewRegistry(reg sdk.Registry, customDefs ...*definition.Definition) (sdk.Registry, error) {
 	if reg == nil {
 		reg = registry.InMemory()
@@ -175,19 +191,7 @@ func NewRegistry(reg sdk.Registry, customDefs ...*definition.Definition) (sdk.Re
 			return nil, err
 		}
 	}
-	// add special definitions which cannot be added using NameFor because they
-	// are aliases to other types e.g. byte=int32 and rune=uint8
-	defs := []*definition.Definition{
-		maker.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), target.ANY),
-		maker.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), target.ANY),
-		maker.MustMakeDef(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), target.ANY),
-	}
-	for _, def := range slices.Concat(defs, customDefs) {
+	for _, def := range slices.Concat(aliasTypes(), customDefs) {
 		if err := reg.Define(def); err != nil {
 			return nil, err
 		}
