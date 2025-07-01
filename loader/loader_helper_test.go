@@ -31,8 +31,15 @@ func genRandFiles(glob string, tc *LoaderTestCase) error {
 	}
 	tc.Dir = dir
 	for _, t := range tmpl.Templates() {
-		name, _ := strings.CutSuffix(t.Name(), ".tmpl")
-		path := path.Join(dir, name)
+		filename, _ := strings.CutSuffix(t.Name(), ".tmpl")
+		if filename == "go.mod" {
+			continue
+		}
+		tc.Files[filename] = File{Markers: randMarkers()}
+	}
+	for _, t := range tmpl.Templates() {
+		filename, _ := strings.CutSuffix(t.Name(), ".tmpl")
+		path := path.Join(dir, filename)
 		file, err := os.Create(path)
 		if err != nil {
 			return err
@@ -58,7 +65,7 @@ type LoaderTestCase struct {
 	Aliases map[string]Alias
 	Named   map[string]Named
 	Imports map[string]Import
-	Pkgs    []parser.Marker
+	Files   map[string]File
 }
 
 func newLoaderTestCase() LoaderTestCase {
@@ -71,7 +78,7 @@ func newLoaderTestCase() LoaderTestCase {
 		Aliases: make(map[string]Alias),
 		Named:   make(map[string]Named),
 		Imports: make(map[string]Import),
-		Pkgs:    randMarkers(),
+		Files:   make(map[string]File),
 	}
 }
 

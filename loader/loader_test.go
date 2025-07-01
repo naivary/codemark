@@ -2,6 +2,7 @@ package loader
 
 import (
 	"fmt"
+	"go/types"
 	"testing"
 
 	"github.com/naivary/codemark/converter"
@@ -34,122 +35,104 @@ func TestLoaderLocal(t *testing.T) {
 	}
 	for _, proj := range projs {
 		if err := isValid(tc, proj); err != nil {
-			t.Errorf("err occured: %s\n", err)
+			t.Errorf("err occured while reading %s: %s\n", tc.Dir, err)
 		}
 	}
 }
 
-func isValid(tc LoaderTestCase, proj *sdk.Project) error {
-	// check quantities
-	if len(tc.Structs) != len(proj.Structs) {
-		return fmt.Errorf("quantity of structs not equal. got: %d; want: %d", len(proj.Structs), len(tc.Structs))
-	}
-	for _, s := range proj.Structs {
-		wantFields := tc.Structs[s.Spec.Name.Name].Fields
-		if len(s.Fields) != len(wantFields) {
-			return fmt.Errorf("quantity of fields not equal. got: %d; want: %d", len(s.Fields), len(wantFields))
-		}
-	}
-	for _, s := range proj.Structs {
-		wantMethods := tc.Structs[s.Spec.Name.Name].Methods
-		if len(s.Methods) != len(wantMethods) {
-			return fmt.Errorf("quantity of methods not equal. got: %d; want: %d", len(s.Methods), len(wantMethods))
-		}
-	}
-	if len(tc.Funcs) != len(proj.Funcs) {
-		return fmt.Errorf("quantity of funcs not equal. got: %d; want: %d", len(proj.Funcs), len(tc.Funcs))
-	}
-	if len(tc.Consts) != len(proj.Consts) {
-		return fmt.Errorf("quantity of consts not equal. got: %d; want: %d", len(proj.Consts), len(tc.Consts))
-	}
-	if len(tc.Vars) != len(proj.Vars) {
-		return fmt.Errorf("quantity of vars not equal. got: %d; want: %d", len(proj.Vars), len(tc.Vars))
-	}
-	if len(tc.Aliases) != len(proj.Aliases) {
-		return fmt.Errorf("quantity of aliases not equal. got: %d; want: %d", len(proj.Aliases), len(tc.Aliases))
-	}
-	if len(tc.Ifaces) != len(proj.Ifaces) {
-		return fmt.Errorf("quantity of interfaces not equal. got: %d; want: %d", len(proj.Ifaces), len(tc.Ifaces))
-	}
-	for _, iface := range proj.Ifaces {
-		wantSig := tc.Ifaces[iface.Spec.Name.Name].Signatures
-		if len(iface.Signatures) != len(wantSig) {
-			return fmt.Errorf("quantity of signatures not equal. got: %d; want: %d", len(iface.Signatures), len(wantSig))
-		}
-	}
-	if len(tc.Named) != len(proj.Named) {
-		return fmt.Errorf("quantity of named not equal. got: %d; want: %d", len(proj.Named), len(tc.Named))
-	}
-	if len(tc.Imports) != len(proj.Imports) {
-		return fmt.Errorf("quantity of imports not equal. got: %d; want: %d", len(proj.Imports), len(tc.Imports))
-	}
-	// check if the correct markers were loaded
-	for typ, fn := range proj.Funcs {
-		name := typ.Name()
-		want := tc.Funcs[name]
-		if err := isMarkerMatching(want.Markers, fn.Defs); err != nil {
-			return err
-		}
-	}
-	for typ, stc := range proj.Structs {
-		name := typ.Name()
-		want := tc.Structs[name]
-		if err := isMarkerMatching(want.Markers, stc.Defs); err != nil {
-			return err
-		}
-	}
-	for typ, c := range proj.Consts {
-		name := typ.Name()
-		want := tc.Consts[name]
-		if err := isMarkerMatching(want.Markers, c.Defs); err != nil {
-			return err
-		}
-	}
-	for typ, v := range proj.Vars {
-		name := typ.Name()
-		want := tc.Vars[name]
-		if err := isMarkerMatching(want.Markers, v.Defs); err != nil {
-			return err
-		}
-	}
-	for typ, a := range proj.Aliases {
-		name := typ.Name()
-		want := tc.Aliases[name]
-		if err := isMarkerMatching(want.Markers, a.Defs); err != nil {
-			return err
-		}
-	}
-	for typ, i := range proj.Ifaces {
-		name := typ.Name()
-		want := tc.Ifaces[name]
-		if err := isMarkerMatching(want.Markers, i.Defs); err != nil {
-			return err
-		}
-	}
-	for typ, n := range proj.Named {
-		name := typ.Name()
-		want := tc.Named[name]
-		if err := isMarkerMatching(want.Markers, n.Defs); err != nil {
-			return err
-		}
-	}
+type defss interface {
+	Definitions() map[string][]any
+}
 
-	for typ, im := range proj.Imports {
-		name := typ.Name()
-		want := tc.Imports[name]
-		if err := isMarkerMatching(want.Markers, im.Defs); err != nil {
+type markers interface {
+	markers() []parser.Marker
+}
+
+type namer interface {
+	Name() string
+}
+
+func validateMarker(want []parser.Marker, got map[string][]any) error {
+	for _, marker := range want {
+		ident := marker.Ident()
+		_, found := got[ident]
+		if !found {
+			return fmt.Errorf("marker not found: %s\n", ident)
+		}
+	}
+	return nil
+}
+
+func validate[T markers, V defss](want map[string]T, got map[types.Object]V) error {
+	if len(got) != len(want) {
+		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(got), len(want))
+	}
+	for typ, info := range got {
+		m := want[typ.Name()].markers()
+		if err := validateMarker(m, info.Definitions()); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func isMarkerMatching(want []parser.Marker, got map[string][]any) error {
-	for _, marker := range want {
-		ident := marker.Ident()
-		_, found := got[ident]
-		if !found {
-			return fmt.Errorf("marker not found: %s\n", ident)
+func isValid(tc LoaderTestCase, proj *sdk.Project) error {
+	// check struct
+	if err := validate(tc.Structs, proj.Structs); err != nil {
+		return err
+	}
+	for typ, s := range proj.Structs {
+		name := typ.Name()
+		if err := validate(tc.Structs[name].Fields, s.Fields); err != nil {
+			return err
+		}
+		if err := validate(tc.Structs[name].Methods, s.Methods); err != nil {
+			return err
+		}
+	}
+	// check iface
+	if err := validate(tc.Ifaces, proj.Ifaces); err != nil {
+		return err
+	}
+	for typ, iface := range proj.Ifaces {
+		name := typ.Name()
+		if err := validate(tc.Ifaces[name].Signatures, iface.Signatures); err != nil {
+			return err
+		}
+	}
+	if err := validate(tc.Named, proj.Named); err != nil {
+		return err
+	}
+	for typ, named := range proj.Named {
+		name := typ.Name()
+		if err := validate(tc.Named[name].Methods, named.Methods); err != nil {
+			return err
+		}
+	}
+	// check rest
+	if err := validate(tc.Consts, proj.Consts); err != nil {
+		return err
+	}
+	if err := validate(tc.Vars, proj.Vars); err != nil {
+		return err
+	}
+	if err := validate(tc.Imports, proj.Imports); err != nil {
+		return err
+	}
+	if err := validate(tc.Aliases, proj.Aliases); err != nil {
+		return err
+	}
+	if err := validate(tc.Funcs, proj.Funcs); err != nil {
+		return err
+	}
+	// check filee bcause its a special case because of the missing types.Object
+	if len(tc.Files) != len(proj.Files) {
+		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(proj.Files), len(tc.Files))
+	}
+	for filename, info := range proj.Files {
+		markers := tc.Files[filename].markers()
+		if err := validateMarker(markers, info.Defs); err != nil {
+			return err
 		}
 	}
 	return nil

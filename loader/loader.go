@@ -7,15 +7,17 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
+	"path/filepath"
 
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/sdk"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
 	"golang.org/x/tools/go/packages"
 )
 
 var _ sdk.Loader = (*localLoader)(nil)
 
+// TODO: add the current package to the struct so it doesnt have to be passed
+// all the time
 type localLoader struct {
 	mngr sdk.ConverterManager
 	cfg  *packages.Config
@@ -102,7 +104,7 @@ func (l *localLoader) extractInfosFromFile(pkg *packages.Package, file *ast.File
 }
 
 func (l *localLoader) funcDecl(pkg *packages.Package, decl *ast.FuncDecl) error {
-	if sdkutil.IsMethod(decl) {
+	if isMethod(decl) {
 		return l.extractMethodInfo(pkg, decl)
 	}
 	return l.extractFuncInfo(pkg, decl)
@@ -124,7 +126,7 @@ func (l *localLoader) genDecl(pkg *packages.Package, decl *ast.GenDecl) error {
 }
 
 func (l *localLoader) typeDecl(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := sdkutil.ConvertSpecs[*ast.TypeSpec](decl.Specs)
+	specs := convertSpecs[*ast.TypeSpec](decl.Specs)
 	for _, spec := range specs {
 		var err error
 		typ := pkg.TypesInfo.TypeOf(spec.Name)
@@ -203,7 +205,7 @@ func (l *localLoader) extractFuncInfo(pkg *packages.Package, decl *ast.FuncDecl)
 	return nil
 }
 
-func (l *localLoader) extractFileInfo(_ *packages.Package, file *ast.File) error {
+func (l *localLoader) extractFileInfo(pkg *packages.Package, file *ast.File) error {
 	doc := file.Doc.Text()
 	defs, err := l.mngr.ParseDefs(doc, target.PKG)
 	if err != nil {
@@ -213,12 +215,14 @@ func (l *localLoader) extractFileInfo(_ *packages.Package, file *ast.File) error
 		File: file,
 		Defs: defs,
 	}
-	l.proj.Files[file.Name.Name] = info
+
+	filename := filepath.Base(pkg.Fset.Position(file.Package).Filename)
+	l.proj.Files[filename] = info
 	return nil
 }
 
 func (l *localLoader) extractImportInfo(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := sdkutil.ConvertSpecs[*ast.ImportSpec](decl.Specs)
+	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		defs, err := l.mngr.ParseDefs(doc, target.IMPORT)
@@ -241,7 +245,7 @@ func (l *localLoader) extractImportInfo(pkg *packages.Package, decl *ast.GenDecl
 }
 
 func (l *localLoader) extractVarInfo(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := sdkutil.ConvertSpecs[*ast.ValueSpec](decl.Specs)
+	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		for _, name := range spec.Names {
@@ -266,7 +270,7 @@ func (l *localLoader) extractVarInfo(pkg *packages.Package, decl *ast.GenDecl) e
 }
 
 func (l *localLoader) extractConstInfo(pkg *packages.Package, decl *ast.GenDecl) error {
-	specs := sdkutil.ConvertSpecs[*ast.ValueSpec](decl.Specs)
+	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		for _, name := range spec.Names {
@@ -297,10 +301,10 @@ func (l *localLoader) extractNamedTypeInfo(pkg *packages.Package, decl *ast.GenD
 		return err
 	}
 	info := sdk.NamedInfo{
-		Pkg:  pkg,
-		Spec: spec,
-		Decl: decl,
-		Defs: defs,
+		Pkg:     pkg,
+		Spec:    spec,
+		Decl:    decl,
+		Defs:    defs,
 		Methods: make(map[types.Object]sdk.FuncInfo),
 	}
 	obj, err := l.objectOf(pkg, spec.Name)
@@ -318,7 +322,7 @@ func (l *localLoader) extractIfaceInfo(pkg *packages.Package, decl *ast.GenDecl,
 		return err
 	}
 	ifaceType := spec.Type.(*ast.InterfaceType)
-	sigs, err := l.extractIfaceSignatureInfo(ifaceType)
+	sigs, err := l.extractIfaceSignatureInfo(pkg, ifaceType)
 	if err != nil {
 		return err
 	}
@@ -337,8 +341,8 @@ func (l *localLoader) extractIfaceInfo(pkg *packages.Package, decl *ast.GenDecl,
 	return nil
 }
 
-func (l *localLoader) extractIfaceSignatureInfo(spec *ast.InterfaceType) ([]sdk.SignatureInfo, error) {
-	infos := make([]sdk.SignatureInfo, 0, spec.Methods.NumFields())
+func (l *localLoader) extractIfaceSignatureInfo(pkg *packages.Package, spec *ast.InterfaceType) (map[types.Object]sdk.SignatureInfo, error) {
+	infos := make(map[types.Object]sdk.SignatureInfo, spec.Methods.NumFields())
 	for _, meth := range spec.Methods.List {
 		doc := meth.Doc.Text()
 		defs, err := l.mngr.ParseDefs(doc, target.IFACESIG)
@@ -346,12 +350,16 @@ func (l *localLoader) extractIfaceSignatureInfo(spec *ast.InterfaceType) ([]sdk.
 			return nil, err
 		}
 		for _, name := range meth.Names {
+			obj, err := l.objectOf(pkg, meth.Names[0])
+			if err != nil {
+				return nil, err
+			}
 			info := sdk.SignatureInfo{
 				Idn:    name,
 				Method: meth,
 				Defs:   defs,
 			}
-			infos = append(infos, info)
+			infos[obj] = info
 		}
 	}
 	return infos, nil
@@ -409,7 +417,7 @@ func (l *localLoader) extractFieldInfo(pkg *packages.Package, spec *ast.StructTy
 	infos := make(map[types.Object]sdk.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
-		if sdkutil.IsEmbedded(field) {
+		if isEmbedded(field) {
 			continue
 		}
 		doc := field.Doc.Text()

@@ -36,7 +36,7 @@ func NewProject() *Project {
 		Vars:    make(map[types.Object]VarInfo),
 		Imports: make(map[types.Object]ImportInfo),
 		Funcs:   make(map[types.Object]FuncInfo),
-		Files:   make(map[string]FileInfo),
+		Files:   make(map[Filename]FileInfo),
 	}
 }
 
@@ -50,9 +50,17 @@ type FuncInfo struct {
 	Defs map[string][]any
 }
 
+func (f FuncInfo) Definitions() map[string][]any {
+	return f.Defs
+}
+
 type FileInfo struct {
 	File *ast.File
 	Defs map[string][]any
+}
+
+func (f FileInfo) Definitions() map[string][]any {
+	return f.Defs
 }
 
 type ImportInfo struct {
@@ -62,6 +70,10 @@ type ImportInfo struct {
 	Defs map[string][]any
 }
 
+func (i ImportInfo) Definitions() map[string][]any {
+	return i.Defs
+}
+
 type VarInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
@@ -69,11 +81,19 @@ type VarInfo struct {
 	Defs map[string][]any
 }
 
+func (v VarInfo) Definitions() map[string][]any {
+	return v.Defs
+}
+
 type ConstInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
 	Pkg  *packages.Package
 	Defs map[string][]any
+}
+
+func (c ConstInfo) Definitions() map[string][]any {
+	return c.Defs
 }
 
 type NamedInfo struct {
@@ -85,11 +105,19 @@ type NamedInfo struct {
 	Methods map[types.Object]FuncInfo
 }
 
+func (n NamedInfo) Definitions() map[string][]any {
+	return n.Defs
+}
+
 type AliasInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
 	Pkg  *packages.Package
 	Defs map[string][]any
+}
+
+func (a AliasInfo) Definitions() map[string][]any {
+	return a.Defs
 }
 
 type IfaceInfo struct {
@@ -98,13 +126,21 @@ type IfaceInfo struct {
 	Pkg  *packages.Package
 	Defs map[string][]any
 
-	Signatures []SignatureInfo
+	Signatures map[types.Object]SignatureInfo
+}
+
+func (i IfaceInfo) Definitions() map[string][]any {
+	return i.Defs
 }
 
 type SignatureInfo struct {
 	Method *ast.Field
 	Idn    *ast.Ident
 	Defs   map[string][]any
+}
+
+func (s SignatureInfo) Definitions() map[string][]any {
+	return s.Defs
 }
 
 type StructInfo struct {
@@ -117,8 +153,16 @@ type StructInfo struct {
 	Methods map[types.Object]FuncInfo
 }
 
+func (s StructInfo) Definitions() map[string][]any {
+	return s.Defs
+}
+
 type FieldInfo struct {
 	Field *ast.Field
 	Idn   *ast.Ident
 	Defs  map[string][]any
+}
+
+func (f FieldInfo) Definitions() map[string][]any {
+	return f.Defs
 }
