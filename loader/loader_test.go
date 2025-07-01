@@ -40,18 +40,6 @@ func TestLoaderLocal(t *testing.T) {
 	}
 }
 
-type defss interface {
-	Definitions() map[string][]any
-}
-
-type markers interface {
-	markers() []parser.Marker
-}
-
-type namer interface {
-	Name() string
-}
-
 func validateMarker(want []parser.Marker, got map[string][]any) error {
 	for _, marker := range want {
 		ident := marker.Ident()
@@ -63,7 +51,7 @@ func validateMarker(want []parser.Marker, got map[string][]any) error {
 	return nil
 }
 
-func validate[T markers, V defss](want map[string]T, got map[types.Object]V) error {
+func validate[T markers, V defs](want map[string]T, got map[types.Object]V) error {
 	if len(got) != len(want) {
 		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(got), len(want))
 	}
