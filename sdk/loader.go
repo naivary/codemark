@@ -46,7 +46,6 @@ type Loader interface {
 
 type FuncInfo struct {
 	Decl *ast.FuncDecl
-	Pkg  *packages.Package
 	Defs map[string][]any
 }
 
@@ -66,7 +65,6 @@ func (f FileInfo) Definitions() map[string][]any {
 type ImportInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ImportSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 }
 
@@ -77,7 +75,6 @@ func (i ImportInfo) Definitions() map[string][]any {
 type VarInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 }
 
@@ -88,7 +85,6 @@ func (v VarInfo) Definitions() map[string][]any {
 type ConstInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 }
 
@@ -99,7 +95,6 @@ func (c ConstInfo) Definitions() map[string][]any {
 type NamedInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 
 	Methods map[types.Object]FuncInfo
@@ -112,7 +107,6 @@ func (n NamedInfo) Definitions() map[string][]any {
 type AliasInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 }
 
@@ -123,7 +117,6 @@ func (a AliasInfo) Definitions() map[string][]any {
 type IfaceInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 
 	Signatures map[types.Object]SignatureInfo
@@ -146,7 +139,6 @@ func (s SignatureInfo) Definitions() map[string][]any {
 type StructInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Pkg  *packages.Package
 	Defs map[string][]any
 
 	Fields  map[types.Object]FieldInfo
