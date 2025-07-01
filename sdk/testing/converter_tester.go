@@ -7,8 +7,48 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/sdk"
 )
+
+// ValidValueFunc defines the logic to check if the converter correctly
+// converted the value of the marker to the custom type.
+type ValidValueFunc func(got, want reflect.Value) bool
+
+type ConverterTestCase struct {
+	// Name of the test case
+	Name string
+	// Marker to convert by the converter
+	Marker parser.Marker
+	// Target of the marker
+	Target target.Target
+	// Type to convert the marker to.
+	To reflect.Type
+	// If the test case is a valid or invalid case
+	IsValidCase bool
+	// Function to validate the value of the converter (after conversion) with
+	// the value of the given marker.
+	IsValidValue ValidValueFunc
+}
+
+// ConverterTester is providing useful abstractions for testing a converter in
+// a convenient and easy way.
+type ConverterTester interface {
+	// NewTest returns a new ConverterTestCase.
+	NewTest(from reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
+
+	// AddVVFunc defines a ValidValueFunc for an example type to which a
+	// supported type of the converter will be converted.
+	AddVVFunc(to reflect.Type, fn ValidValueFunc) error
+
+	// ValidTests returns all test cases which must be valid based on the
+	// supported types of the converter.
+	ValidTests() ([]ConverterTestCase, error)
+
+	// Run runs the given test case against and checks if the conversion was
+	// successful.
+	Run(t *testing.T, tc ConverterTestCase)
+}
 
 var _ ConverterTester = (*converterTester)(nil)
 
@@ -16,13 +56,14 @@ type converterTester struct {
 	conv    sdk.Converter
 	vvfns   map[reflect.Type]ValidValueFunc
 	toTypes map[reflect.Type]reflect.Type
+	mngr    sdk.ConverterManager
 }
 
 // NewConvTester returns a new ConverterTester for the given converter. The
 // parameter `toTypes` is providing a map of a supported type to an example
 // custom type which is being used by the converter as a test. For example the
 // built in integer converter is converter an int to a type Int int.
-func NewConvTester(conv sdk.Converter, toTypes map[reflect.Type]reflect.Type) (ConverterTester, error) {
+func NewConvTester(conv sdk.Converter, mngr sdk.ConverterManager, toTypes map[reflect.Type]reflect.Type) (ConverterTester, error) {
 	if toTypes == nil {
 		return nil, errors.New("missing toTypes map")
 	}
@@ -30,6 +71,7 @@ func NewConvTester(conv sdk.Converter, toTypes map[reflect.Type]reflect.Type) (C
 		conv:    conv,
 		vvfns:   make(map[reflect.Type]ValidValueFunc),
 		toTypes: toTypes,
+		mngr:    mngr,
 	}
 	return c, nil
 }
@@ -59,9 +101,9 @@ func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, t target.
 	return tc, nil
 }
 
-func (c *converterTester) Run(t *testing.T, tc ConverterTestCase, mngr sdk.ConverterManager) {
+func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
 	t.Run(tc.Name, func(t *testing.T) {
-		v, err := mngr.Convert(tc.Marker, tc.Target)
+		v, err := c.mngr.Convert(tc.Marker, tc.Target)
 		if err != nil {
 			t.Errorf("err occured: %s\n", err)
 		}

@@ -31,7 +31,7 @@ func newRegistry() sdk.Registry {
 }
 
 func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
-	tester, err := sdktesting.NewConvTester(conv, fromMap(conv))
+	tester, err := sdktesting.NewConvTester(conv, mngr, fromMap(conv))
 	if err != nil {
 		return nil, err
 	}
