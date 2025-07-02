@@ -88,7 +88,7 @@ func (m *Manager) Convert(mrk parser.Marker, t target.Target) (any, error) {
 		return nil, err
 	}
 	if inFavorOf, isDepcrecated := def.IsDeprecated(); isDepcrecated {
-		msg := fmt.Sprintf("MARKER `%s` IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
+		msg := fmt.Sprintf("MARKER[%s] IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
 		slog.Warn(msg)
 	}
 	if !(slices.Contains(def.Targets, t) || slices.Contains(def.Targets, target.ANY)) {

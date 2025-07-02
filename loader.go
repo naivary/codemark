@@ -9,6 +9,9 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
+// NewLoader will returns a new loader. This function should be only used if you
+// need fine grained control over the configuration and options of the loader.
+// Otherwise use `LoadWithManager` or `Load`.
 var NewLoader = loader.New
 
 // LoadWithManager will load a package with a custom manager which usually mean
