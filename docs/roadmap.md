@@ -1,8 +1,11 @@
 # Roadmap
 
-1. Unit testing of core components
-2. multiline strings
-3. time converter
-4. map converter
-5. generator
-6. variables for marker
+- Unit testing of core components (prio: 8)
+- multiline strings (prio: 5)
+- generator for openapi, (jsonschema), k8s (e.g. rbac, network policies, deployment/pod,
+   etc.) (thi sis the way to create manifests for microservices to take away
+   that boilerplace and bound it to documentation (prio: 3)
+- variables for marker (prio: 1)
+- time converter (prio: 1)
+- map converter (prio: 1)
+
