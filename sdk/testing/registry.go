@@ -1,13 +1,13 @@
 package testing
 
 import (
+	"errors"
 	"reflect"
 	"slices"
 
 	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/maker"
-	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -156,10 +156,10 @@ func AllTypes() []any {
 	)
 }
 
-// aliasTypes are the go-native types which are supported by the default
+// AliasDefs are go-native types which are supported by the default
 // converters but cannot be registered using the native types because they are
 // aliases of others e.g. byte and rune.
-func aliasTypes() []*definition.Definition {
+func AliasDefs() []*definition.Definition {
 	return []*definition.Definition{
 		maker.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), target.ANY),
 		maker.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), target.ANY),
@@ -172,29 +172,30 @@ func aliasTypes() []*definition.Definition {
 	}
 }
 
-// NewRegistry returns a registry which includes definitions for all the
-// default types which can be converterd using the builtin converter. If the
-// provided registry is nil an in-memory registry is used by default.
-func NewRegistry(reg sdk.Registry, customDefs ...*definition.Definition) (sdk.Registry, error) {
-	if reg == nil {
-		reg = registry.InMemory()
-	}
+// NewDefSet returns all the definitions matching the default markers available with
+// the correct type
+func NewDefSet() []*definition.Definition {
+	types := AllTypes()
+	aliases := AliasDefs()
+	defs := make([]*definition.Definition, 0, len(types)+len(aliases))
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		name := sdkutil.NameFor(rtype)
 		ident := NewIdent(name)
-		def, err := maker.MakeDef(ident, rtype, target.ANY)
-		if err != nil {
-			return nil, err
-		}
+		def := maker.MustMakeDef(ident, rtype, target.ANY)
+		defs = append(defs, def)
+	}
+	return slices.Concat(defs, aliases)
+}
+
+func DefineFor(reg sdk.Registry, defs []*definition.Definition) error {
+	if reg == nil {
+		return errors.New("reg cannot be nil. If you don't want to use a custom registry use `NewRegistry` instead")
+	}
+	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	for _, def := range slices.Concat(aliasTypes(), customDefs) {
-		if err := reg.Define(def); err != nil {
-			return nil, err
-		}
-	}
-	return reg, nil
+	return nil
 }

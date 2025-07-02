@@ -1,7 +1,16 @@
 package registry
 
-import "testing"
+import (
+	"testing"
 
-var reg = InMemory()
+	sdktesting "github.com/naivary/codemark/sdk/testing"
+)
 
-func TestDefine(t *testing.T) {}
+func TestInMemory(t *testing.T) {
+	tester := sdktesting.NewRegTester(InMemory())
+	defs := sdktesting.NewDefSet()
+	tests := tester.ValidTests(defs...)
+	for _, tc := range tests {
+		tester.Run(t, tc)
+	}
+}

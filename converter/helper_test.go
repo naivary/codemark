@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -23,7 +24,9 @@ func newManager() sdk.ConverterManager {
 }
 
 func newRegistry() sdk.Registry {
-	reg, err := sdktesting.NewRegistry(nil)
+	defs := sdktesting.NewDefSet()
+	reg := registry.InMemory()
+	err := sdktesting.DefineFor(reg, defs)
 	if err != nil {
 		panic(err)
 	}
