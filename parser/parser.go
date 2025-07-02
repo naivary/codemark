@@ -181,7 +181,7 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
 	p.m.kind = marker.LIST
-	// slice of type any because the choosen output type of the
+	// slice must be of type any because the choosen output type of the
 	// user might be []any.
 	rtype := reflect.TypeOf([]any{})
 	p.m.value = reflect.MakeSlice(rtype, 0, 1)
@@ -191,6 +191,7 @@ func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
 func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
 	case token.COMMA:
+		// just skip the comma and go for the next element
 		return parseListElem, _next
 	case token.STRING:
 		return parseListStringElem, _keep

@@ -255,6 +255,25 @@ this is the doc`,
 `,
 			isValid: true,
 		},
+		{
+			name: "multiline string",
+			input: `+codemark:lexer:multiline.string=` + "`" + `string 
+which is multi line` + "`",
+			isValid: true,
+		},
+		{
+			name: "single line in multile form",
+			input: `+codemark:lexer:string="this is
+multi line not allowed
+`,
+			isValid: false,
+		},
+		{
+			name: "multiline string with illegal character tick",
+			input: `+codemark:lexer:multiline.string=` + "`" + `string 
+which is multi` + "`" + `line` + "`",
+			isValid: false,
+		},
 	}
 
 	for _, tc := range tests {

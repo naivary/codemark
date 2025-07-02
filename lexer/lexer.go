@@ -17,6 +17,12 @@ const (
 	_dot        = '.'
 	_whitespace = ' '
 	_tab        = '\t'
+	_tick       = '`'
+	_dquot      = '"'
+	_lbrack     = '['
+	_rbrack     = ']'
+	_assign     = '='
+	_comma      = ','
 )
 
 func Lex(input string) *Lexer {

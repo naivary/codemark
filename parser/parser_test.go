@@ -68,6 +68,17 @@ func TestParse(t *testing.T) {
 			input:   `+jsonschema:validation:items=["lorem", "ips\"um", true]`,
 			isValid: true,
 		},
+		{
+			name:    "float",
+			input:   `+codemark:parser:float=3.2`,
+			isValid: true,
+		},
+		{
+			name: "multiline string",
+			input: `+codemark:parser:string.multiline=` + "`" + `multi line 
+string` + "`",
+			isValid: true,
+		},
 	}
 
 	for _, tc := range tests {

@@ -29,14 +29,9 @@ func hasPlusPrefix(input string, pos int) bool {
 	return strings.HasPrefix(input[pos:], string(_plus))
 }
 
-// isAlphaLower checks if `r` is lower and a letter
-func isAlphaLower(r rune) bool {
+// isLower checks if `r` is lower and a letter
+func isLower(r rune) bool {
 	return unicode.IsLetter(r) && unicode.IsLower(r)
-}
-
-// isAlphaNumeric is checking if the rune is a letter, digit or underscore
-func isAlphaNumeric(r rune) bool {
-	return unicode.IsLetter(r) || unicode.IsDigit(r)
 }
 
 type stateFunc func(*Lexer) stateFunc
@@ -67,8 +62,8 @@ func lexPlus(l *Lexer) stateFunc {
 	l.next()
 	l.emit(token.PLUS)
 	switch r := l.peek(); {
-	case !isAlphaLower(r):
-		return l.errorf("after a `+` an immediate identifier is expected. The identifier can only be in lower letters and has to contain two `:` describing the path")
+	case !isLower(r):
+		return l.errorf("after a `%s` an immediate identifier is expected. The identifier can only be in lower letters and has to contain two `:` describing the path", string(_plus))
 	}
 	return lexIdent
 }
@@ -87,7 +82,7 @@ func lexIdent(l *Lexer) stateFunc {
 	}
 	l.emit(token.IDENT)
 	switch r := l.peek(); {
-	case r == '=':
+	case r == _assign:
 		return lexAssignment
 	case r == _eof || r == _newline:
 		return lexBoolWithoutAssignment
@@ -100,17 +95,40 @@ func lexAssignment(l *Lexer) stateFunc {
 	l.next()
 	l.emit(token.ASSIGN)
 	switch r := l.peek(); {
-	case r == '[':
+	case r == _lbrack:
 		return lexOpenSquareBracket
 	case isDigit(r):
 		return lexNumber
-	case r == '"':
+	case r == _dquot:
 		return lexStartDoubleQuotationMarkString
+	case r == _tick:
+		return lexStartTick
 	case r == 't' || r == 'f':
 		return lexBool
 	default:
 		return l.errorf("expecting value after assignment. For the possible valid values see: <docs link>")
 	}
+}
+
+func lexStartTick(l *Lexer) stateFunc {
+	l.next()
+	l.ignore()
+	if err := scanMultiLineString(l); err != nil {
+		return l.errorf("error: %s\n", err.Error())
+	}
+	l.emit(token.STRING)
+	switch r := l.peek(); {
+	case r == _tick:
+		return lexEndTick
+	default:
+		return l.errorf("expected `\"` got `%s`", string(r))
+	}
+}
+
+func lexEndTick(l *Lexer) stateFunc {
+	l.next()
+	l.ignore()
+	return lexEndOfExpr
 }
 
 func lexBoolWithoutAssignment(l *Lexer) stateFunc {
@@ -151,17 +169,17 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	l.next()
 	l.emit(token.LBRACK)
 	switch r := l.peek(); {
-	case r == ']':
+	case r == _rbrack:
 		return lexCloseSquareBracket
 	case isDigit(r):
 		return lexNumberListValue
-	case r == '"':
+	case r == _dquot:
 		return lexStartDoubleQuotationMarkStringList
 	case r == 't' || r == 'f':
 		return lexBoolListValue
 	case isSpace(r):
 		return l.errorf("no space allowed after the opening bracket of a list")
-	case r == ',':
+	case r == _comma:
 		return l.errorf("expected value in array not seperator")
 	default:
 		return l.errorf("expected closing bracket. Be sure that there is no whitespace between the last element and `]`")
@@ -170,9 +188,9 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 
 func lexListSequence(l *Lexer) stateFunc {
 	switch r := l.peek(); {
-	case r == ',':
+	case r == _comma:
 		return lexListComma
-	case r == ']':
+	case r == _rbrack:
 		return lexCloseSquareBracket
 	default:
 		return l.errorf("expected next array value or closing bracket")
@@ -213,9 +231,9 @@ func lexListComma(l *Lexer) stateFunc {
 	switch r := l.peek(); {
 	case isDigit(r):
 		return lexNumberListValue
-	case r == '"':
+	case r == _dquot:
 		return lexStartDoubleQuotationMarkStringList
-	case r == ']':
+	case r == _rbrack:
 		return l.errorf("remove the comma before the closing bracket of the list")
 	case r == 't' || r == 'f':
 		return lexBoolListValue
@@ -232,7 +250,7 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 	}
 	l.emit(token.STRING)
 	switch r := l.peek(); {
-	case r == '"':
+	case r == _dquot:
 		return lexEndDoubleQuotationMarkString
 	default:
 		return l.errorf("expected `\"` got `%s`", string(r))
@@ -253,7 +271,7 @@ func lexStartDoubleQuotationMarkStringList(l *Lexer) stateFunc {
 	}
 	l.emit(token.STRING)
 	switch r := l.peek(); {
-	case r == '"':
+	case r == _dquot:
 		return lexEndDoubleQuotationMarkStringList
 	default:
 		return l.errorf("expected `\"` got `%s`", string(r))
