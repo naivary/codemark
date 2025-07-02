@@ -102,21 +102,19 @@ func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, t target.
 }
 
 func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
-	t.Run(tc.Name, func(t *testing.T) {
-		v, err := c.mngr.Convert(tc.Marker, tc.Target)
-		if err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-		gotType := reflect.TypeOf(v)
-		if gotType != tc.To {
-			t.Fatalf("types don't match after conversion. got: %v; expected: %v\n", gotType, tc.To)
-		}
-		gotValue := reflect.ValueOf(v)
-		if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
-			t.Fatalf("value is not correct. got: %v; wanted: %v\n", gotValue, tc.Marker.Value())
-		}
-		t.Logf("succesfully converted. got: %v; expected: %v\n", gotType, tc.To)
-	})
+	v, err := c.mngr.Convert(tc.Marker, tc.Target)
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
+	gotType := reflect.TypeOf(v)
+	if gotType != tc.To {
+		t.Fatalf("types don't match after conversion. got: %v; want: %v\n", gotType, tc.To)
+	}
+	gotValue := reflect.ValueOf(v)
+	if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
+		t.Fatalf("value is not correct. got: %v; want: %v\n", gotValue, tc.Marker.Value())
+	}
+	t.Logf("succesfully converted. got: %v; want: %v\n", gotType, tc.To)
 }
 
 func (c *converterTester) AddVVFunc(to reflect.Type, fn ValidValueFunc) error {

@@ -7,10 +7,13 @@ import (
 )
 
 func TestInMemory(t *testing.T) {
-	tester := sdktesting.NewRegTester(InMemory())
+	reg := InMemory()
+	tester := sdktesting.NewRegTester(reg)
 	defs := sdktesting.NewDefSet()
 	tests := tester.ValidTests(defs...)
 	for _, tc := range tests {
-		tester.Run(t, tc)
+		t.Run(tc.Name, func(t *testing.T) {
+			tester.Run(t, tc)
+		})
 	}
 }

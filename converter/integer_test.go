@@ -14,6 +14,8 @@ func TestIntConverter(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	for _, tc := range tests {
-		tester.Run(t, tc)
+		t.Run(tc.Name, func(t *testing.T) {
+			tester.Run(t, tc)
+		})
 	}
 }

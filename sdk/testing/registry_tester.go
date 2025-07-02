@@ -41,7 +41,7 @@ func NewRegTester(reg sdk.Registry) RegistryTester {
 	}
 }
 
-func (r registryTester) NewTest(def *definition.Definition, isValid bool) RegistryTestCase {
+func (r *registryTester) NewTest(def *definition.Definition, isValid bool) RegistryTestCase {
 	return RegistryTestCase{
 		Name:    fmt.Sprintf("%s[%s]", def.Ident, def.Output),
 		IsValid: isValid,
@@ -49,16 +49,19 @@ func (r registryTester) NewTest(def *definition.Definition, isValid bool) Regist
 	}
 }
 
-func (r registryTester) ValidTests(defs ...*definition.Definition) []RegistryTestCase {
+func (r *registryTester) ValidTests(defs ...*definition.Definition) []RegistryTestCase {
 	tests := make([]RegistryTestCase, 0, len(defs))
 	for _, def := range defs {
 		tests = append(tests, r.NewTest(def, true))
 	}
-	return nil
+	return tests
 }
 
-func (r registryTester) Run(t *testing.T, tc RegistryTestCase) {
+func (r *registryTester) Run(t *testing.T, tc RegistryTestCase) {
 	err := r.reg.Define(tc.Def)
+	if err == nil && !tc.IsValid {
+		t.Errorf("expected an error but err was nil: %s\n", tc.Def.Ident)
+	}
 	if err != nil && !tc.IsValid {
 		t.Skipf("expected error to occur because it's an invalid test case: %s. Skipping...", err)
 	}
@@ -69,19 +72,23 @@ func (r registryTester) Run(t *testing.T, tc RegistryTestCase) {
 	if err != nil {
 		t.Errorf("get failed with an error: %s\n", err)
 	}
-	// assertions
 	if def != tc.Def {
 		t.Errorf("definitions are not equal after retrieval. got: %v\n want: %v\n", def, tc.Def)
 	}
-	// check docs
-	if def.Doc == "" {
-		t.Skipf("DocOf assetions will be skipped because definition `%s` has no documentatino", def.Ident)
+	r.validateDoc(t, tc.Def, def)
+	t.Logf("test case sucessfull: %s\n", tc.Name)
+}
+
+func (r *registryTester) validateDoc(t *testing.T, got, want *definition.Definition) {
+	if got.Doc == "" {
+		t.Logf("no assertions will be done for the documentation because `%s` has no doc", got.Ident)
+		return
 	}
-	doc, err := r.reg.DocOf(def.Ident)
+	doc, err := r.reg.DocOf(got.Ident)
 	if err != nil {
 		t.Errorf("DocOf failed with an error: %s\n", err)
 	}
-	if doc != tc.Def.Doc {
-		t.Errorf("documentation is not the same. got: %s; want: %s\n", doc, tc.Def.Doc)
+	if doc != want.Doc {
+		t.Errorf("doc is not the same. got: %s; want: %s\n", doc, want.Doc)
 	}
 }
