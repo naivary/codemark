@@ -11,6 +11,9 @@ import (
 	"github.com/naivary/codemark/sdk"
 )
 
+// TODO: From -> To is kinda weird because it can only be from kind of marker
+// value type to a custom type
+
 // ValidValueFunc defines the logic to check if the converter correctly
 // converted the value of the marker to the custom type.
 type ValidValueFunc func(got, want reflect.Value) bool
@@ -35,7 +38,9 @@ type ConverterTestCase struct {
 // a convenient and easy way.
 type ConverterTester interface {
 	// NewTest returns a new ConverterTestCase.
-	NewTest(from reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
+	NewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
+
+	MustNewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase
 
 	// AddVVFunc defines a ValidValueFunc for an example type to which a
 	// supported type of the converter will be converted.
@@ -76,14 +81,13 @@ func NewConvTester(conv sdk.Converter, mngr sdk.ConverterManager, toTypes map[re
 	return c, nil
 }
 
-func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
+func (c *converterTester) NewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
 	marker, err := RandMarker(from)
 	if err != nil {
 		return ConverterTestCase{}, err
 	}
-	to := c.toTypes[from]
 	if to == nil {
-		return ConverterTestCase{}, fmt.Errorf("no to reflect.Type found: %v\n", from)
+		return ConverterTestCase{}, errors.New("to cannot be nil")
 	}
 	name := fmt.Sprintf("marker[%s] to %v", marker.Ident, to)
 	vvfn := c.vvfns[to]
@@ -99,6 +103,14 @@ func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, t target.
 		IsValidValue: vvfn,
 	}
 	return tc, nil
+}
+
+func (c *converterTester) MustNewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase {
+	tc, err := c.NewTest(from, to, isValidCase, t)
+	if err != nil {
+		panic(err)
+	}
+	return tc
 }
 
 func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
@@ -130,7 +142,11 @@ func (c *converterTester) ValidTests() ([]ConverterTestCase, error) {
 	types := c.conv.SupportedTypes()
 	tests := make([]ConverterTestCase, 0, len(types))
 	for _, from := range types {
-		tc, err := c.NewTest(from, true, target.ANY)
+		to := c.toTypes[from]
+		if to == nil {
+			return nil, fmt.Errorf("no type found for: %v\n", from)
+		}
+		tc, err := c.NewTest(from, to, true, target.ANY)
 		if err != nil {
 			return nil, err
 		}
