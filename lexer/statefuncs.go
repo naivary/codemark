@@ -1,42 +1,12 @@
 package lexer
 
 import (
-	"strings"
 	"unicode"
 
 	"github.com/naivary/codemark/lexer/token"
 	"github.com/naivary/codemark/syntax"
 )
-
-func ignoreSpace(l *Lexer) {
-	l.acceptFunc(isSpace)
-	l.ignore()
-}
-
-func isDigit(r rune) bool {
-	return unicode.IsDigit(r) || r == '-' || r == '+'
-}
-
-func isSpace(r rune) bool {
-	return r == _whitespace || r == _tab
-}
-
-func isBool(r rune) bool {
-	return r == 't' || r == 'f'
-}
-
-func isNewline(r rune) bool {
-	return r == _newline || r == '\r'
-}
-
-func hasPlusPrefix(input string, pos int) bool {
-	return strings.HasPrefix(input[pos:], string(_plus))
-}
-
-// isLower checks if `r` is lower and a letter
-func isLower(r rune) bool {
-	return unicode.IsLetter(r) && unicode.IsLower(r)
-}
+// TODO: better naming of functions
 
 type stateFunc func(*Lexer) stateFunc
 

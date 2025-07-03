@@ -63,6 +63,8 @@ func scanNumber(l *Lexer) (token.Kind, error) {
 	return token.COMPLEX, nil
 }
 
+// TODO: scanString sollte nur eine Funktino sein am besten
+
 func scanMultiLineString(l *Lexer) error {
 	v := func(r rune) bool {
 		return r != _tick && r != _eof

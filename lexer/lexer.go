@@ -25,6 +25,7 @@ const (
 	_rbrack     = ']'
 	_assign     = '='
 	_comma      = ','
+	_return     = '\r'
 )
 
 func Lex(input string) *Lexer {
