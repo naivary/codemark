@@ -21,6 +21,10 @@ func isSpace(r rune) bool {
 	return r == _whitespace || r == _tab
 }
 
+func isBool(r rune) bool {
+	return r == 't' || r == 'f'
+}
+
 func isNewline(r rune) bool {
 	return r == _newline || r == '\r'
 }

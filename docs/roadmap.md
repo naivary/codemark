@@ -1,7 +1,6 @@
 # Roadmap
 
 - Unit testing of core components (prio: 8)
-- multiline strings (prio: 5)
 - generator for openapi, (jsonschema), k8s (e.g. rbac, network policies, deployment/pod,
    etc.) (thi sis the way to create manifests for microservices to take away
    that boilerplace and bound it to documentation (prio: 3)

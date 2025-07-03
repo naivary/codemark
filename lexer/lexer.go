@@ -8,6 +8,8 @@ import (
 	"github.com/naivary/codemark/lexer/token"
 )
 
+// TODO: should we allow multi line string in list?
+
 const (
 	_eof        = -1
 	_plus       = '+'
