@@ -40,9 +40,9 @@ type ConverterTestCase struct {
 // a convenient and easy way.
 type ConverterTester interface {
 	// NewTest returns a new ConverterTestCase.
-	NewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
+	NewTest(from, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
 
-	MustNewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase
+	MustNewTest(from, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase
 
 	// AddVVFunc defines a ValidValueFunc for an example type to which a
 	// supported type of the converter will be converted.
@@ -76,8 +76,9 @@ func NewConvTester(conv sdk.Converter) (ConverterTester, error) {
 	return c, nil
 }
 
-func (c *converterTester) NewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
-	marker, err := RandMarker(utils.TypeForMarkerKind(from))
+// from should only be customizable for list others are
+func (c *converterTester) NewTest(from, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
+	marker, err := RandMarker(from)
 	if err != nil {
 		return ConverterTestCase{}, err
 	}
@@ -100,7 +101,7 @@ func (c *converterTester) NewTest(from marker.Kind, to reflect.Type, isValidCase
 	return tc, nil
 }
 
-func (c *converterTester) MustNewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase {
+func (c *converterTester) MustNewTest(from, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase {
 	tc, err := c.NewTest(from, to, isValidCase, t)
 	if err != nil {
 		panic(err)
