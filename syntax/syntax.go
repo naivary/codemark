@@ -10,7 +10,9 @@ import (
 )
 
 // Ident validates if the given identifier is following the rule and conventions
-// of codemark.
+// of codemark. An identifier is composed of three components which are
+// seperated by a comma (:) e.g. domain:resource:option. This convention MUST be
+// followed because it will be used to load generators and make decisions.
 func Ident(ident string) error {
 	plus := "+"
 	if strings.HasPrefix(ident, plus) {
