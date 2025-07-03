@@ -5,7 +5,7 @@ import (
 
 	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 )
 
 type Converter interface {
@@ -23,10 +23,10 @@ type Converter interface {
 	// possible. You can be sure that the convert is choosen correctly by the
 	// ConverterManager and do not have to check if the `def.Output` is
 	// convertible using this converter.
-	CanConvert(m parser.Marker, def *definition.Definition) error
+	CanConvert(m marker.Marker, def *definition.Definition) error
 
 	// Convert converts the marker to `def.Output`
-	Convert(m parser.Marker, def *definition.Definition) (reflect.Value, error)
+	Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error)
 }
 
 // ConverterManager is responsible for managing the workflow of converting a
@@ -41,7 +41,7 @@ type ConverterManager interface {
 
 	// Convert converts the marker with respect to the target to identified
 	// definition in the registry.
-	Convert(mrk parser.Marker, target target.Target) (any, error)
+	Convert(mrk marker.Marker, target target.Target) (any, error)
 
 	// ParseDefs returns all definitions found in the `doc` with respect to the
 	// target.

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/converter"
-	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
@@ -42,9 +42,9 @@ func TestLoaderLocal(t *testing.T) {
 	}
 }
 
-func validateMarker(want []parser.Marker, got map[string][]any) error {
+func validateMarker(want []marker.Marker, got map[string][]any) error {
 	for _, marker := range want {
-		ident := marker.Ident()
+		ident := marker.Ident
 		_, found := got[ident]
 		if !found {
 			return fmt.Errorf("marker not found: %s\n", ident)

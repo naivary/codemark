@@ -77,7 +77,7 @@ func lexAssignment(l *Lexer) stateFunc {
 		return lexStartDoubleQuotationMarkString
 	case r == _tick:
 		return lexStartTick
-	case r == 't' || r == 'f':
+	case isBool(r):
 		return lexBool
 	default:
 		return l.errorf("expecting value after assignment. For the possible valid values see: <docs link>")
@@ -149,7 +149,7 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 		return lexNumberListValue
 	case r == _dquot:
 		return lexStartDoubleQuotationMarkStringList
-	case r == 't' || r == 'f':
+	case isBool(r):
 		return lexBoolListValue
 	case isSpace(r):
 		return l.errorf("no space allowed after the opening bracket of a list")
@@ -209,7 +209,7 @@ func lexListComma(l *Lexer) stateFunc {
 		return lexStartDoubleQuotationMarkStringList
 	case r == _rbrack:
 		return l.errorf("remove the comma before the closing bracket of the list")
-	case r == 't' || r == 'f':
+	case isBool(r):
 		return lexBoolListValue
 	default:
 		return l.errorf("expected next value in list after comma")

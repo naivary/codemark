@@ -6,7 +6,6 @@ import (
 
 	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/maker"
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -96,21 +95,21 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (l *listConverter) CanConvert(m parser.Marker, def *definition.Definition) error {
-	if m.Kind() != marker.LIST {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind(), marker.LIST)
+func (l *listConverter) CanConvert(m marker.Marker, def *definition.Definition) error {
+	if m.Kind != marker.LIST {
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.LIST)
 	}
 	return nil
 }
 
-func (l *listConverter) Convert(m parser.Marker, def *definition.Definition) (reflect.Value, error) {
+func (l *listConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
 	return l.list(m, def)
 }
 
-func (l *listConverter) list(m parser.Marker, def *definition.Definition) (reflect.Value, error) {
+func (l *listConverter) list(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
 	list := reflect.New(def.Output).Elem()
 	elemType := def.Output.Elem()
-	elems := m.Value().Interface().([]any)
+	elems := m.Value.Interface().([]any)
 	for _, elem := range elems {
 		elemValue, err := l.elem(elem, elemType)
 		if err != nil {

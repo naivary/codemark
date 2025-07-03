@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
@@ -312,9 +312,9 @@ func randStdPkg() string {
 	}
 }
 
-func randMarkers() []parser.Marker {
+func randMarkers() []marker.Marker {
 	q := quantity(5)
-	markers := make([]parser.Marker, 0, q)
+	markers := make([]marker.Marker, 0, q)
 	for range q {
 		m, err := sdktesting.RandMarker(randType())
 		if err != nil {

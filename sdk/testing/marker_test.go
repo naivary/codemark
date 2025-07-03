@@ -104,7 +104,7 @@ func TestRandMarker(t *testing.T) {
 			if err != nil && !tc.isValidCase {
 				t.Skipf("valid test case was recognised correctly. Skipping the rest")
 			}
-			val := marker.Value().Interface()
+			val := marker.Value.Interface()
 			if !tc.isValid(val) {
 				t.Errorf("value is not valid. got: %v\n", val)
 			}

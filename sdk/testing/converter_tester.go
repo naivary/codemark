@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 )
 
@@ -19,7 +19,7 @@ type ConverterTestCase struct {
 	// Name of the test case
 	Name string
 	// Marker to convert by the converter
-	Marker parser.Marker
+	Marker marker.Marker
 	// Target of the marker
 	Target target.Target
 	// Type to convert the marker to.
@@ -85,7 +85,7 @@ func (c *converterTester) NewTest(from reflect.Type, isValidCase bool, t target.
 	if to == nil {
 		return ConverterTestCase{}, fmt.Errorf("no to reflect.Type found: %v\n", from)
 	}
-	name := fmt.Sprintf("marker[%s] to %v", marker.Ident(), to)
+	name := fmt.Sprintf("marker[%s] to %v", marker.Ident, to)
 	vvfn := c.vvfns[to]
 	if vvfn == nil {
 		return ConverterTestCase{}, fmt.Errorf("ValidValueFunc not found: %v\n", from)
@@ -111,8 +111,8 @@ func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
 		t.Fatalf("types don't match after conversion. got: %v; want: %v\n", gotType, tc.To)
 	}
 	gotValue := reflect.ValueOf(v)
-	if !tc.IsValidValue(gotValue, tc.Marker.Value()) {
-		t.Fatalf("value is not correct. got: %v; want: %v\n", gotValue, tc.Marker.Value())
+	if !tc.IsValidValue(gotValue, tc.Marker.Value) {
+		t.Fatalf("value is not correct. got: %v; want: %v\n", gotValue, tc.Marker.Value)
 	}
 	t.Logf("succesfully converted. got: %v; want: %v\n", gotType, tc.To)
 }

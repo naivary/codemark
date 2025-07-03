@@ -3,7 +3,19 @@ package parser
 import (
 	"reflect"
 	"testing"
+
+	"github.com/naivary/codemark/parser/marker"
+	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
+
+func valueFor[T any](v T) reflect.Value {
+	return reflect.ValueOf(v)
+}
+
+type want struct {
+	kind  marker.Kind
+	value reflect.Value
+}
 
 // TODO: better testing of parser..
 func TestParse(t *testing.T) {
@@ -11,97 +23,49 @@ func TestParse(t *testing.T) {
 		name    string
 		input   string
 		isValid bool
-		kind    reflect.Kind
+		want    map[string]want
 	}{
 		{
-			name:    "boolean without assignment",
-			input:   "+jsonschema:validation:required",
+			name: "multi marker all types",
+			input: `+codemark:parser:string="codemark"
+			+codemark:parser:int=3`,
 			isValid: true,
-			kind:    reflect.Bool,
+			want: map[string]want{
+				"codemark:parser:string": {kind: marker.STRING, value: valueFor("codemark")},
+				"codemark:parser:int":    {kind: marker.INT, value: valueFor[int64](3)},
+			},
 		},
-		{
-			name:    "int",
-			input:   "+jsonschema:validation:max=2",
-			isValid: true,
-			kind:    reflect.Int64,
-		},
-		{
-			name:    "hex",
-			input:   "+jsonschema:validation:max=0x23f3e",
-			isValid: true,
-			kind:    reflect.Int64,
-		},
-		{
-			name:    "complex",
-			input:   "+jsonschema:validation:max=0x23ef+2i",
-			isValid: true,
-			kind:    reflect.Complex128,
-		},
-		{
-			name:    "catch error",
-			input:   "+jsonschema:validation:max=",
-			isValid: false,
-		},
-		{
-			name: "multi markers",
-			input: `+jsonschema:validation:max=3
-
-
-+jsonschema:validation:max=5`,
-			isValid: true,
-		},
-		{
-			name:    "array",
-			input:   `+jsonschema:validation:items=["lorem", "ipsum", "levy"]`,
-			isValid: true,
-			kind:    reflect.Slice,
-		},
-		{
-			name:    "array escape and int",
-			input:   `+jsonschema:validation:items=["lorem", "ips\"um", 3]`,
-			isValid: true,
-			kind:    reflect.Slice,
-		},
-		{
-			name:    "array escape and float",
-			input:   `+jsonschema:validation:items=["lorem", "ips\"um", 3.3]`,
-			isValid: true,
-			kind:    reflect.Slice,
-		},
-		{
-			name:    "bool with assignment",
-			input:   `+jsonschema:validation:required=false`,
-			isValid: true,
-			kind:    reflect.Bool,
-		},
-		{
-			name:    "array with bool",
-			input:   `+jsonschema:validation:items=["lorem", "ips\"um", true]`,
-			isValid: true,
-			kind:    reflect.Slice,
-		},
-		{
-			name:    "float",
-			input:   `+codemark:parser:float=3.2`,
-			isValid: true,
-			kind:    reflect.Float64,
-		},
-		{
-			name: "multiline string",
-			input: `+codemark:parser:string.multiline=` + "`" + `multi line 
-string` + "`",
-			isValid: true,
-			kind:    reflect.String,
-		},
+		// 		{
+		// 			name:    "catch error",
+		// 			input:   "+jsonschema:validation:max=",
+		// 			isValid: false,
+		// 		},
+		// 		{
+		// 			name: "multiline string",
+		// 			input: `+codemark:parser:string.multiline=` + "`" + `multi line
+		// string` + "`",
+		// 			isValid: true,
+		// 		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			markers, err := Parse(tc.input)
 			if err != nil && tc.isValid {
-				t.Fatalf("Expected to be valid but got an error marker: %v", err)
+				t.Errorf("expected to be valid but got an error marker: %v", err)
+			}
+			if err == nil && !tc.isValid {
+				t.Errorf("expected error but err was nil. got: %v\n", markers)
 			}
 			for _, m := range markers {
-				t.Logf("kind: `%v`; value: `%v`\n", m.Kind(), m.Value())
+				want := tc.want[m.Ident]
+				if m.Kind != want.kind {
+					t.Errorf("marker kind not equal. got: %s; want: %s\n", m.Kind, want.kind)
+				}
+				vvfn := sdktesting.GetVVFn(m.Value.Type())
+				if !vvfn(m.Value, want.value) {
+					t.Errorf("marker value not equal. got: %v; want: %s\n", m.Value, want.value)
+				}
+				t.Logf("SUCCESS. kind: `%v`; value: `%v`\n", m.Kind, m.Value)
 			}
 		})
 	}

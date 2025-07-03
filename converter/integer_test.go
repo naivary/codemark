@@ -4,6 +4,7 @@ import (
 	"testing"
 )
 
+// ADD test for rune and byte e.g. from "s" to byte
 func TestIntConverter(t *testing.T) {
 	tester, err := newConvTester(&intConverter{})
 	if err != nil {

@@ -44,13 +44,13 @@ func parseComplex128(v string) (complex128, error) {
 // should be passed instead
 type parseFunc func(*parser, lexer.Token) (parseFunc, bool)
 
-func Parse(input string) ([]Marker, error) {
+func Parse(input string) ([]marker.Marker, error) {
 	const minMarker = 1
 	p := &parser{
 		l:       lexer.Lex(input),
 		state:   parsePlus,
-		markers: make([]Marker, 0, minMarker),
-		m:       &Marker{},
+		markers: make([]marker.Marker, 0, minMarker),
+		m:       &marker.Marker{},
 	}
 	p.run()
 	return p.markers, p.err
@@ -62,10 +62,10 @@ type parser struct {
 	state parseFunc
 
 	// all the markers which have been built, including error markers
-	markers []Marker
+	markers []marker.Marker
 
 	// the current marker which is being built
-	m *Marker
+	m *marker.Marker
 
 	err error
 }
@@ -90,7 +90,7 @@ func (p *parser) run() {
 
 func (p *parser) emit() {
 	p.markers = append(p.markers, *p.m)
-	p.m = &Marker{}
+	p.m = &marker.Marker{}
 }
 
 func (p *parser) errorf(format string, args ...any) (parseFunc, bool) {
@@ -106,7 +106,7 @@ func parsePlus(p *parser, t lexer.Token) (parseFunc, bool) {
 }
 
 func parseIdent(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.ident = t.Value
+	p.m.Ident = t.Value
 	return parseAssignment, _next
 }
 
@@ -138,14 +138,14 @@ func parseBool(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse boolean value: %s", t.Value)
 	}
-	p.m.kind = marker.BOOL
-	p.m.value = reflect.ValueOf(val)
+	p.m.Kind = marker.BOOL
+	p.m.Value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
 func parseString(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = marker.STRING
-	p.m.value = reflect.ValueOf(t.Value)
+	p.m.Kind = marker.STRING
+	p.m.Value = reflect.ValueOf(t.Value)
 	return parseEOF, _next
 }
 
@@ -154,8 +154,8 @@ func parseInt(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse int value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = marker.INT
-	p.m.value = reflect.ValueOf(val)
+	p.m.Kind = marker.INT
+	p.m.Value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
@@ -164,8 +164,8 @@ func parseFloat(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse float value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = marker.FLOAT
-	p.m.value = reflect.ValueOf(val)
+	p.m.Kind = marker.FLOAT
+	p.m.Value = reflect.ValueOf(val)
 	return parseEOF, _next
 }
 
@@ -174,17 +174,17 @@ func parseComplex(p *parser, t lexer.Token) (parseFunc, bool) {
 	if err != nil {
 		return p.errorf("couldn't parse complex value: `%s`. Err: %v", t.Value, err)
 	}
-	p.m.kind = marker.COMPLEX
-	p.m.value = reflect.ValueOf(c)
+	p.m.Kind = marker.COMPLEX
+	p.m.Value = reflect.ValueOf(c)
 	return parseEOF, _next
 }
 
 func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
-	p.m.kind = marker.LIST
+	p.m.Kind = marker.LIST
 	// slice must be of type any because the choosen output type of the
 	// user might be []any.
 	rtype := reflect.TypeOf([]any{})
-	p.m.value = reflect.MakeSlice(rtype, 0, 1)
+	p.m.Value = reflect.MakeSlice(rtype, 0, 1)
 	return parseListElem, _next
 }
 
@@ -214,13 +214,13 @@ func parseListBoolElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		p.errorf("bool conversion failed: %s\n", t.Value)
 	}
 	val := reflect.ValueOf(b)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Value = reflect.Append(p.m.Value, val)
 	return parseListElem, _next
 }
 
 func parseListStringElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	val := reflect.ValueOf(t.Value)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Value = reflect.Append(p.m.Value, val)
 	return parseListElem, _next
 }
 
@@ -230,7 +230,7 @@ func parseListIntElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return p.errorf("couldn't parse int value `%s` in array. Err: %v", t.Value, err)
 	}
 	val := reflect.ValueOf(i)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Value = reflect.Append(p.m.Value, val)
 	return parseListElem, _next
 }
 
@@ -240,7 +240,7 @@ func parseListFloatElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return p.errorf("couldn't parse float value `%s` in array. Err: %v", t.Value, err)
 	}
 	val := reflect.ValueOf(f)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Value = reflect.Append(p.m.Value, val)
 	return parseListElem, _next
 }
 
@@ -250,7 +250,7 @@ func parseListComplexElem(p *parser, t lexer.Token) (parseFunc, bool) {
 		return p.errorf("couldn't parse complex value `%s` in array. Err: %v", t.Value, err)
 	}
 	val := reflect.ValueOf(c)
-	p.m.value = reflect.Append(p.m.value, val)
+	p.m.Value = reflect.Append(p.m.Value, val)
 	return parseListElem, _next
 }
 

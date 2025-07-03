@@ -9,6 +9,7 @@ import (
 
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/parser"
+	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -81,8 +82,8 @@ func (m *Manager) AddConverter(conv sdk.Converter) error {
 
 // Convert converts the marker by finding the correlating definition in the
 // registry with respect to the target.
-func (m *Manager) Convert(mrk parser.Marker, t target.Target) (any, error) {
-	idn := mrk.Ident()
+func (m *Manager) Convert(mrk marker.Marker, t target.Target) (any, error) {
+	idn := mrk.Ident
 	def, err := m.reg.Get(idn)
 	if err != nil {
 		return nil, err
@@ -119,8 +120,7 @@ func (m *Manager) ParseDefs(doc string, t target.Target) (map[string][]any, erro
 		if err != nil {
 			return nil, err
 		}
-		midn := marker.Ident()
-		defs.Add(midn, value)
+		defs.Add(marker.Ident, value)
 	}
 	return defs, nil
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/naivary/codemark/lexer/token"
 )
 
+// TODO: better testing with expected token order
 func TestLexer_Lex(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -273,6 +274,11 @@ multi line not allowed
 			input: `+codemark:lexer:multiline.string=` + "`" + `string 
 which is multi` + "`" + `line` + "`",
 			isValid: false,
+		},
+		{
+			name:    "documentation which contains marker",
+			input:   `this is a documentation string which contains a marker in the text +codemark:lexer:multiline.string=`,
+			isValid: true,
 		},
 	}
 

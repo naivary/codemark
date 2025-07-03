@@ -6,7 +6,6 @@ import (
 
 	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk/utils"
 )
@@ -55,12 +54,12 @@ func MakeFakeDef(out reflect.Type) (*definition.Definition, error) {
 	return MakeDef(ident, out, target.ANY)
 }
 
-func MakeFakeMarker(mkind marker.Kind, value reflect.Value) parser.Marker {
+func MakeFakeMarker(mkind marker.Kind, value reflect.Value) marker.Marker {
 	ident := fmt.Sprintf("codemark:fake:%s", mkind.String())
-	return parser.NewMarker(ident, mkind, value)
+	return marker.New(ident, mkind, value)
 }
 
-func MakeMarker(ident string, mkind marker.Kind, value reflect.Value) (parser.Marker, error) {
-	m := parser.NewMarker(ident, mkind, value)
+func MakeMarker(ident string, mkind marker.Kind, value reflect.Value) (marker.Marker, error) {
+	m := marker.New(ident, mkind, value)
 	return m, m.IsValid()
 }
