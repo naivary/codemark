@@ -52,24 +52,27 @@ type (
 	PtrU32  *uint32
 	PtrU64  *uint64
 
-	StringList    []string
-	IntList       []int
-	I8List        []int8
-	I16List       []int16
-	I32List       []int32
-	ByteList      []byte
-	I64List       []int64
-	UintList      []uint
-	RuneList      []rune
-	U8List        []uint8
-	U16List       []uint16
-	U32List       []uint32
-	U64List       []uint64
-	F32List       []float32
-	F64List       []float64
-	C64List       []complex64
-	C128List      []complex128
-	BoolList      []bool
+	AnyList    []any
+	StringList []string
+	IntList    []int
+	I8List     []int8
+	I16List    []int16
+	I32List    []int32
+	ByteList   []byte
+	I64List    []int64
+	UintList   []uint
+	RuneList   []rune
+	U8List     []uint8
+	U16List    []uint16
+	U32List    []uint32
+	U64List    []uint64
+	F32List    []float32
+	F64List    []float64
+	C64List    []complex64
+	C128List   []complex128
+	BoolList   []bool
+
+	PtrAnyList    []*any
 	PtrStringList []*string
 	PtrBoolList   []*bool
 	PtrIntList    []*int
@@ -136,11 +139,11 @@ func ListTypes() []any {
 	return []any{
 		StringList(nil), IntList(nil), I8List(nil), I16List(nil), I32List(nil), I64List(nil),
 		UintList(nil), U8List(nil), U16List(nil), U32List(nil), U64List(nil),
-		F32List(nil), F64List(nil), C64List(nil), C128List(nil), BoolList(nil),
+		F32List(nil), F64List(nil), C64List(nil), C128List(nil), BoolList(nil), AnyList(nil),
 		PtrStringList(nil), PtrBoolList(nil),
 		PtrIntList(nil), PtrI8List(nil), PtrI16List(nil), PtrI32List(nil), PtrI64List(nil),
 		PtrUintList(nil), PtrU8List(nil), PtrU16List(nil), PtrU32List(nil), PtrU64List(nil),
-		PtrF32List(nil), PtrF64List(nil), PtrC64List(nil), PtrC128List(nil),
+		PtrF32List(nil), PtrF64List(nil), PtrC64List(nil), PtrC128List(nil), PtrAnyList(nil),
 	}
 }
 

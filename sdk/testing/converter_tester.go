@@ -12,9 +12,6 @@ import (
 	"github.com/naivary/codemark/sdk"
 )
 
-// TODO: From -> To is kinda weird because it can only be from kind of marker
-// value type to a custom type
-
 // ValidValueFunc defines the logic to check if the converter correctly
 // converted the value of the marker to the custom type.
 type ValidValueFunc func(got, want reflect.Value) bool

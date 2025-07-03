@@ -87,6 +87,26 @@ func randPrimitiveValue(rtype reflect.Type) any {
 	if sdkutil.IsComplex(rtype) {
 		return RandComplex()
 	}
+	if sdkutil.IsAny(rtype) {
+		return randPrimitiveValue(randPrimitiveType())
+	}
+	return nil
+}
+
+func randPrimitiveType() reflect.Type {
+	i := rand.IntN(5)
+	switch i {
+	case 0:
+		return reflect.TypeFor[int]()
+	case 1:
+		return reflect.TypeFor[string]()
+	case 2:
+		return reflect.TypeFor[bool]()
+	case 3:
+		return reflect.TypeFor[float64]()
+	case 4:
+		return reflect.TypeFor[complex128]()
+	}
 	return nil
 }
 

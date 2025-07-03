@@ -133,6 +133,7 @@ func (m *Manager) builtinConvs() []sdk.Converter {
 		Bool(),
 		Complex(),
 		List(m),
+		Any(),
 	}
 }
 

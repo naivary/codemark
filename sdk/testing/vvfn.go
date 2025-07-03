@@ -29,6 +29,21 @@ func GetVVFn(rtype reflect.Type) ValidValueFunc {
 	return nil
 }
 
+func isValidList(got, want reflect.Value) bool {
+	for i := range want.Len() {
+		wantElem := want.Index(i)
+		gotElem := got.Index(i)
+		vvfn := GetVVFn(derefValue(gotElem).Type())
+		if vvfn == nil {
+			return false
+		}
+		if !vvfn(gotElem, wantElem) {
+			return false
+		}
+	}
+	return true
+}
+
 func isValidInteger(got, want reflect.Value) bool {
 	got = derefValue(got)
 	var i64 int64
@@ -46,22 +61,6 @@ func isValidInteger(got, want reflect.Value) bool {
 	}
 	w := want.Interface().(int64)
 	return i64 == w
-}
-
-func isValidList(got, want reflect.Value) bool {
-	elem := got.Type().Elem()
-	vvfn := GetVVFn(elem)
-	if vvfn == nil {
-		return false
-	}
-	for i := range want.Len() {
-		wantElem := want.Index(i)
-		gotElem := got.Index(i)
-		if !vvfn(gotElem, wantElem) {
-			return false
-		}
-	}
-	return true
 }
 
 func isValidFloat(got, want reflect.Value) bool {

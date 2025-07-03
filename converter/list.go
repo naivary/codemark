@@ -31,6 +31,8 @@ func (l *listConverter) Name() string {
 
 func (l *listConverter) SupportedTypes() []reflect.Type {
 	types := []any{
+		// any
+		[]any{},
 		// int
 		[]int{},
 		[]int8{},

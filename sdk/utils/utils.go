@@ -103,6 +103,10 @@ func IsSupported(rtype reflect.Type) bool {
 	return IsPrimitive(rtype) || rtype.Kind() == reflect.Slice
 }
 
+func IsAny(rtype reflect.Type) bool {
+	return Deref(rtype).Kind() == reflect.Interface
+}
+
 // IsPrimitive is returning true iff the given type is non-slice and a type
 // which can be converted by a builtin converter.
 func IsPrimitive(rtype reflect.Type) bool {
@@ -110,5 +114,9 @@ func IsPrimitive(rtype reflect.Type) bool {
 }
 
 func IsValidSlice(rtype reflect.Type) bool {
-	return rtype.Kind() == reflect.Slice && IsPrimitive(rtype.Elem())
+	if rtype.Kind() != reflect.Slice {
+		return false
+	}
+	elem := rtype.Elem()
+	return IsPrimitive(elem) || IsAny(elem)
 }
