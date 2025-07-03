@@ -6,6 +6,7 @@ import (
 	"github.com/naivary/codemark/lexer/token"
 	"github.com/naivary/codemark/syntax"
 )
+
 // TODO: better naming of functions
 
 type stateFunc func(*Lexer) stateFunc
@@ -273,7 +274,7 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 	case r == _eof:
 		return lexEOF
 	default:
-		return l.errorf("after a finished marker expression only a newline can follow")
+		return l.errorf("after a finished marker expression only a newline can follow but found: `%s`\n", string(r))
 	}
 }
 

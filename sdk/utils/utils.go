@@ -10,14 +10,14 @@ import (
 // TypeForMarkerKind returns the reflect.Type used for the given marker kind
 func TypeForMarkerKind(mkind marker.Kind) reflect.Type {
 	switch mkind {
+	case marker.STRING:
+		return reflect.TypeFor[string]()
 	case marker.INT:
 		return reflect.TypeFor[int64]()
 	case marker.FLOAT:
 		return reflect.TypeFor[float64]()
 	case marker.COMPLEX:
 		return reflect.TypeFor[complex128]()
-	case marker.STRING:
-		return reflect.TypeFor[string]()
 	case marker.BOOL:
 		return reflect.TypeFor[bool]()
 	case marker.LIST:

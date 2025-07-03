@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"reflect"
 
@@ -60,6 +59,5 @@ func run() error {
 			}
 		}
 	}
-	fmt.Println(sch)
 	return nil
 }
