@@ -2,64 +2,48 @@ package converter
 
 import (
 	"reflect"
-	"slices"
 	"testing"
 
 	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/parser/marker"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
 func customTests(tester sdktesting.ConverterTester) []sdktesting.ConverterTestCase {
+	b := marker.New("codemark:testing:byte", marker.STRING, reflect.ValueOf("b"))
+	r := marker.New("codemark:testing:rune", marker.STRING, reflect.ValueOf("r"))
 	return []sdktesting.ConverterTestCase{
-		tester.MustNewTest(reflect.TypeFor[byte](), reflect.TypeFor[sdktesting.String](), true, target.ANY),
-		tester.MustNewTest(reflect.TypeFor[*byte](), reflect.TypeFor[sdktesting.String](), true, target.ANY),
-		tester.MustNewTest(reflect.TypeFor[rune](), reflect.TypeFor[sdktesting.String](), true, target.ANY),
-		tester.MustNewTest(reflect.TypeFor[*rune](), reflect.TypeFor[sdktesting.String](), true, target.ANY),
+		tester.MustNewTestWithMarker(&b, reflect.TypeFor[sdktesting.String](), true, target.ANY),
+		tester.MustNewTestWithMarker(&r, reflect.TypeFor[sdktesting.String](), true, target.ANY),
 	}
 }
 
-// ADD test for rune and byte e.g. from "s" to byte
 func TestIntConverter(t *testing.T) {
-	tester, err := newConvTester(&intConverter{})
+	conv := Integer()
+	tester, err := newConvTester(conv, customTypesFor(conv))
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := tester.ValidTests()
+	tests, err := validTestsFor(conv, tester)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	for _, tc := range slices.Concat(tests, customTests(tester)) {
+	for _, tc := range tests {
 		t.Run(tc.Name, func(t *testing.T) {
 			tester.Run(t, tc)
 		})
 	}
 }
 
-func TestIntConverter_String(t *testing.T) {
-	tester, err := sdktesting.NewConvTester(&intConverter{}, mngr, map[reflect.Type]reflect.Type{
-		reflect.TypeFor[byte]():  reflect.TypeFor[sdktesting.String](),
-		reflect.TypeFor[*byte](): reflect.TypeFor[sdktesting.PtrString](),
-		reflect.TypeFor[rune]():  reflect.TypeFor[sdktesting.String](),
-		reflect.TypeFor[*byte](): reflect.TypeFor[sdktesting.PtrString](),
-	})
-	if err != nil {
-		t.Fatalf("err occured: %s\n", err)
-	}
-	for _, typ := range sdktesting.StringTypes() {
-		to := reflect.TypeOf(typ)
-		vvfn := sdktesting.GetVVFn(to)
-		if err := tester.AddVVFunc(to, vvfn); err != nil {
-			t.Fatalf("err occured: %s\n", err)
-		}
-	}
-	tests, err := tester.ValidTests()
+func TestIntConverter_Byte_and_Rune(t *testing.T) {
+	conv := Integer()
+	tester, err := newConvTester(conv, sdktesting.StringTypes())
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	for _, tc := range slices.Concat(tests, customTests(tester)) {
+	for _, tc := range customTests(tester) {
 		t.Run(tc.Name, func(t *testing.T) {
 			tester.Run(t, tc)
 		})
 	}
-
 }

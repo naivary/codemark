@@ -88,7 +88,7 @@ func (i *intConverter) Convert(m marker.Marker, def *definition.Definition) (ref
 	if i.isRune(def.Output, mkind) {
 		return i.runee(m, def)
 	}
-	return _rvzero, fmt.Errorf("cannot converter %s to %v\n", m.Ident, def.Output)
+	return _rvzero, fmt.Errorf("cannot convert %s to %v\n", m.Ident, def.Output)
 }
 
 func (i *intConverter) integer(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
@@ -142,9 +142,9 @@ func (i *intConverter) isUint(rtype reflect.Type, mkind marker.Kind) bool {
 }
 
 func (i *intConverter) isByte(rtype reflect.Type, mkind marker.Kind) bool {
-	return sdkutil.IsInt(rtype) && mkind == marker.STRING
+	return (sdkutil.IsInt(rtype) || sdkutil.IsString(rtype)) && mkind == marker.STRING
 }
 
 func (i *intConverter) isRune(rtype reflect.Type, mkind marker.Kind) bool {
-	return sdkutil.IsUint(rtype) && mkind == marker.STRING
+	return (sdkutil.IsUint(rtype) || sdkutil.IsString(rtype)) && mkind == marker.STRING
 }

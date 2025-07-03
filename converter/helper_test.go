@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"slices"
 
+	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
@@ -31,12 +32,12 @@ func newRegistry() sdk.Registry {
 	return reg
 }
 
-func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
-	tester, err := sdktesting.NewConvTester(conv, mngr, fromMap(conv))
+func newConvTester(conv sdk.Converter, customeTypes []any) (sdktesting.ConverterTester, error) {
+	tester, err := sdktesting.NewConvTester(conv)
 	if err != nil {
 		return nil, err
 	}
-	for _, typ := range toTypes(conv) {
+	for _, typ := range customeTypes {
 		to := reflect.TypeOf(typ)
 		vvfn := sdktesting.GetVVFn(to)
 		if err := tester.AddVVFunc(to, vvfn); err != nil {
@@ -46,136 +47,7 @@ func newConvTester(conv sdk.Converter) (sdktesting.ConverterTester, error) {
 	return tester, nil
 }
 
-func fromMap(conv sdk.Converter) map[reflect.Type]reflect.Type {
-	if _, isList := conv.(*listConverter); isList {
-		return fromMapOfList()
-	}
-	if _, isInt := conv.(*intConverter); isInt {
-		return fromMapOfInteger()
-	}
-	if _, isFloat := conv.(*floatConverter); isFloat {
-		return fromMapOfFloat()
-	}
-	if _, isComplex := conv.(*complexConverter); isComplex {
-		return fromMapOfComplex()
-	}
-	if _, isBool := conv.(*boolConverter); isBool {
-		return fromMapOfBool()
-	}
-	if _, isString := conv.(*stringConverter); isString {
-		return fromMapOfString()
-	}
-	return nil
-
-}
-
-func fromMapOfList() map[reflect.Type]reflect.Type {
-	return map[reflect.Type]reflect.Type{
-		// Signed integer slices
-		reflect.TypeFor[[]int]():   reflect.TypeFor[sdktesting.IntList](),
-		reflect.TypeFor[[]int8]():  reflect.TypeFor[sdktesting.I8List](),
-		reflect.TypeFor[[]int16](): reflect.TypeFor[sdktesting.I16List](),
-		reflect.TypeFor[[]int32](): reflect.TypeFor[sdktesting.I32List](),
-		reflect.TypeFor[[]int64](): reflect.TypeFor[sdktesting.I64List](),
-		// Unsigned integer slices
-		reflect.TypeFor[[]uint]():   reflect.TypeFor[sdktesting.UintList](),
-		reflect.TypeFor[[]uint8]():  reflect.TypeFor[sdktesting.U8List](),
-		reflect.TypeFor[[]uint16](): reflect.TypeFor[sdktesting.U16List](),
-		reflect.TypeFor[[]uint32](): reflect.TypeFor[sdktesting.U32List](),
-		reflect.TypeFor[[]uint64](): reflect.TypeFor[sdktesting.U64List](),
-		// Float slices
-		reflect.TypeFor[[]float32](): reflect.TypeFor[sdktesting.F32List](),
-		reflect.TypeFor[[]float64](): reflect.TypeFor[sdktesting.F64List](),
-		// Complex slices
-		reflect.TypeFor[[]complex64]():  reflect.TypeFor[sdktesting.C64List](),
-		reflect.TypeFor[[]complex128](): reflect.TypeFor[sdktesting.C128List](),
-		// String and bool slices
-		reflect.TypeFor[[]string](): reflect.TypeFor[sdktesting.StringList](),
-		reflect.TypeFor[[]bool]():   reflect.TypeFor[sdktesting.BoolList](),
-		// Pointer to signed integer slices
-		reflect.TypeFor[[]*int]():   reflect.TypeFor[sdktesting.PtrIntList](),
-		reflect.TypeFor[[]*int8]():  reflect.TypeFor[sdktesting.PtrI8List](),
-		reflect.TypeFor[[]*int16](): reflect.TypeFor[sdktesting.PtrI16List](),
-		reflect.TypeFor[[]*int32](): reflect.TypeFor[sdktesting.PtrI32List](),
-		reflect.TypeFor[[]*int64](): reflect.TypeFor[sdktesting.PtrI64List](),
-		// Pointer to unsigned integer slices
-		reflect.TypeFor[[]*uint]():   reflect.TypeFor[sdktesting.PtrUintList](),
-		reflect.TypeFor[[]*uint8]():  reflect.TypeFor[sdktesting.PtrU8List](),
-		reflect.TypeFor[[]*uint16](): reflect.TypeFor[sdktesting.PtrU16List](),
-		reflect.TypeFor[[]*uint32](): reflect.TypeFor[sdktesting.PtrU32List](),
-		reflect.TypeFor[[]*uint64](): reflect.TypeFor[sdktesting.PtrU64List](),
-		// Pointer to float slices
-		reflect.TypeFor[[]*float32](): reflect.TypeFor[sdktesting.PtrF32List](),
-		reflect.TypeFor[[]*float64](): reflect.TypeFor[sdktesting.PtrF64List](),
-		// Pointer to complex slices
-		reflect.TypeFor[[]*complex64]():  reflect.TypeFor[sdktesting.PtrC64List](),
-		reflect.TypeFor[[]*complex128](): reflect.TypeFor[sdktesting.PtrC128List](),
-		// Pointer to string and bool slices
-		reflect.TypeFor[[]*string](): reflect.TypeFor[sdktesting.PtrStringList](),
-		reflect.TypeFor[[]*bool]():   reflect.TypeFor[sdktesting.PtrBoolList](),
-	}
-}
-
-func fromMapOfInteger() map[reflect.Type]reflect.Type {
-	return map[reflect.Type]reflect.Type{
-		// Signed integers
-		reflect.TypeFor[int]():    reflect.TypeFor[sdktesting.Int](),
-		reflect.TypeFor[int8]():   reflect.TypeFor[sdktesting.I8](),
-		reflect.TypeFor[int16]():  reflect.TypeFor[sdktesting.I16](),
-		reflect.TypeFor[int32]():  reflect.TypeFor[sdktesting.I32](),
-		reflect.TypeFor[int64]():  reflect.TypeFor[sdktesting.I64](),
-		reflect.TypeFor[*int]():   reflect.TypeFor[sdktesting.PtrInt](),
-		reflect.TypeFor[*int8]():  reflect.TypeFor[sdktesting.PtrI8](),
-		reflect.TypeFor[*int16](): reflect.TypeFor[sdktesting.PtrI16](),
-		reflect.TypeFor[*int32](): reflect.TypeFor[sdktesting.PtrI32](),
-		reflect.TypeFor[*int64](): reflect.TypeFor[sdktesting.PtrI64](),
-		// Unsigned integers
-		reflect.TypeFor[uint]():    reflect.TypeFor[sdktesting.Uint](),
-		reflect.TypeFor[uint8]():   reflect.TypeFor[sdktesting.U8](),
-		reflect.TypeFor[uint16]():  reflect.TypeFor[sdktesting.U16](),
-		reflect.TypeFor[uint32]():  reflect.TypeFor[sdktesting.U32](),
-		reflect.TypeFor[uint64]():  reflect.TypeFor[sdktesting.U64](),
-		reflect.TypeFor[*uint]():   reflect.TypeFor[sdktesting.PtrUint](),
-		reflect.TypeFor[*uint8]():  reflect.TypeFor[sdktesting.PtrU8](),
-		reflect.TypeFor[*uint16](): reflect.TypeFor[sdktesting.PtrU16](),
-		reflect.TypeFor[*uint32](): reflect.TypeFor[sdktesting.PtrU32](),
-		reflect.TypeFor[*uint64](): reflect.TypeFor[sdktesting.PtrU64](),
-	}
-}
-
-func fromMapOfComplex() map[reflect.Type]reflect.Type {
-	return map[reflect.Type]reflect.Type{
-		reflect.TypeFor[complex64]():   reflect.TypeFor[sdktesting.C64](),
-		reflect.TypeFor[complex128]():  reflect.TypeFor[sdktesting.C128](),
-		reflect.TypeFor[*complex64]():  reflect.TypeFor[sdktesting.PtrC64](),
-		reflect.TypeFor[*complex128](): reflect.TypeFor[sdktesting.PtrC128](),
-	}
-}
-
-func fromMapOfString() map[reflect.Type]reflect.Type {
-	return map[reflect.Type]reflect.Type{
-		reflect.TypeFor[string]():  reflect.TypeFor[sdktesting.String](),
-		reflect.TypeFor[*string](): reflect.TypeFor[sdktesting.PtrString](),
-	}
-}
-
-func fromMapOfFloat() map[reflect.Type]reflect.Type {
-	return map[reflect.Type]reflect.Type{
-		reflect.TypeFor[float32]():  reflect.TypeFor[sdktesting.F32](),
-		reflect.TypeFor[float64]():  reflect.TypeFor[sdktesting.F64](),
-		reflect.TypeFor[*float32](): reflect.TypeFor[sdktesting.PtrF32](),
-		reflect.TypeFor[*float64](): reflect.TypeFor[sdktesting.PtrF64](),
-	}
-}
-
-func fromMapOfBool() map[reflect.Type]reflect.Type {
-	return map[reflect.Type]reflect.Type{
-		reflect.TypeFor[bool]():  reflect.TypeFor[sdktesting.Bool](),
-		reflect.TypeFor[*bool](): reflect.TypeFor[sdktesting.PtrBool](),
-	}
-}
-
-func toTypes(conv sdk.Converter) []any {
+func customTypesFor(conv sdk.Converter) []any {
 	if _, isList := conv.(*listConverter); isList {
 		return sdktesting.ListTypes()
 	}
@@ -196,4 +68,18 @@ func toTypes(conv sdk.Converter) []any {
 	}
 	return nil
 
+}
+
+func validTestsFor(conv sdk.Converter, tester sdktesting.ConverterTester) ([]sdktesting.ConverterTestCase, error) {
+	types := customTypesFor(conv)
+	tests := make([]sdktesting.ConverterTestCase, 0, len(types))
+	for _, to := range types {
+		rtype := reflect.TypeOf(to)
+		tc, err := tester.NewTest(rtype, true, target.ANY)
+		if err != nil {
+			return nil, err
+		}
+		tests = append(tests, tc)
+	}
+	return tests, nil
 }

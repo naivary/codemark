@@ -5,11 +5,12 @@ import (
 )
 
 func TestComplexConverter(t *testing.T) {
-	tester, err := newConvTester(Complex())
+	conv := Complex()
+	tester, err := newConvTester(conv, customTypesFor(conv))
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := tester.ValidTests()
+	tests, err := validTestsFor(conv, tester)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
