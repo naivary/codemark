@@ -33,7 +33,11 @@ func isValidList(got, want reflect.Value) bool {
 	for i := range want.Len() {
 		wantElem := want.Index(i)
 		gotElem := got.Index(i)
-		vvfn := GetVVFn(derefValue(gotElem).Type())
+		rtype := derefValue(wantElem).Type()
+		if sdkutil.IsAny(rtype) {
+			rtype = reflect.ValueOf(wantElem.Interface()).Type()
+		}
+		vvfn := GetVVFn(rtype)
 		if vvfn == nil {
 			return false
 		}
