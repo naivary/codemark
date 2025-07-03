@@ -15,8 +15,9 @@ type Converter interface {
 	// converters are prefixed with `codemark.*`.
 	Name() string
 
-	// SupportedTypes returns the supported types for which the converter can be
-	// used.
+	// SupportedTypes returns the types to which the Converter can converter
+	// given a correct marker. If a marker is convertible to a supported type
+	// can be validated using `CanConvert`.
 	SupportedTypes() []reflect.Type
 
 	// CanConvert validates if the conversion of the marker to `def.output` is

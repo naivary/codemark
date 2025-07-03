@@ -7,8 +7,10 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/sdk/utils"
 )
 
 // TODO: From -> To is kinda weird because it can only be from kind of marker
@@ -38,9 +40,9 @@ type ConverterTestCase struct {
 // a convenient and easy way.
 type ConverterTester interface {
 	// NewTest returns a new ConverterTestCase.
-	NewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
+	NewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error)
 
-	MustNewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase
+	MustNewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase
 
 	// AddVVFunc defines a ValidValueFunc for an example type to which a
 	// supported type of the converter will be converted.
@@ -58,31 +60,24 @@ type ConverterTester interface {
 var _ ConverterTester = (*converterTester)(nil)
 
 type converterTester struct {
-	conv    sdk.Converter
-	vvfns   map[reflect.Type]ValidValueFunc
-	toTypes map[reflect.Type]reflect.Type
-	mngr    sdk.ConverterManager
+	conv  sdk.Converter
+	vvfns map[reflect.Type]ValidValueFunc
 }
 
 // NewConvTester returns a new ConverterTester for the given converter. The
 // parameter `toTypes` is providing a map of a supported type to an example
 // custom type which is being used by the converter as a test. For example the
 // built in integer converter is converter an int to a type Int int.
-func NewConvTester(conv sdk.Converter, mngr sdk.ConverterManager, toTypes map[reflect.Type]reflect.Type) (ConverterTester, error) {
-	if toTypes == nil {
-		return nil, errors.New("missing toTypes map")
-	}
+func NewConvTester(conv sdk.Converter) (ConverterTester, error) {
 	c := &converterTester{
-		conv:    conv,
-		vvfns:   make(map[reflect.Type]ValidValueFunc),
-		toTypes: toTypes,
-		mngr:    mngr,
+		conv:  conv,
+		vvfns: make(map[reflect.Type]ValidValueFunc),
 	}
 	return c, nil
 }
 
-func (c *converterTester) NewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
-	marker, err := RandMarker(from)
+func (c *converterTester) NewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) (ConverterTestCase, error) {
+	marker, err := RandMarker(utils.TypeForMarkerKind(from))
 	if err != nil {
 		return ConverterTestCase{}, err
 	}
@@ -105,7 +100,7 @@ func (c *converterTester) NewTest(from reflect.Type, to reflect.Type, isValidCas
 	return tc, nil
 }
 
-func (c *converterTester) MustNewTest(from reflect.Type, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase {
+func (c *converterTester) MustNewTest(from marker.Kind, to reflect.Type, isValidCase bool, t target.Target) ConverterTestCase {
 	tc, err := c.NewTest(from, to, isValidCase, t)
 	if err != nil {
 		panic(err)
@@ -114,7 +109,11 @@ func (c *converterTester) MustNewTest(from reflect.Type, to reflect.Type, isVali
 }
 
 func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
-	v, err := c.mngr.Convert(tc.Marker, tc.Target)
+	fakeDef, err := maker.MakeFakeDef(tc.To)
+	if err != nil {
+		t.Fatalf("err occured: %s\n", err)
+	}
+	v, err := c.conv.Convert(tc.Marker, fakeDef)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
@@ -141,12 +140,9 @@ func (c *converterTester) AddVVFunc(to reflect.Type, fn ValidValueFunc) error {
 func (c *converterTester) ValidTests() ([]ConverterTestCase, error) {
 	types := c.conv.SupportedTypes()
 	tests := make([]ConverterTestCase, 0, len(types))
-	for _, from := range types {
-		to := c.toTypes[from]
-		if to == nil {
-			return nil, fmt.Errorf("no type found for: %v\n", from)
-		}
-		tc, err := c.NewTest(from, to, true, target.ANY)
+	for _, to := range types {
+		mkind := utils.MarkerKindOf(to)
+		tc, err := c.NewTest(mkind, to, true, target.ANY)
 		if err != nil {
 			return nil, err
 		}
