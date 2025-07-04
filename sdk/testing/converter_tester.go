@@ -134,6 +134,7 @@ func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
 	if gotType != tc.To {
 		t.Fatalf("types don't match after conversion. got: %v; want: %v\n", gotType, tc.To)
 	}
+	fmt.Println(reflect.ValueOf(value), reflect.TypeOf(value))
 	gotValue := reflect.ValueOf(value)
 	if !tc.IsValidValue(gotValue, tc.Marker.Value) {
 		t.Fatalf("value is not correct. got: %v; want: %v\n", gotValue, tc.Marker.Value)

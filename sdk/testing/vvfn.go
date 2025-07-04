@@ -1,6 +1,7 @@
 package testing
 
 import (
+	"fmt"
 	"math"
 	"reflect"
 
@@ -26,6 +27,9 @@ func GetVVFn(rtype reflect.Type) ValidValueFunc {
 	if sdkutil.IsString(rtype) {
 		return isValidString
 	}
+	if sdkutil.IsAny(rtype) {
+		return isValidAny
+	}
 	return nil
 }
 
@@ -33,11 +37,8 @@ func isValidList(got, want reflect.Value) bool {
 	for i := range want.Len() {
 		wantElem := want.Index(i)
 		gotElem := got.Index(i)
-		rtype := derefValue(wantElem).Type()
-		if sdkutil.IsAny(rtype) {
-			rtype = reflect.ValueOf(wantElem.Interface()).Type()
-		}
-		vvfn := GetVVFn(rtype)
+		fmt.Println(gotElem.Type())
+		vvfn := GetVVFn(gotElem.Type())
 		if vvfn == nil {
 			return false
 		}
@@ -46,6 +47,12 @@ func isValidList(got, want reflect.Value) bool {
 		}
 	}
 	return true
+}
+
+func isValidAny(got, want reflect.Value) bool {
+	got = derefValue(got)
+	want = derefValue(want)
+	return reflect.DeepEqual(got.Interface(), want.Interface())
 }
 
 func isValidInteger(got, want reflect.Value) bool {
