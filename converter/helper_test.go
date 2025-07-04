@@ -65,8 +65,10 @@ func customTypesFor(conv sdk.Converter) []any {
 	if _, isString := conv.(*stringConverter); isString {
 		return sdktesting.StringTypes()
 	}
+	// if _, isAny := conv.(*anyConverter); isAny {
+	// 	return sdktesting.AnyTypes()
+	// }
 	return nil
-
 }
 
 func validTestsFor(conv sdk.Converter, tester sdktesting.ConverterTester) ([]sdktesting.ConverterTestCase, error) {
