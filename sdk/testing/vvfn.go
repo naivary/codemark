@@ -1,7 +1,6 @@
 package testing
 
 import (
-	"fmt"
 	"math"
 	"reflect"
 
@@ -37,7 +36,6 @@ func isValidList(got, want reflect.Value) bool {
 	for i := range want.Len() {
 		wantElem := want.Index(i)
 		gotElem := got.Index(i)
-		fmt.Println(gotElem.Type())
 		vvfn := GetVVFn(gotElem.Type())
 		if vvfn == nil {
 			return false
