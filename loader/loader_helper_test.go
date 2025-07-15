@@ -11,15 +11,15 @@ import (
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
-// RandLoaderTestCase returns a random LaoderTestCase which can be used to test
+// randloaderTestCase returns a random LaoderTestCase which can be used to test
 // the local loader against randomized markers on any types.
-func RandLoaderTestCase() (LoaderTestCase, error) {
-	tc := newLoaderTestCase()
+func randLoaderTestCase() (loaderTestCase, error) {
+	tc := newloaderTestCase()
 	tc.randomize()
-	return tc, genRandFiles("tmpl/*", &tc)
+	return tc, randProj("tmpl/*", &tc)
 }
 
-func genRandFiles(glob string, tc *LoaderTestCase) error {
+func randProj(glob string, tc *loaderTestCase) error {
 	tmpl, err := template.ParseGlob(glob)
 	if err != nil {
 		return err
@@ -52,7 +52,7 @@ func genRandFiles(glob string, tc *LoaderTestCase) error {
 
 }
 
-type LoaderTestCase struct {
+type loaderTestCase struct {
 	// Absolute Path to a directory containing all the randomly generated files
 	// for testing.
 	Dir string
@@ -68,8 +68,8 @@ type LoaderTestCase struct {
 	Files   map[string]File
 }
 
-func newLoaderTestCase() LoaderTestCase {
-	return LoaderTestCase{
+func newloaderTestCase() loaderTestCase {
+	return loaderTestCase{
 		Structs: make(map[string]Struct),
 		Funcs:   make(map[string]Func),
 		Consts:  make(map[string]Const),
@@ -82,7 +82,7 @@ func newLoaderTestCase() LoaderTestCase {
 	}
 }
 
-func (l LoaderTestCase) randomize() {
+func (l loaderTestCase) randomize() {
 	l.randStructs(sdktesting.RandLen)
 	l.randFuncs(sdktesting.RandLen)
 	l.randAliases(sdktesting.RandLen)
@@ -93,83 +93,83 @@ func (l LoaderTestCase) randomize() {
 	l.randNameds(sdktesting.RandLen)
 }
 
-func (l *LoaderTestCase) randStructs(n int) {
+func (l *loaderTestCase) randStructs(n int) {
 	if n <= 0 {
 		n = 10
 	}
 	q := quantity(n)
 	for range q {
-		s := RandStruct()
+		s := randStruct()
 		l.Structs[s.Name] = s
 	}
 }
 
-func (l *LoaderTestCase) randFuncs(n int) {
+func (l *loaderTestCase) randFuncs(n int) {
 	if n <= 0 {
 		n = 6
 	}
 	q := quantity(n)
 	for range q {
-		fn := RandFunc()
+		fn := randFunc()
 		l.Funcs[fn.Name] = fn
 	}
 }
 
-func (l *LoaderTestCase) randConsts(n int) {
+func (l *loaderTestCase) randConsts(n int) {
 	if n <= 0 {
 		n = 10
 	}
 	q := quantity(n)
 	for range q {
-		c := RandConst()
+		c := randConst()
 		l.Consts[c.Name] = c
 	}
 }
 
-func (l *LoaderTestCase) randIfaces(n int) {
+func (l *loaderTestCase) randIfaces(n int) {
 	if n <= 0 {
 		n = 6
 	}
 	q := quantity(n)
 	for range q {
-		iface := RandIface()
+		iface := randIface()
 		l.Ifaces[iface.Name] = iface
 	}
 }
 
-func (l *LoaderTestCase) randAliases(n int) {
+func (l *loaderTestCase) randAliases(n int) {
 	if n <= 0 {
 		n = 10
 	}
 	q := quantity(n)
 	for range q {
-		alias := RandAlias()
+		alias := randAlias()
 		l.Aliases[alias.Name] = alias
 	}
 }
 
-func (l *LoaderTestCase) randVars(n int) {
+func (l *loaderTestCase) randVars(n int) {
 	if n <= 0 {
 		n = 10
 	}
 	q := quantity(n)
 	for range q {
-		v := RandVar()
+		v := randVar()
 		l.Vars[v.Name] = v
 	}
 }
 
-func (l *LoaderTestCase) randImports(n int) {
+func (l *loaderTestCase) randImports(n int) {
 	if n <= 0 {
 		n = 4
 	}
 	q := quantity(n)
 	for range q {
-		imported := RandImport()
+		imported := randImport()
 		for {
 			_, found := l.Imports[imported.Name]
 			if found {
-				imported = RandImport()
+				imported = randImport()
 				continue
 			}
 			break
@@ -178,25 +178,25 @@ func (l *LoaderTestCase) randImports(n int) {
 	}
 }
 
-func (l *LoaderTestCase) randNameds(n int) {
+func (l *loaderTestCase) randNameds(n int) {
 	if n <= 0 {
 		n = 8
 	}
 	q := quantity(n)
 	for range q {
-		named := RandNamed()
+		named := randNamed()
 		l.Named[named.Name] = named
 	}
 }
 
-func RandImport() Import {
+func randImport() Import {
 	return Import{
 		Name:    randStdPkg(),
 		Markers: randMarkers(),
 	}
 }
 
-func RandNamed() Named {
+func randNamed() Named {
 	n := Named{
 		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
@@ -205,13 +205,13 @@ func RandNamed() Named {
 	}
 	methodQuantity := quantity(2)
 	for range methodQuantity {
-		method := RandFunc()
+		method := randFunc()
 		n.Methods[method.Name] = method
 	}
 	return n
 }
 
-func RandAlias() Alias {
+func randAlias() Alias {
 	return Alias{
 		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
@@ -219,7 +219,7 @@ func RandAlias() Alias {
 	}
 }
 
-func RandIface() Iface {
+func randIface() Iface {
 	sigQuantity := quantity(5)
 	iface := Iface{
 		Name:       sdktesting.RandGoIdent(),
@@ -227,13 +227,13 @@ func RandIface() Iface {
 		Signatures: make(map[string]Func),
 	}
 	for range sigQuantity {
-		fn := RandFunc()
+		fn := randFunc()
 		iface.Signatures[fn.Name] = fn
 	}
 	return iface
 }
 
-func RandStruct() Struct {
+func randStruct() Struct {
 	fieldQuantity := quantity(6)
 	methodQuantity := quantity(2)
 	fields := make(map[string]Field, fieldQuantity)
@@ -243,7 +243,7 @@ func RandStruct() Struct {
 		fields[f.F.Name] = f
 	}
 	for range methodQuantity {
-		m := RandFunc()
+		m := randFunc()
 		methods[m.Name] = m
 	}
 	s := Struct{
@@ -265,7 +265,7 @@ func randField() Field {
 	}
 }
 
-func RandFunc() Func {
+func randFunc() Func {
 	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
 	return Func{
 		Name:    sdktesting.RandGoIdent(),
@@ -274,7 +274,7 @@ func RandFunc() Func {
 	}
 }
 
-func RandConst() Const {
+func randConst() Const {
 	return Const{
 		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),
@@ -282,7 +282,7 @@ func RandConst() Const {
 	}
 }
 
-func RandVar() Var {
+func randVar() Var {
 	return Var{
 		Name:    sdktesting.RandGoIdent(),
 		Markers: randMarkers(),

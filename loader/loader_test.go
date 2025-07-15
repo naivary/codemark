@@ -7,13 +7,12 @@ import (
 
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/parser/marker"
-	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 	"golang.org/x/tools/go/packages"
 )
 
 func TestLoaderLocal(t *testing.T) {
-	tc, err := RandLoaderTestCase()
+	tc, err := randLoaderTestCase()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
@@ -64,7 +63,7 @@ func validate[T markers, V defs](want map[string]T, got map[types.Object]V) erro
 	return nil
 }
 
-func isValid(tc LoaderTestCase, proj *sdk.Project) error {
+func isValid(tc loaderTestCase, proj *Project) error {
 	// check struct
 	if err := validate(tc.Structs, proj.Structs); err != nil {
 		return err

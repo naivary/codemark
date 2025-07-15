@@ -14,23 +14,23 @@ import (
 	"golang.org/x/tools/go/packages"
 )
 
-var _ sdk.Loader = (*localLoader)(nil)
+var _ Loader = (*localLoader)(nil)
 
 type localLoader struct {
 	mngr sdk.ConverterManager
 	cfg  *packages.Config
 
 	// proj is the current project being built
-	proj *sdk.Project
+	proj *Project
 	// pkg is the current package used to extract information from
 	pkg *packages.Package
 }
 
 // New Returns a new loader which can be used to read in go-packages.
-func New(mngr sdk.ConverterManager, cfg *packages.Config) sdk.Loader {
+func New(mngr sdk.ConverterManager, cfg *packages.Config) Loader {
 	l := &localLoader{
 		mngr: mngr,
-		proj: sdk.NewProject(),
+		proj: NewProject(),
 		cfg:  &packages.Config{},
 	}
 	if cfg != nil {
@@ -43,7 +43,7 @@ func New(mngr sdk.ConverterManager, cfg *packages.Config) sdk.Loader {
 	return l
 }
 
-func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*sdk.Project, error) {
+func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*Project, error) {
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -52,9 +52,9 @@ func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*sdk.Proje
 		return nil, errors.New("error occured after load")
 	}
 	if len(pkgs) == 0 {
-		return nil, sdk.ErrPkgsEmpty
+		return nil, ErrPkgsEmpty
 	}
-	projs := make(map[*packages.Package]*sdk.Project, len(pkgs))
+	projs := make(map[*packages.Package]*Project, len(pkgs))
 	for _, pkg := range pkgs {
 		l.pkg = pkg
 		if err := l.exctractInfosFromPkg(); err != nil {
@@ -67,7 +67,7 @@ func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*sdk.Proje
 }
 
 func (l *localLoader) reset() {
-	l.proj = sdk.NewProject()
+	l.proj = NewProject()
 	l.pkg = nil
 }
 
@@ -163,7 +163,7 @@ func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := sdk.FuncInfo{
+	info := FuncInfo{
 		Decl: decl,
 		Defs: defs,
 	}
@@ -199,7 +199,7 @@ func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := sdk.FuncInfo{
+	info := FuncInfo{
 		Decl: decl,
 		Defs: defs,
 	}
@@ -213,7 +213,7 @@ func (l *localLoader) extractFileInfo(file *ast.File) error {
 	if err != nil {
 		return err
 	}
-	info := sdk.FileInfo{
+	info := FileInfo{
 		File: file,
 		Defs: defs,
 	}
@@ -231,7 +231,7 @@ func (l *localLoader) extractImportInfo(decl *ast.GenDecl) error {
 		if err != nil {
 			return err
 		}
-		info := sdk.ImportInfo{
+		info := ImportInfo{
 			Spec: spec,
 			Decl: decl,
 			Defs: defs,
@@ -254,7 +254,7 @@ func (l *localLoader) extractVarInfo(decl *ast.GenDecl) error {
 			if err != nil {
 				return err
 			}
-			info := sdk.VarInfo{
+			info := VarInfo{
 				Spec: spec,
 				Decl: decl,
 				Defs: defs,
@@ -278,7 +278,7 @@ func (l *localLoader) extractConstInfo(decl *ast.GenDecl) error {
 			if err != nil {
 				return err
 			}
-			info := sdk.ConstInfo{
+			info := ConstInfo{
 				Spec: spec,
 				Decl: decl,
 				Defs: defs,
@@ -299,11 +299,11 @@ func (l *localLoader) extractNamedTypeInfo(decl *ast.GenDecl, spec *ast.TypeSpec
 	if err != nil {
 		return err
 	}
-	info := sdk.NamedInfo{
+	info := NamedInfo{
 		Spec:    spec,
 		Decl:    decl,
 		Defs:    defs,
-		Methods: make(map[types.Object]sdk.FuncInfo),
+		Methods: make(map[types.Object]FuncInfo),
 	}
 	obj, err := l.objectOf(spec.Name)
 	if err != nil {
@@ -324,7 +324,7 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	if err != nil {
 		return err
 	}
-	info := sdk.IfaceInfo{
+	info := IfaceInfo{
 		Spec:       spec,
 		Decl:       decl,
 		Defs:       defs,
@@ -338,8 +338,8 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	return nil
 }
 
-func (l *localLoader) extractIfaceSignatureInfo(spec *ast.InterfaceType) (map[types.Object]sdk.SignatureInfo, error) {
-	infos := make(map[types.Object]sdk.SignatureInfo, spec.Methods.NumFields())
+func (l *localLoader) extractIfaceSignatureInfo(spec *ast.InterfaceType) (map[types.Object]SignatureInfo, error) {
+	infos := make(map[types.Object]SignatureInfo, spec.Methods.NumFields())
 	for _, meth := range spec.Methods.List {
 		doc := meth.Doc.Text()
 		defs, err := l.mngr.ParseDefs(doc, target.IFACESIG)
@@ -351,7 +351,7 @@ func (l *localLoader) extractIfaceSignatureInfo(spec *ast.InterfaceType) (map[ty
 			if err != nil {
 				return nil, err
 			}
-			info := sdk.SignatureInfo{
+			info := SignatureInfo{
 				Idn:    name,
 				Method: meth,
 				Defs:   defs,
@@ -368,7 +368,7 @@ func (l *localLoader) extractAliasInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	if err != nil {
 		return err
 	}
-	info := sdk.AliasInfo{
+	info := AliasInfo{
 		Decl: decl,
 		Spec: spec,
 		Defs: defs,
@@ -392,12 +392,12 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 		return err
 	}
 	structType := spec.Type.(*ast.StructType)
-	info := sdk.StructInfo{
+	info := StructInfo{
 		Defs:    defs,
 		Spec:    spec,
 		Decl:    decl,
-		Fields:  make(map[types.Object]sdk.FieldInfo, structType.Fields.NumFields()),
-		Methods: make(map[types.Object]sdk.FuncInfo, 0),
+		Fields:  make(map[types.Object]FieldInfo, structType.Fields.NumFields()),
+		Methods: make(map[types.Object]FuncInfo, 0),
 	}
 	fieldInfos, err := l.extractFieldInfo(structType)
 	if err != nil {
@@ -408,8 +408,8 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]sdk.FieldInfo, error) {
-	infos := make(map[types.Object]sdk.FieldInfo, 0)
+func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]FieldInfo, error) {
+	infos := make(map[types.Object]FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
 		if isEmbedded(field) {
@@ -421,7 +421,7 @@ func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]s
 			return nil, err
 		}
 		for _, name := range field.Names {
-			info := sdk.FieldInfo{
+			info := FieldInfo{
 				Idn:   name,
 				Field: field,
 				Defs:  defs,
