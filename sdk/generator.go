@@ -3,6 +3,7 @@ package sdk
 import (
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/registry"
 )
 
 type OptionDoc struct {
@@ -18,4 +19,6 @@ type Generator interface {
 	Ressources() []string
 	Generate(proj *loaderapi.Project) ([]byte, error)
 	OptionsOf(resource string) []OptionDoc
+
+	Registry() registry.Registry
 }
