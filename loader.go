@@ -6,7 +6,6 @@ import (
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/loader"
 	"github.com/naivary/codemark/registry"
-	"github.com/naivary/codemark/sdk"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -17,7 +16,7 @@ var NewLoader = loader.New
 
 // LoadWithManager will load a package with a custom manager which usually mean
 // you have custom converter to add.
-func LoadWithManager(mngr sdk.ConverterManager, patterns ...string) (map[*packages.Package]*loader.Project, error) {
+func LoadWithManager(mngr *converter.Manager, patterns ...string) (map[*packages.Package]*loader.Project, error) {
 	l := loader.New(mngr, nil)
 	if len(patterns) == 0 {
 		return nil, fmt.Errorf("patterns cannot be empty because no projects can be loaded")

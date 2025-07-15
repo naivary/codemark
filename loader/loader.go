@@ -9,15 +9,15 @@ import (
 	"go/types"
 	"path/filepath"
 
+	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/sdk"
 	"golang.org/x/tools/go/packages"
 )
 
 var _ Loader = (*localLoader)(nil)
 
 type localLoader struct {
-	mngr sdk.ConverterManager
+	mngr *converter.Manager
 	cfg  *packages.Config
 
 	// proj is the current project being built
@@ -27,7 +27,7 @@ type localLoader struct {
 }
 
 // New Returns a new loader which can be used to read in go-packages.
-func New(mngr sdk.ConverterManager, cfg *packages.Config) Loader {
+func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	l := &localLoader{
 		mngr: mngr,
 		proj: NewProject(),

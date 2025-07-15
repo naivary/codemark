@@ -25,8 +25,6 @@ func (d definitions) Add(idn string, value any) {
 	d[idn] = append(defs, value)
 }
 
-var _ sdk.ConverterManager = (*Manager)(nil)
-
 type Manager struct {
 	reg   registry.Registry
 	convs map[reflect.Type]sdk.Converter

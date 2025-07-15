@@ -14,7 +14,7 @@ var reg = newRegistry()
 
 var mngr = newManager()
 
-func newManager() sdk.ConverterManager {
+func newManager() *Manager {
 	mngr, err := NewManager(reg)
 	if err != nil {
 		panic(err)

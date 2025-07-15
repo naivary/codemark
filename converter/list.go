@@ -14,11 +14,11 @@ import (
 var _ sdk.Converter = (*listConverter)(nil)
 
 type listConverter struct {
-	mngr sdk.ConverterManager
+	mngr *Manager
 	name string
 }
 
-func List(mngr sdk.ConverterManager) sdk.Converter {
+func List(mngr *Manager) sdk.Converter {
 	return &listConverter{
 		mngr: mngr,
 		name: "list",
