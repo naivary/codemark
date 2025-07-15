@@ -105,10 +105,6 @@ func (l *listConverter) CanConvert(m marker.Marker, def *definition.Definition) 
 }
 
 func (l *listConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
-	return l.list(m, def)
-}
-
-func (l *listConverter) list(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
 	list := reflect.New(def.Output).Elem()
 	elemType := def.Output.Elem()
 	elems := m.Value.Interface().([]any)
