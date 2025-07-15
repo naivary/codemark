@@ -5,16 +5,15 @@ import (
 	"sync"
 
 	"github.com/naivary/codemark/definition"
-	"github.com/naivary/codemark/sdk"
 )
 
-func InMemory() sdk.Registry {
+func InMemory() Registry {
 	return &inmem{
 		defs: make(map[string]*definition.Definition),
 	}
 }
 
-var _ sdk.Registry = (*inmem)(nil)
+var _ Registry = (*inmem)(nil)
 
 type inmem struct {
 	mu sync.Mutex

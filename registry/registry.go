@@ -1,6 +1,14 @@
-package sdk
+package registry
 
-import "github.com/naivary/codemark/definition"
+import (
+	"errors"
+
+	"github.com/naivary/codemark/definition"
+)
+
+var (
+	ErrRegistryEmpty = errors.New("the registry contains no definitions. Make sure to add your definitions using the `Define` method")
+)
 
 type Registry interface {
 	// Define the definition in the registry for future retrieval. It's

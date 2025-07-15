@@ -4,11 +4,11 @@ import "github.com/naivary/codemark/maker"
 
 var MakeDef = maker.MakeDef
 
-var MakeDefWithHelp = maker.MakeDefWithHelp
+var MakeDefWithDoc = maker.MakeDefWithDoc
 
 var MustMakeDef = maker.MustMakeDef
 
-var MustMakeDefWithHelp = maker.MustMakeDefWithHelp
+var MustMakeDefWithDoc = maker.MustMakeDefWithDoc
 
 var MakeFakeDef = maker.MakeFakeDef
 

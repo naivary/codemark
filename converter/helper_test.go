@@ -22,10 +22,9 @@ func newManager() sdk.ConverterManager {
 	return mngr
 }
 
-func newRegistry() sdk.Registry {
+func newRegistry() registry.Registry {
 	defs := sdktesting.NewDefSet()
-	reg := registry.InMemory()
-	err := sdktesting.DefineFor(reg, defs)
+	reg, err := sdktesting.NewRegistry(defs)
 	if err != nil {
 		panic(err)
 	}

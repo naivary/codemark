@@ -1,14 +1,13 @@
 package testing
 
 import (
-	"errors"
 	"reflect"
 	"slices"
 
 	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/maker"
-	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/registry"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
@@ -191,14 +190,12 @@ func NewDefSet() []*definition.Definition {
 	return slices.Concat(defs, aliases)
 }
 
-func DefineFor(reg sdk.Registry, defs []*definition.Definition) error {
-	if reg == nil {
-		return errors.New("reg cannot be nil. If you don't want to use a custom registry use `NewRegistry` instead")
-	}
+func NewRegistry(defs []*definition.Definition) (registry.Registry, error) {
+	reg := registry.InMemory()
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return reg, nil
 }

@@ -31,7 +31,7 @@ func MustMakeDef(idn string, output reflect.Type, targets ...target.Target) *def
 	return def
 }
 
-func MakeDefWithHelp(name string, output reflect.Type, doc string, targets ...target.Target) (*definition.Definition, error) {
+func MakeDefWithDoc(name string, output reflect.Type, doc string, targets ...target.Target) (*definition.Definition, error) {
 	def, err := MakeDef(name, output, targets...)
 	if err != nil {
 		return nil, err
@@ -40,7 +40,7 @@ func MakeDefWithHelp(name string, output reflect.Type, doc string, targets ...ta
 	return def, def.IsValid()
 }
 
-func MustMakeDefWithHelp(name string, output reflect.Type, doc string, targets ...target.Target) *definition.Definition {
+func MustMakeDefWithDoc(name string, output reflect.Type, doc string, targets ...target.Target) *definition.Definition {
 	def, err := MakeDef(name, output, targets...)
 	if err != nil {
 		panic(err)

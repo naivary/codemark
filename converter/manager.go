@@ -10,6 +10,7 @@ import (
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
+	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
@@ -27,13 +28,13 @@ func (d definitions) Add(idn string, value any) {
 var _ sdk.ConverterManager = (*Manager)(nil)
 
 type Manager struct {
-	reg   sdk.Registry
+	reg   registry.Registry
 	convs map[reflect.Type]sdk.Converter
 }
 
-func NewManager(reg sdk.Registry, convs ...sdk.Converter) (*Manager, error) {
+func NewManager(reg registry.Registry, convs ...sdk.Converter) (*Manager, error) {
 	if len(reg.All()) == 0 {
-		return nil, sdk.ErrRegistryEmpty
+		return nil, registry.ErrRegistryEmpty
 	}
 	mngr := &Manager{
 		reg:   reg,
