@@ -38,9 +38,5 @@ func (a *anyConverter) CanConvert(m marker.Marker, def *definition.Definition) e
 }
 
 func (a *anyConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
-	return a.anything(m, def)
-}
-
-func (a *anyConverter) anything(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
 	return sdkutil.ConvertTo(m.Value, def.Output)
 }
