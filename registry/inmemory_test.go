@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/maker"
 )
@@ -14,7 +14,7 @@ type registryTestCase struct {
 	// Name of the test case
 	Name string
 	// The definition being tested
-	Def *definition.Definition
+	Def *api.Definition
 	// Whether the test case is checking correctness or not.
 	IsValid bool
 }
@@ -29,7 +29,7 @@ func newRegTester(reg Registry) *registryTester {
 	}
 }
 
-func (r *registryTester) newTest(def *definition.Definition, isValid bool) registryTestCase {
+func (r *registryTester) newTest(def *api.Definition, isValid bool) registryTestCase {
 	return registryTestCase{
 		Name:    fmt.Sprintf("%s[%s]", def.Ident, def.Output),
 		IsValid: isValid,
@@ -59,8 +59,8 @@ func (r *registryTester) run(t *testing.T, tc registryTestCase) {
 	t.Logf("test case sucessfull: %s\n", tc.Name)
 }
 
-func (r *registryTester) validateDoc(t *testing.T, got, want *definition.Definition) {
-	if got.Doc == "" {
+func (r *registryTester) validateDoc(t *testing.T, got, want *api.Definition) {
+	if got.Doc == nil {
 		t.Logf("no assertions will be done for the documentation because `%s` has no doc", got.Ident)
 		return
 	}
@@ -73,8 +73,8 @@ func (r *registryTester) validateDoc(t *testing.T, got, want *definition.Definit
 	}
 }
 
-func defs() []*definition.Definition {
-	return []*definition.Definition{
+func defs() []*api.Definition {
+	return []*api.Definition{
 		maker.MustMakeDef("codemark:registry:plain", reflect.TypeFor[string](), target.ANY),
 		maker.MustMakeDefWithDoc("codemark:registry:doc", reflect.TypeFor[string](), "this is an example doc", target.ANY),
 	}

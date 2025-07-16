@@ -1,4 +1,4 @@
-package definition
+package api
 
 import (
 	"fmt"
@@ -7,6 +7,12 @@ import (
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/syntax"
 )
+
+type OptionDoc struct {
+	Targets []target.Target
+	Doc     string
+	Default string
+}
 
 type Definition struct {
 	// Name of the definition in the correct format
@@ -18,7 +24,7 @@ type Definition struct {
 
 	// Doc provides documentation for the user to inform about the usage and
 	// intention of the definition.
-	Doc string
+	Doc *OptionDoc
 
 	// DeprecatedInFavorOf points to the marker identifier which should
 	// be used instead.
@@ -38,7 +44,7 @@ func (d *Definition) IsDeprecated() (string, bool) {
 }
 
 func (d *Definition) HasDoc() bool {
-	return d.Doc != ""
+	return d.Doc != nil
 }
 
 func (d *Definition) IsValid() error {

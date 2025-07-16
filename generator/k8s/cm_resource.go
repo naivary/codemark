@@ -5,8 +5,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/naivary/codemark/api"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/maker"
 	corev1 "k8s.io/api/core/v1"
@@ -28,8 +28,8 @@ func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
 	cm.Data[lower] = value
 }
 
-func configMapDefs() []*definition.Definition {
-	return []*definition.Definition{
+func configMapDefs() []*api.Definition {
+	return []*api.Definition{
 		// structs
 		maker.MustMakeDefWithDoc(cmIdent("immutable"), reflect.TypeFor[Immutable](), "decides wether the configmap should be immutable", target.STRUCT),
 		// fields

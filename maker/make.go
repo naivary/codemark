@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk/utils"
 )
 
-func MakeDef(idn string, output reflect.Type, targets ...target.Target) (*definition.Definition, error) {
-	def := &definition.Definition{
+func MakeDef(idn string, output reflect.Type, targets ...target.Target) (*api.Definition, error) {
+	def := &api.Definition{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -19,8 +19,8 @@ func MakeDef(idn string, output reflect.Type, targets ...target.Target) (*defini
 	return def, def.IsValid()
 }
 
-func MustMakeDef(idn string, output reflect.Type, targets ...target.Target) *definition.Definition {
-	def := &definition.Definition{
+func MustMakeDef(idn string, output reflect.Type, targets ...target.Target) *api.Definition {
+	def := &api.Definition{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -31,25 +31,25 @@ func MustMakeDef(idn string, output reflect.Type, targets ...target.Target) *def
 	return def
 }
 
-func MakeDefWithDoc(name string, output reflect.Type, doc string, targets ...target.Target) (*definition.Definition, error) {
+func MakeDefWithDoc(name string, output reflect.Type, doc api.OptionDoc, targets ...target.Target) (*api.Definition, error) {
 	def, err := MakeDef(name, output, targets...)
 	if err != nil {
 		return nil, err
 	}
-	def.Doc = doc
+	def.Doc = &doc
 	return def, def.IsValid()
 }
 
-func MustMakeDefWithDoc(name string, output reflect.Type, doc string, targets ...target.Target) *definition.Definition {
+func MustMakeDefWithDoc(name string, output reflect.Type, doc api.OptionDoc, targets ...target.Target) *api.Definition {
 	def, err := MakeDef(name, output, targets...)
 	if err != nil {
 		panic(err)
 	}
-	def.Doc = doc
+	def.Doc = &doc
 	return def
 }
 
-func MakeFakeDef(out reflect.Type) (*definition.Definition, error) {
+func MakeFakeDef(out reflect.Type) (*api.Definition, error) {
 	ident := fmt.Sprintf("codemark:fake:%s", utils.NameFor(out))
 	return MakeDef(ident, out, target.ANY)
 }

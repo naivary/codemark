@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
+	"github.com/naivary/codemark/api"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
@@ -63,11 +64,11 @@ func (g k8sGenerator) Domain() string {
 	return "k8s"
 }
 
-func (g k8sGenerator) Explain(ident string) sdk.OptionDoc {
-	return sdk.OptionDoc{}
+func (g k8sGenerator) Explain(ident string) api.OptionDoc {
+	return api.OptionDoc{}
 }
 
-func (g k8sGenerator) OptionsOf(resource string) []sdk.OptionDoc {
+func (g k8sGenerator) OptionsOf(resource string) []api.OptionDoc {
 	return nil
 }
 

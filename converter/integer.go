@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -62,7 +62,7 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (i *intConverter) CanConvert(m marker.Marker, def *definition.Definition) error {
+func (i *intConverter) CanConvert(m marker.Marker, def *api.Definition) error {
 	mkind := m.Kind
 	out := sdkutil.Deref(def.Output)
 	if mkind == marker.INT {
@@ -74,7 +74,7 @@ func (i *intConverter) CanConvert(m marker.Marker, def *definition.Definition) e
 	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s\n", mkind, marker.INT, marker.STRING)
 }
 
-func (i *intConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (i *intConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	mkind := m.Kind
 	if i.isInteger(def.Output, mkind) {
 		return i.integer(m, def)
@@ -91,7 +91,7 @@ func (i *intConverter) Convert(m marker.Marker, def *definition.Definition) (ref
 	return _rvzero, fmt.Errorf("cannot convert %s to %v\n", m.Ident, def.Output)
 }
 
-func (i *intConverter) integer(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (i *intConverter) integer(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	n := m.Value.Int()
 	if i.isOverflowingInt(def.Output, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)
@@ -99,7 +99,7 @@ func (i *intConverter) integer(m marker.Marker, def *definition.Definition) (ref
 	return sdkutil.ConvertTo(m.Value, def.Output)
 }
 
-func (i *intConverter) uinteger(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (i *intConverter) uinteger(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	n := m.Value.Int()
 	if i.isOverflowingUint(def.Output, uint64(n)) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)
@@ -107,7 +107,7 @@ func (i *intConverter) uinteger(m marker.Marker, def *definition.Definition) (re
 	return sdkutil.ConvertTo(m.Value, def.Output)
 }
 
-func (i *intConverter) runee(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (i *intConverter) runee(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	v := m.Value.String()
 	if len(v) > 1 {
 		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", v)
@@ -116,7 +116,7 @@ func (i *intConverter) runee(m marker.Marker, def *definition.Definition) (refle
 	return sdkutil.ConvertTo(rvalue, def.Output)
 }
 
-func (i *intConverter) bytee(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (i *intConverter) bytee(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	v := m.Value.String()
 	if len(v) > 1 {
 		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s\n", v)

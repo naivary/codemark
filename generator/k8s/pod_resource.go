@@ -3,8 +3,8 @@ package k8s
 import (
 	"reflect"
 
+	"github.com/naivary/codemark/api"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/definition"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/maker"
 	corev1 "k8s.io/api/core/v1"
@@ -26,8 +26,8 @@ func newPod() *corev1.Pod {
 	}
 }
 
-func podDefs() []*definition.Definition {
-	return []*definition.Definition{
+func podDefs() []*api.Definition {
+	return []*api.Definition{
 		maker.MustMakeDefWithDoc(podIdent("image"), reflect.TypeFor[Image](), "image to use for the container", target.FUNC),
 		maker.MustMakeDefWithDoc(podIdent("imagepullpolicy"), reflect.TypeFor[ImagePullPolicy](), "pull policy for the container", target.FUNC),
 	}

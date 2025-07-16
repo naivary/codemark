@@ -1,17 +1,11 @@
 package sdk
 
 import (
+	"github.com/naivary/codemark/api"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/registry"
 	"golang.org/x/tools/go/packages"
 )
-
-type OptionDoc struct {
-	Targets []target.Target
-	Doc     string
-	Default string
-}
 
 type Generator interface {
 	// Domain for which the generator is responsible
@@ -19,7 +13,7 @@ type Generator interface {
 
 	// Explain returns the documentation for a complete identifier e.g.
 	// codemark:resource:option. This is used for self-explanatory usage.
-	Explain(ident string) OptionDoc
+	Explain(ident string) api.OptionDoc
 
 	// Ressources supported by this generator
 	Ressources() []string
@@ -29,7 +23,7 @@ type Generator interface {
 
 	// OptionsOf returns the options for a choosen resource e.g.
 	// codemark:resource.
-	OptionsOf(resource string) []OptionDoc
+	OptionsOf(resource string) []api.OptionDoc
 
 	// Registry containing all the definitions
 	Registry() registry.Registry

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -40,17 +40,17 @@ func (s *stringConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (s *stringConverter) CanConvert(m marker.Marker, def *definition.Definition) error {
+func (s *stringConverter) CanConvert(m marker.Marker, def *api.Definition) error {
 	if m.Kind != marker.STRING {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.STRING)
 	}
 	return nil
 }
 
-func (s *stringConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (s *stringConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	return s.str(m, def)
 }
 
-func (s *stringConverter) str(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (s *stringConverter) str(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	return sdkutil.ConvertTo(m.Value, def.Output)
 }

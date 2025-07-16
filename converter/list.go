@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
@@ -97,14 +97,14 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (l *listConverter) CanConvert(m marker.Marker, def *definition.Definition) error {
+func (l *listConverter) CanConvert(m marker.Marker, def *api.Definition) error {
 	if m.Kind != marker.LIST {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.LIST)
 	}
 	return nil
 }
 
-func (l *listConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (l *listConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	list := reflect.New(def.Output).Elem()
 	elemType := def.Output.Elem()
 	elems := m.Value.Interface().([]any)

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/sdk"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -21,8 +21,8 @@ func (d Default) apply(ident string, cm *corev1.ConfigMap) error {
 	return nil
 }
 
-func (d Default) Doc() sdk.OptionDoc {
-	return sdk.OptionDoc{
+func (d Default) Doc() api.OptionDoc {
+	return api.OptionDoc{
 		Targets: []target.Target{target.FIELD},
 		Doc:     "Default value for the field. If no default value can be provided dont set the marker",
 	}

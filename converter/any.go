@@ -3,7 +3,7 @@ package converter
 import (
 	"reflect"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -33,10 +33,10 @@ func (a *anyConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (a *anyConverter) CanConvert(m marker.Marker, def *definition.Definition) error {
+func (a *anyConverter) CanConvert(m marker.Marker, def *api.Definition) error {
 	return nil
 }
 
-func (a *anyConverter) Convert(m marker.Marker, def *definition.Definition) (reflect.Value, error) {
+func (a *anyConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
 	return sdkutil.ConvertTo(m.Value, def.Output)
 }

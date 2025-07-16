@@ -8,3 +8,4 @@
 - map converter (prio: 1)
 - Itereator for *Info types of loader to itereator over the defs without nesting
 - extending by using codemark as a library
+- makewith doc struct not doc just as string

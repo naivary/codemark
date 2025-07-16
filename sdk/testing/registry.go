@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/naivary/codemark/definition"
+	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/definition/target"
 	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/registry"
@@ -161,8 +161,8 @@ func AllTypes() []any {
 // AliasDefs are go-native types which are supported by the default
 // converters but cannot be registered using the native types because they are
 // aliases of others e.g. byte and rune.
-func AliasDefs() []*definition.Definition {
-	return []*definition.Definition{
+func AliasDefs() []*api.Definition {
+	return []*api.Definition{
 		maker.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), target.ANY),
 		maker.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), target.ANY),
 		maker.MustMakeDef(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), target.ANY),
@@ -176,10 +176,10 @@ func AliasDefs() []*definition.Definition {
 
 // NewDefSet returns all the definitions matching the default markers available with
 // the correct type
-func NewDefSet() []*definition.Definition {
+func NewDefSet() []*api.Definition {
 	types := AllTypes()
 	aliases := AliasDefs()
-	defs := make([]*definition.Definition, 0, len(types)+len(aliases))
+	defs := make([]*api.Definition, 0, len(types)+len(aliases))
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		name := sdkutil.NameFor(rtype)
@@ -190,7 +190,7 @@ func NewDefSet() []*definition.Definition {
 	return slices.Concat(defs, aliases)
 }
 
-func NewRegistry(defs []*definition.Definition) (registry.Registry, error) {
+func NewRegistry(defs []*api.Definition) (registry.Registry, error) {
 	reg := registry.InMemory()
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
