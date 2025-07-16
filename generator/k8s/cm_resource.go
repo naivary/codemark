@@ -2,6 +2,8 @@ package k8s
 
 import (
 	"reflect"
+	"slices"
+	"strings"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/definition"
@@ -19,6 +21,11 @@ func newConfigMap() *corev1.ConfigMap {
 		},
 		Data: make(map[string]string),
 	}
+}
+
+func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
+	lower := strings.ToLower(key)
+	cm.Data[lower] = value
 }
 
 func configMapDefs() []*definition.Definition {
@@ -42,6 +49,11 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 		}
 	}
 	for _, field := range strc.Fields {
+		idents := keysOfMap(field.Defs)
+		if !slices.Contains(idents, "k8s:configmap:default") {
+			setDataInConfigMap(field.Idn.Name, "", cm)
+			continue
+		}
 		for _, defs := range field.Defs {
 			for _, def := range defs {
 				switch d := def.(type) {

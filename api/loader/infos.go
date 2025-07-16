@@ -5,6 +5,10 @@ import (
 	"go/types"
 )
 
+type Defs interface {
+	Definitions() map[string][]any
+}
+
 type Filename = string
 
 // TODO: Find a better name than Project

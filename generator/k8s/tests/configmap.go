@@ -12,4 +12,10 @@ type ConfigMap struct {
 
 	// +k8s:configmap:default="/etc/app/ca.crt"
 	TLSPath string
+
+	NoDefault string
 }
+
+// +k8s:pod:image="docker.io/naivary/filevault:latest"
+// +k8s:pod:imagepullpolicy="Always"
+func main() {}
