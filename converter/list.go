@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
@@ -97,16 +96,16 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (l *listConverter) CanConvert(m marker.Marker, def *api.Definition) error {
+func (l *listConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.LIST {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.LIST)
 	}
 	return nil
 }
 
-func (l *listConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
-	list := reflect.New(def.Output).Elem()
-	elemType := def.Output.Elem()
+func (l *listConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	list := reflect.New(to).Elem()
+	elemType := to.Elem()
 	elems := m.Value.Interface().([]any)
 	for _, elem := range elems {
 		elemValue, err := l.elem(elem, elemType)
@@ -126,9 +125,5 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	}
 	mkind := sdkutil.MarkerKindOf(rvalue.Type())
 	fakeMarker := maker.MakeFakeMarker(mkind, rvalue)
-	fakeDef, err := maker.MakeFakeDef(typ)
-	if err != nil {
-		return _rvzero, err
-	}
-	return conv.Convert(fakeMarker, fakeDef)
+	return conv.Convert(fakeMarker, typ)
 }

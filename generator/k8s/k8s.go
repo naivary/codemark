@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 
 	"github.com/naivary/codemark/api"
@@ -22,6 +23,7 @@ func NewGenerator() (sdk.Generator, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(reg.All())
 	gen := &k8sGenerator{
 		reg: reg,
 	}

@@ -3,13 +3,12 @@ package converter
 import (
 	"reflect"
 
-	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-var _ sdk.Converter = (*stringConverter)(nil)
+var _ sdk.Converter = (*anyConverter)(nil)
 
 type anyConverter struct {
 	name string
@@ -33,10 +32,10 @@ func (a *anyConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (a *anyConverter) CanConvert(m marker.Marker, def *api.Definition) error {
+func (a *anyConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	return nil
 }
 
-func (a *anyConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
-	return sdkutil.ConvertTo(m.Value, def.Output)
+func (a *anyConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	return sdkutil.ConvertTo(m.Value, to)
 }

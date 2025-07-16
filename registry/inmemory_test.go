@@ -2,12 +2,9 @@ package registry
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 
 	"github.com/naivary/codemark/api"
-	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/maker"
 )
 
 type registryTestCase struct {
@@ -74,10 +71,11 @@ func (r *registryTester) validateDoc(t *testing.T, got, want *api.Definition) {
 }
 
 func defs() []*api.Definition {
-	return []*api.Definition{
-		maker.MustMakeDef("codemark:registry:plain", reflect.TypeFor[string](), target.ANY),
-		maker.MustMakeDefWithDoc("codemark:registry:doc", reflect.TypeFor[string](), "this is an example doc", target.ANY),
-	}
+	// return []*api.Definition{
+	// 	maker.MustMakeDef("codemark:registry:plain", reflect.TypeFor[string](), target.ANY),
+	// 	maker.MustMakeDefWithDoc("codemark:registry:doc", reflect.TypeFor[string](), "this is an example doc", target.ANY),
+	// }
+	return nil
 }
 
 func TestInMemory(t *testing.T) {

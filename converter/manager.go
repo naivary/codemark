@@ -98,10 +98,10 @@ func (m *Manager) Convert(mrk marker.Marker, t target.Target) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := conv.CanConvert(mrk, def); err != nil {
+	if err := conv.CanConvert(mrk, def.Output); err != nil {
 		return nil, err
 	}
-	out, err := conv.Convert(mrk, def)
+	out, err := conv.Convert(mrk, def.Output)
 	if err != nil {
 		return nil, err
 	}

@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 )
@@ -121,11 +120,7 @@ func (c *converterTester) MustNewTestWithMarker(m *marker.Marker, to reflect.Typ
 }
 
 func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
-	fakeDef, err := maker.MakeFakeDef(tc.To)
-	if err != nil {
-		t.Fatalf("err occured: %s\n", err)
-	}
-	v, err := c.conv.Convert(tc.Marker, fakeDef)
+	v, err := c.conv.Convert(tc.Marker, tc.To)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

@@ -1,30 +1,17 @@
 package k8s
 
 import (
-	"reflect"
-
 	"github.com/naivary/codemark/api"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/maker"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func objectMetaDefs() []*api.Definition {
-	return []*api.Definition{
-		maker.MustMakeDefWithDoc(
-			objectMetaIdent("name"),
-			reflect.TypeFor[Name](),
-			"name of the object",
-			target.STRUCT,
-		),
-		maker.MustMakeDefWithDoc(
-			objectMetaIdent("namespace"),
-			reflect.TypeFor[Namespace](),
-			"namespace for the object. It does not check if the object is namespace scoped",
-			target.STRUCT,
-		),
-	}
+	const resource = "meta"
+	return makeDefs(resource,
+		Name(""),
+		Namespace(""),
+	)
 }
 
 func createObjectMeta(d loaderapi.Defs) metav1.ObjectMeta {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/sdk"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -42,23 +41,23 @@ func (c *complexConverter) SupportedTypes() []reflect.Type {
 	return supported
 }
 
-func (c *complexConverter) CanConvert(m marker.Marker, def *api.Definition) error {
+func (c *complexConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.COMPLEX {
 		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.COMPLEX)
 	}
 	return nil
 }
 
-func (c *complexConverter) Convert(m marker.Marker, def *api.Definition) (reflect.Value, error) {
-	return c.complexx(m, def)
+func (c *complexConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	return c.complexx(m, to)
 }
 
-func (c *complexConverter) complexx(m marker.Marker, def *api.Definition) (reflect.Value, error) {
+func (c *complexConverter) complexx(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	n := m.Value.Complex()
-	if c.isOverflowing(def.Output, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), def.Output)
+	if c.isOverflowing(to, n) {
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), to)
 	}
-	return sdkutil.ConvertTo(m.Value, def.Output)
+	return sdkutil.ConvertTo(m.Value, to)
 }
 
 func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {

@@ -3,7 +3,6 @@ package sdk
 import (
 	"reflect"
 
-	"github.com/naivary/codemark/api"
 	"github.com/naivary/codemark/parser/marker"
 )
 
@@ -23,8 +22,8 @@ type Converter interface {
 	// possible. You can be sure that the convert is choosen correctly by the
 	// ConverterManager and do not have to check if the `def.Output` is
 	// convertible using this converter.
-	CanConvert(m marker.Marker, def *api.Definition) error
+	CanConvert(m marker.Marker, to reflect.Type) error
 
 	// Convert converts the marker to `def.Output`
-	Convert(m marker.Marker, def *api.Definition) (reflect.Value, error)
+	Convert(m marker.Marker, to reflect.Type) (reflect.Value, error)
 }

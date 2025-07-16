@@ -10,6 +10,4 @@ var MustMakeDef = maker.MustMakeDef
 
 var MustMakeDefWithDoc = maker.MustMakeDefWithDoc
 
-var MakeFakeDef = maker.MakeFakeDef
-
 var MakeFakeMarker = maker.MakeFakeMarker

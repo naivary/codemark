@@ -1,18 +1,11 @@
 package k8s
 
 import (
-	"reflect"
-
 	"github.com/naivary/codemark/api"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/maker"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-// TODO: Create defs dynamiclly by having a Doc() function for every of the
-// options and build it using reflect
 
 func newPod() *corev1.Pod {
 	return &corev1.Pod{
@@ -27,10 +20,11 @@ func newPod() *corev1.Pod {
 }
 
 func podDefs() []*api.Definition {
-	return []*api.Definition{
-		maker.MustMakeDefWithDoc(podIdent("image"), reflect.TypeFor[Image](), "image to use for the container", target.FUNC),
-		maker.MustMakeDefWithDoc(podIdent("imagepullpolicy"), reflect.TypeFor[ImagePullPolicy](), "pull policy for the container", target.FUNC),
-	}
+	const resource = "pod"
+	return makeDefs(resource,
+		Image(""),
+		ImagePullPolicy(""),
+	)
 }
 
 func createPod(fn loaderapi.FuncInfo) (*corev1.Pod, error) {
