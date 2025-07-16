@@ -1,6 +1,7 @@
 package tests
 
-// +k8s:configmap:name="my-name"
+// +k8s:meta:name="my-name"
+// +k8s:meta:namespace="default"
 // +k8s:configmap:immutable=true
 type ConfigMap struct {
 	// +k8s:configmap:default="4"

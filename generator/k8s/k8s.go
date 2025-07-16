@@ -1,7 +1,8 @@
 package k8s
 
 import (
-	"slices"
+	"encoding/json"
+	"os"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/registry"
@@ -16,8 +17,8 @@ type k8sGenerator struct {
 }
 
 func New() (sdk.Generator, error) {
-	reg := registry.InMemory()
-	if err := provisionRegistry(reg); err != nil {
+	reg, err := newRegistry()
+	if err != nil {
 		return nil, err
 	}
 	gen := &k8sGenerator{
@@ -29,12 +30,12 @@ func New() (sdk.Generator, error) {
 func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Project) error {
 	for _, proj := range infos {
 		for _, strc := range proj.Structs {
-			for _, field := range strc.Fields {
-				for ident := range field.Defs {
-					if ident == "k8s:configmap:default" {
-						createConfigMap(strc)
-					}
+			if shouldGenerateConfigMap(strc) {
+				cm, err := createConfigMap(strc)
+				if err != nil {
+					return err
 				}
+				json.NewEncoder(os.Stdout).Encode(cm)
 			}
 		}
 	}
@@ -61,13 +62,4 @@ func (g k8sGenerator) OptionsOf(resource string) []sdk.OptionDoc {
 
 func (g k8sGenerator) Registry() registry.Registry {
 	return g.reg
-}
-
-func provisionRegistry(reg registry.Registry) error {
-	defs := slices.Concat(configMapDefs())
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
-		}
-	}
-	return nil
 }
