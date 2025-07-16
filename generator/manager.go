@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"plugin"
 
 	"github.com/naivary/codemark/sdk"
 )
@@ -28,26 +27,8 @@ func NewManager() (*Manager, error) {
 	return mngr, nil
 }
 
-// Load is searching for the plugin and adds it to the manager
-func (m *Manager) Load(name string) error {
-	p := filepath.Join(m.dir, name)
-	pl, err := plugin.Open(p)
-	if err != nil {
-		return err
-	}
-	sym, err := pl.Lookup("NewGenerator")
-	if err != nil {
-		return err
-	}
-	fn, ok := sym.(func() (sdk.Generator, error))
-	if !ok {
-		return fmt.Errorf("exported function NewGenerator of the plugin %s is not matching the function header func() (sdk.Generator, error)\n", name)
-	}
-	gen, err := fn()
-	if err != nil {
-		return err
-	}
-	return m.Add(gen)
+func (m *Manager) Generate(domains ...string) error {
+	return nil
 }
 
 func (m *Manager) Get(domain string) (sdk.Generator, error) {
