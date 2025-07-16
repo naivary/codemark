@@ -1,16 +1,13 @@
-package loader
+package laoder
 
 import (
-	"errors"
 	"go/ast"
 	"go/types"
-
-	"golang.org/x/tools/go/packages"
 )
 
-var (
-	ErrPkgsEmpty = errors.New("loaded packages are empty. check that the defined patterns are matching any files")
-)
+type Defs interface {
+	Definitions() map[string][]any
+}
 
 type Filename = string
 
@@ -39,10 +36,6 @@ func NewProject() *Project {
 		Funcs:   make(map[types.Object]FuncInfo),
 		Files:   make(map[Filename]FileInfo),
 	}
-}
-
-type Loader interface {
-	Load(patterns ...string) (map[*packages.Package]*Project, error)
 }
 
 type FuncInfo struct {

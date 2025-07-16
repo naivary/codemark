@@ -5,6 +5,7 @@ import (
 	"go/types"
 	"testing"
 
+	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/parser/marker"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
@@ -63,7 +64,7 @@ func validate[T markers, V defs](want map[string]T, got map[types.Object]V) erro
 	return nil
 }
 
-func isValid(tc loaderTestCase, proj *Project) error {
+func isValid(tc loaderTestCase, proj *loaderapi.Project) error {
 	// check struct
 	if err := validate(tc.Structs, proj.Structs); err != nil {
 		return err
