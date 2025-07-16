@@ -16,7 +16,7 @@ type Manager struct {
 	gens map[domain]sdk.Generator
 }
 
-func NewManager(domains ...string) (*Manager, error) {
+func NewManager() (*Manager, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
