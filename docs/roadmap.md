@@ -7,3 +7,4 @@
 - variables for marker over sdk (prio: 1)
 - time converter (prio: 1)
 - map converter (prio: 1)
+- Itereator for *Info types of loader to itereator over the defs without nesting
