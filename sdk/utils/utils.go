@@ -3,9 +3,14 @@ package utils
 import (
 	"reflect"
 	"slices"
+	"strings"
 
 	"github.com/naivary/codemark/parser/marker"
 )
+
+func Option(ident string) string {
+	return strings.Split(ident, ":")[2]
+}
 
 // TypeForMarkerKind returns the reflect.Type used for the given marker kind
 func TypeForMarkerKind(mkind marker.Kind) reflect.Type {
