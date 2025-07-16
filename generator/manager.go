@@ -41,7 +41,7 @@ func (m *Manager) Load(name string) error {
 	}
 	fn, ok := sym.(func() (sdk.Generator, error))
 	if !ok {
-		return fmt.Errorf("exported function NewGenerator of the plugin %s is not matching the interface func() (sdk.Generator, error)\n", name)
+		return fmt.Errorf("exported function NewGenerator of the plugin %s is not matching the function header func() (sdk.Generator, error)\n", name)
 	}
 	gen, err := fn()
 	if err != nil {
