@@ -27,15 +27,15 @@ func objectMetaDefs() []*definition.Definition {
 	}
 }
 
-func createObjectMeta(strc *loaderapi.StructInfo) *metav1.ObjectMeta {
-	obj := &metav1.ObjectMeta{}
+func createObjectMeta(strc *loaderapi.StructInfo) metav1.ObjectMeta {
+	obj := metav1.ObjectMeta{}
 	for _, defs := range strc.Defs {
 		for _, def := range defs {
 			switch d := def.(type) {
 			case Name:
-				d.apply(obj)
+				d.apply(&obj)
 			case Namespace:
-				d.apply(obj)
+				d.apply(&obj)
 			}
 		}
 	}

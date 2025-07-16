@@ -14,8 +14,8 @@ import (
 func newConfigMap() *corev1.ConfigMap {
 	return &corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       "ConfigMap",
 			APIVersion: "v1",
+			Kind:       "ConfigMap",
 		},
 		Data: make(map[string]string),
 	}
@@ -25,7 +25,6 @@ func configMapDefs() []*definition.Definition {
 	return []*definition.Definition{
 		// structs
 		maker.MustMakeDefWithDoc(cmIdent("immutable"), reflect.TypeFor[Immutable](), "decides wether the configmap should be immutable", target.STRUCT),
-
 		// fields
 		maker.MustMakeDefWithDoc(cmIdent("default"), reflect.TypeFor[Default](), "default value for the config map value", target.FIELD),
 	}
@@ -33,7 +32,7 @@ func configMapDefs() []*definition.Definition {
 
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 	cm := newConfigMap()
-	cm.ObjectMeta = *createObjectMeta(strc)
+	cm.ObjectMeta = createObjectMeta(strc)
 	for _, defs := range strc.Defs {
 		for _, def := range defs {
 			switch d := def.(type) {
@@ -42,7 +41,6 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 			}
 		}
 	}
-
 	for _, field := range strc.Fields {
 		for _, defs := range field.Defs {
 			for _, def := range defs {
