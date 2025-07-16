@@ -16,7 +16,7 @@ type k8sGenerator struct {
 	reg registry.Registry
 }
 
-func New() (sdk.Generator, error) {
+func NewGenerator() (sdk.Generator, error) {
 	reg, err := newRegistry()
 	if err != nil {
 		return nil, err
