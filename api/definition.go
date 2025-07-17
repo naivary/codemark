@@ -9,15 +9,21 @@ import (
 	"github.com/naivary/codemark/syntax"
 )
 
-// TODO: not working like it should because it doesnt look good in this way.
+// TODO: make this a custom package
 func trunc(s string, n int) string {
 	var b bytes.Buffer
-	for i, r := range s {
-		if i%n == 0 {
+	pos := 1
+	for _, r := range s {
+		if pos%n == 0 && r == ' ' {
 			fmt.Fprintf(&b, "\n")
+			pos = 1
+			continue
 		}
 		if r == '\n' {
-			i = 0
+			pos = 1
+		}
+		if pos%n != 0 {
+			pos++
 		}
 		fmt.Fprintf(&b, string(r))
 	}
