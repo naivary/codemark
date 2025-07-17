@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 
@@ -8,10 +9,56 @@ import (
 	"github.com/naivary/codemark/syntax"
 )
 
+// TODO: not working like it should because it doesnt look good in this way.
+func trunc(s string, n int) string {
+	var b bytes.Buffer
+	for i, r := range s {
+		if i%n == 0 {
+			fmt.Fprintf(&b, "\n")
+		}
+		if r == '\n' {
+			i = 0
+		}
+		fmt.Fprintf(&b, string(r))
+	}
+	return b.String()
+}
+
 type OptionDoc struct {
 	Targets []target.Target
+	Ident   string
 	Doc     string
 	Default string
+}
+
+func (o OptionDoc) String() string {
+	var b bytes.Buffer
+	fmt.Fprintf(&b, "Ident: %s\n", o.Ident)
+	fmt.Fprintf(&b, "Default: %s\n", o.Default)
+	fmt.Fprintf(&b, "Targets: %v\n", o.Targets)
+	fmt.Fprintf(&b, "%s", trunc(o.Doc, 80))
+	return b.String()
+}
+
+type ResourceDoc struct {
+	Doc     string
+	Options []OptionDoc
+}
+
+func (r ResourceDoc) String() string {
+	var b bytes.Buffer
+	idents := make([]string, 0, len(r.Options))
+	for _, opt := range r.Options {
+		idents = append(idents, opt.Ident)
+	}
+	fmt.Fprintf(&b, "Options: %v\n", idents)
+	fmt.Fprintf(&b, "%s\n", trunc(r.Doc, 80))
+	return b.String()
+}
+
+type DomainDoc struct {
+	Doc       string
+	Resources []ResourceDoc
 }
 
 type Definition struct {
