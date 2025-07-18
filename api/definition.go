@@ -25,7 +25,7 @@ func trunc(s string, n int) string {
 		if pos%n != 0 {
 			pos++
 		}
-		fmt.Fprintf(&b, string(r))
+		fmt.Fprint(&b, string(r))
 	}
 	return b.String()
 }
@@ -105,10 +105,10 @@ func (d *Definition) IsValid() error {
 		return err
 	}
 	if d.Output == nil {
-		return fmt.Errorf("output type cannot be nil: %s\n", d.Ident)
+		return fmt.Errorf("output type cannot be nil: %s", d.Ident)
 	}
 	if len(d.Targets) == 0 {
-		return fmt.Errorf("definition has not target defined: %s\n", d.Ident)
+		return fmt.Errorf("definition has not target defined: %s", d.Ident)
 	}
 	return nil
 }
