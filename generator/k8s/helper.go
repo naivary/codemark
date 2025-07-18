@@ -14,9 +14,9 @@ import (
 
 func newRegistry() (registry.Registry, error) {
 	reg := registry.InMemory()
-	defs := slices.Concat(configMapOpts(), objectMetaOpts(), podOpts())
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
+	opts := slices.Concat(configMapOpts(), objectMetaOpts(), podOpts())
+	for _, opt := range opts {
+		if err := reg.Define(opt); err != nil {
 			return nil, err
 		}
 	}
