@@ -56,6 +56,7 @@ func (o *Option) String() string {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "Ident: %s\n", o.Ident)
 	fmt.Fprintf(&b, "Default: %s\n", o.Doc.Default)
+	fmt.Fprintf(&b, "Targets: %s\n", o.Targets)
 	fmt.Fprintf(&b, "%s", trunc(o.Doc.Doc, 80))
 	return b.String()
 }

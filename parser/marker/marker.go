@@ -48,10 +48,10 @@ func (m *Marker) String() string {
 
 func (m *Marker) IsValid() error {
 	if err := syntax.Ident(m.Ident); err != nil {
-		return fmt.Errorf("marker identifier is invalid: %s\n", m.Ident)
+		return fmt.Errorf("marker identifier is invalid: %s", m.Ident)
 	}
 	if !m.Value.IsValid() {
-		return fmt.Errorf("value of markeris not valid: %v\n", m.Value)
+		return fmt.Errorf("value of marker is not valid: %v", m.Value)
 	}
 	return nil
 }

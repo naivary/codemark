@@ -16,7 +16,7 @@ import (
 func Ident(ident string) error {
 	plus := "+"
 	if strings.HasPrefix(ident, plus) {
-		return fmt.Errorf("an identifier should not start with a plus. the plus is just like the `var` keyword in a regular programming language: %s\n", ident)
+		return fmt.Errorf("an identifier should not start with a plus. the plus is just like the `var` keyword in a regular programming language: %s", ident)
 	}
 	colon := ":"
 	numOfColons := strings.Count(ident, colon)
@@ -24,9 +24,9 @@ func Ident(ident string) error {
 		return fmt.Errorf("expected two colons in `%s` but got %d", ident, numOfColons)
 	}
 	for pathSegment := range strings.SplitSeq(ident, colon) {
-		lastChar := rune(pathSegment[len(pathSegment)-1])
-		if !(unicode.IsLetter(lastChar) || unicode.IsDigit(lastChar)) {
-			return fmt.Errorf("identifier cannot end with an underscore `_` or dot `.`: %s in %s\n", pathSegment, ident)
+		option := rune(pathSegment[len(pathSegment)-1])
+		if !(unicode.IsLetter(option) || unicode.IsDigit(option)) {
+			return fmt.Errorf("identifier cannot end with an underscore `_` or dot `.`: %s in %s", pathSegment, ident)
 		}
 	}
 	return nil
