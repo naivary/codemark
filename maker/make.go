@@ -4,54 +4,47 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/api"
-	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/parser/marker"
-	"github.com/naivary/codemark/sdk/utils"
 )
 
-func MakeDef(idn string, output reflect.Type, targets ...target.Target) (*api.Definition, error) {
-	def := &api.Definition{
+func MakeOption(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
+	opt := &core.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
 	}
-	return def, def.IsValid()
+	return opt, opt.IsValid()
 }
 
-func MustMakeDef(idn string, output reflect.Type, targets ...target.Target) *api.Definition {
-	def := &api.Definition{
+func MustMakeOpt(idn string, output reflect.Type, targets ...core.Target) *core.Option {
+	opt := &core.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
 	}
-	if err := def.IsValid(); err != nil {
+	if err := opt.IsValid(); err != nil {
 		panic(err)
 	}
-	return def
+	return opt
 }
 
-func MakeDefWithDoc(name string, output reflect.Type, doc api.OptionDoc, targets ...target.Target) (*api.Definition, error) {
-	def, err := MakeDef(name, output, targets...)
+func MakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, targets ...core.Target) (*core.Option, error) {
+	opt, err := MakeOption(name, output, targets...)
 	if err != nil {
 		return nil, err
 	}
-	def.Doc = &doc
-	return def, def.IsValid()
+	opt.Doc = &doc
+	return opt, opt.IsValid()
 }
 
-func MustMakeDefWithDoc(name string, output reflect.Type, doc api.OptionDoc, targets ...target.Target) *api.Definition {
-	def, err := MakeDef(name, output, targets...)
+func MustMakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, targets ...core.Target) *core.Option {
+	opt, err := MakeOption(name, output, targets...)
 	if err != nil {
 		panic(err)
 	}
-	def.Doc = &doc
-	return def
-}
-
-func MakeFakeDef(out reflect.Type) (*api.Definition, error) {
-	ident := fmt.Sprintf("codemark:fake:%s", utils.NameFor(out))
-	return MakeDef(ident, out, target.ANY)
+	opt.Doc = &doc
+	return opt
 }
 
 func MakeFakeMarker(mkind marker.Kind, value reflect.Value) marker.Marker {

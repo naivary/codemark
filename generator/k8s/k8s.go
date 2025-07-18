@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/naivary/codemark/api"
+	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
@@ -40,11 +40,11 @@ func (g k8sGenerator) Domain() string {
 	return "k8s"
 }
 
-func (g k8sGenerator) Explain(ident string) api.OptionDoc {
-	return api.OptionDoc{}
+func (g k8sGenerator) Explain(ident string) string {
+	return ""
 }
 
-func (g k8sGenerator) OptionsOf(resource string) []api.OptionDoc {
+func (g k8sGenerator) OptionsOf(resource string) []core.Option {
 	return nil
 }
 
@@ -52,7 +52,7 @@ func (g k8sGenerator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Project) error {
+func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Information) error {
 	for _, proj := range infos {
 		for _, strc := range proj.Structs {
 			if shouldGenerateConfigMap(strc) {

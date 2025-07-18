@@ -1,4 +1,4 @@
-package tests
+package main
 
 // +k8s:meta:name="my-name"
 // +k8s:meta:namespace="default"
@@ -9,10 +9,6 @@ type ConfigMap struct {
 	// +k8s:configmap:default="1024"
 	Memory int
 	// +k8s:configmap:default="/etc/app/ca.crt"
-	TLSPath string
+	TLSPath   string
 	NoDefault string
 }
-
-// +k8s:pod:image="docker.io/naivary/filevault:latest"
-// +k8s:pod:imagepullpolicy="Always"
-func main() {}

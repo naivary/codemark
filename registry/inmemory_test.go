@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/api"
-	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/api/core"
+
 	"github.com/naivary/codemark/maker"
 )
 
@@ -14,7 +14,7 @@ type registryTestCase struct {
 	// Name of the test case
 	Name string
 	// The definition being tested
-	Def *api.Definition
+	Opt *core.Option
 	// Whether the test case is checking correctness or not.
 	IsValid bool
 }
@@ -29,37 +29,37 @@ func newRegTester(reg Registry) *registryTester {
 	}
 }
 
-func (r *registryTester) newTest(def *api.Definition, isValid bool) registryTestCase {
+func (r *registryTester) newTest(opt *core.Option, isValid bool) registryTestCase {
 	return registryTestCase{
-		Name:    fmt.Sprintf("%s[%s]", def.Ident, def.Output),
+		Name:    fmt.Sprintf("%s[%s]", opt.Ident, opt.Output),
 		IsValid: isValid,
-		Def:     def,
+		Opt:     opt,
 	}
 }
 
 func (r *registryTester) run(t *testing.T, tc registryTestCase) {
-	err := r.reg.Define(tc.Def)
+	err := r.reg.Define(tc.Opt)
 	if err == nil && !tc.IsValid {
-		t.Errorf("expected an error but err was nil: %s\n", tc.Def.Ident)
+		t.Errorf("expected an error but err was nil: %s\n", tc.Opt.Ident)
 	}
 	if err != nil && !tc.IsValid {
 		t.Skipf("expected error to occur because it's an invalid test case: %s. Skipping...", err)
 	}
 	if err != nil && tc.IsValid {
-		t.Errorf("could not define definition: %v\n", tc.Def)
+		t.Errorf("could not define definition: %v\n", tc.Opt)
 	}
-	def, err := r.reg.Get(tc.Def.Ident)
+	opt, err := r.reg.Get(tc.Opt.Ident)
 	if err != nil {
 		t.Errorf("get failed with an error: %s\n", err)
 	}
-	if def != tc.Def {
-		t.Errorf("definitions are not equal after retrieval. got: %v\n want: %v\n", def, tc.Def)
+	if opt != tc.Opt {
+		t.Errorf("definitions are not equal after retrieval. got: %v\n want: %v\n", opt, tc.Opt)
 	}
-	r.validateDoc(t, tc.Def, def)
+	r.validateDoc(t, tc.Opt, opt)
 	t.Logf("test case sucessfull: %s\n", tc.Name)
 }
 
-func (r *registryTester) validateDoc(t *testing.T, got, want *api.Definition) {
+func (r *registryTester) validateDoc(t *testing.T, got, want *core.Option) {
 	if got.Doc == nil {
 		t.Logf("no assertions will be done for the documentation because `%s` has no doc", got.Ident)
 		return
@@ -73,20 +73,20 @@ func (r *registryTester) validateDoc(t *testing.T, got, want *api.Definition) {
 	}
 }
 
-func defs() []*api.Definition {
-	return []*api.Definition{
-		maker.MustMakeDef("codemark:registry:plain", reflect.TypeFor[string](), target.ANY),
-		maker.MustMakeDefWithDoc("codemark:registry:doc", reflect.TypeFor[string](), api.OptionDoc{Doc: "some doc"}, target.ANY),
+func opts() []*core.Option {
+	return []*core.Option{
+		maker.MustMakeOpt("codemark:registry:plain", reflect.TypeFor[string](), core.TargetAny),
+		maker.MustMakeOptWithDoc("codemark:registry:doc", reflect.TypeFor[string](), core.OptionDoc{Doc: "some doc"}, core.TargetAny),
 	}
 }
 
 func TestInMemory(t *testing.T) {
 	reg := InMemory()
 	tester := newRegTester(reg)
-	defs := defs()
-	tests := make([]registryTestCase, 0, len(defs))
-	for _, def := range defs {
-		tests = append(tests, tester.newTest(def, true))
+	opts := opts()
+	tests := make([]registryTestCase, 0, len(opts))
+	for _, opt := range opts {
+		tests = append(tests, tester.newTest(opt, true))
 	}
 
 	for _, tc := range tests {

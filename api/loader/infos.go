@@ -5,14 +5,13 @@ import (
 	"go/types"
 )
 
-type Defs interface {
-	Definitions() map[string][]any
+type Optioner interface {
+	Options() map[string][]any
 }
 
 type Filename = string
 
-// TODO: Find a better name than Project
-type Project struct {
+type Information struct {
 	Structs map[types.Object]*StructInfo
 	Ifaces  map[types.Object]IfaceInfo
 	Aliases map[types.Object]AliasInfo
@@ -24,8 +23,8 @@ type Project struct {
 	Files   map[Filename]FileInfo
 }
 
-func NewProject() *Project {
-	return &Project{
+func NewInformation() *Information {
+	return &Information{
 		Structs: make(map[types.Object]*StructInfo),
 		Ifaces:  make(map[types.Object]IfaceInfo),
 		Aliases: make(map[types.Object]AliasInfo),
@@ -40,115 +39,115 @@ func NewProject() *Project {
 
 type FuncInfo struct {
 	Decl *ast.FuncDecl
-	Defs map[string][]any
+	Opts map[string][]any
 }
 
-func (f FuncInfo) Definitions() map[string][]any {
-	return f.Defs
+func (f FuncInfo) Options() map[string][]any {
+	return f.Opts
 }
 
 type FileInfo struct {
 	File *ast.File
-	Defs map[string][]any
+	Opts map[string][]any
 }
 
-func (f FileInfo) Definitions() map[string][]any {
-	return f.Defs
+func (f FileInfo) Options() map[string][]any {
+	return f.Opts
 }
 
 type ImportInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ImportSpec
-	Defs map[string][]any
+	Opts map[string][]any
 }
 
-func (i ImportInfo) Definitions() map[string][]any {
-	return i.Defs
+func (i ImportInfo) Options() map[string][]any {
+	return i.Opts
 }
 
 type VarInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
-	Defs map[string][]any
+	Opts map[string][]any
 }
 
-func (v VarInfo) Definitions() map[string][]any {
-	return v.Defs
+func (v VarInfo) Options() map[string][]any {
+	return v.Opts
 }
 
 type ConstInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
-	Defs map[string][]any
+	Opts map[string][]any
 }
 
-func (c ConstInfo) Definitions() map[string][]any {
-	return c.Defs
+func (c ConstInfo) Options() map[string][]any {
+	return c.Opts
 }
 
 type NamedInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Defs map[string][]any
+	Opts map[string][]any
 
 	Methods map[types.Object]FuncInfo
 }
 
-func (n NamedInfo) Definitions() map[string][]any {
-	return n.Defs
+func (n NamedInfo) Options() map[string][]any {
+	return n.Opts
 }
 
 type AliasInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Defs map[string][]any
+	Opts map[string][]any
 }
 
-func (a AliasInfo) Definitions() map[string][]any {
-	return a.Defs
+func (a AliasInfo) Options() map[string][]any {
+	return a.Opts
 }
 
 type IfaceInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Defs map[string][]any
+	Opts map[string][]any
 
 	Signatures map[types.Object]SignatureInfo
 }
 
-func (i IfaceInfo) Definitions() map[string][]any {
-	return i.Defs
+func (i IfaceInfo) Options() map[string][]any {
+	return i.Opts
 }
 
 type SignatureInfo struct {
 	Method *ast.Field
 	Idn    *ast.Ident
-	Defs   map[string][]any
+	Opts   map[string][]any
 }
 
-func (s SignatureInfo) Definitions() map[string][]any {
-	return s.Defs
+func (s SignatureInfo) Options() map[string][]any {
+	return s.Opts
 }
 
 type StructInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Defs map[string][]any
+	Opts map[string][]any
 
 	Fields  map[types.Object]FieldInfo
 	Methods map[types.Object]FuncInfo
 }
 
-func (s StructInfo) Definitions() map[string][]any {
-	return s.Defs
+func (s StructInfo) Options() map[string][]any {
+	return s.Opts
 }
 
 type FieldInfo struct {
 	Field *ast.Field
 	Idn   *ast.Ident
-	Defs  map[string][]any
+	Opts  map[string][]any
 }
 
-func (f FieldInfo) Definitions() map[string][]any {
-	return f.Defs
+func (f FieldInfo) Options() map[string][]any {
+	return f.Opts
 }

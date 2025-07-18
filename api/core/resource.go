@@ -1,3 +1,6 @@
 package core
 
-type ResourceDoc struct{}
+type ResourceDoc struct {
+	Doc     string
+	Options []Option
+}

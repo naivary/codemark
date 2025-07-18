@@ -5,7 +5,7 @@ import (
 )
 
 func TestListConverter(t *testing.T) {
-	conv := List(mngr)
+	conv := List()
 	tester, err := newConvTester(conv, customTypesFor(conv))
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

@@ -37,7 +37,7 @@ func (b *boolConverter) SupportedTypes() []reflect.Type {
 
 func (b *boolConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.BOOL {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a boolean. valid option is: %s\n", m.Kind, marker.BOOL)
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a boolean. valid option is: %s", m.Kind, marker.BOOL)
 	}
 	return nil
 }

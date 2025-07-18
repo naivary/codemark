@@ -12,11 +12,11 @@ type Option struct {
 	// Ident is the identifier of the option e.g. domain:resource:option
 	Ident string
 
-	// Target defines on which kind of go expression (Struct etc.) the Definition is appliable
+	// Target defines on which kind of go expression (Struct etc.) the option is appliable
 	Targets []Target
 
 	// Doc provides documentation for the user to inform about the usage and
-	// intention of the definition.
+	// intention of the option.
 	Doc *OptionDoc
 
 	// DeprecatedInFavorOf points to the marker identifier which should

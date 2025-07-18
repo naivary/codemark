@@ -6,10 +6,6 @@ import (
 	"github.com/naivary/codemark/parser/marker"
 )
 
-type defs interface {
-	Definitions() map[string][]any
-}
-
 type markers interface {
 	markers() []marker.Marker
 }

@@ -4,39 +4,17 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/naivary/codemark/definition/target"
-	"github.com/naivary/codemark/registry"
+	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
 
-var reg = newRegistry()
-
-var mngr = newManager()
-
-func newManager() *Manager {
-	mngr, err := NewManager(reg)
-	if err != nil {
-		panic(err)
-	}
-	return mngr
-}
-
-func newRegistry() registry.Registry {
-	defs := sdktesting.NewDefSet()
-	reg, err := sdktesting.NewRegistry(defs)
-	if err != nil {
-		panic(err)
-	}
-	return reg
-}
-
-func newConvTester(conv sdk.Converter, customeTypes []any) (sdktesting.ConverterTester, error) {
+func newConvTester(conv sdk.Converter, customTypes []any) (sdktesting.ConverterTester, error) {
 	tester, err := sdktesting.NewConvTester(conv)
 	if err != nil {
 		return nil, err
 	}
-	for _, typ := range customeTypes {
+	for _, typ := range customTypes {
 		to := reflect.TypeOf(typ)
 		vvfn := sdktesting.GetVVFn(to)
 		if err := tester.AddVVFunc(to, vvfn); err != nil {
@@ -73,7 +51,7 @@ func validTestsFor(conv sdk.Converter, tester sdktesting.ConverterTester) ([]sdk
 	tests := make([]sdktesting.ConverterTestCase, 0, len(types))
 	for _, to := range types {
 		rtype := reflect.TypeOf(to)
-		tc, err := tester.NewTest(rtype, true, target.ANY)
+		tc, err := tester.NewTest(rtype, true, coreapi.TargetAny)
 		if err != nil {
 			return nil, err
 		}

@@ -43,7 +43,7 @@ func (c *complexConverter) SupportedTypes() []reflect.Type {
 
 func (c *complexConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.COMPLEX {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.COMPLEX)
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s", m.Kind, marker.COMPLEX)
 	}
 	return nil
 }
@@ -55,7 +55,7 @@ func (c *complexConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Va
 func (c *complexConverter) complexx(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	n := m.Value.Complex()
 	if c.isOverflowing(to, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), to)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
 	return sdkutil.ConvertTo(m.Value, to)
 }

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/definition/target"
+	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/parser/marker"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
 )
@@ -13,8 +13,8 @@ func customTests(tester sdktesting.ConverterTester) []sdktesting.ConverterTestCa
 	b := marker.New("codemark:testing:byte", marker.STRING, reflect.ValueOf("b"))
 	r := marker.New("codemark:testing:rune", marker.STRING, reflect.ValueOf("r"))
 	return []sdktesting.ConverterTestCase{
-		tester.MustNewTestWithMarker(&b, reflect.TypeFor[sdktesting.String](), true, target.ANY),
-		tester.MustNewTestWithMarker(&r, reflect.TypeFor[sdktesting.String](), true, target.ANY),
+		tester.MustNewTestWithMarker(&b, reflect.TypeFor[sdktesting.String](), true, coreapi.TargetAny),
+		tester.MustNewTestWithMarker(&r, reflect.TypeFor[sdktesting.String](), true, coreapi.TargetAny),
 	}
 }
 
