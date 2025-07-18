@@ -14,15 +14,15 @@ func objectMetaOpts() []*core.Option {
 	})
 }
 
-func createObjectMeta(d loaderapi.Defs) metav1.ObjectMeta {
+func createObjectMeta(optioner loaderapi.Optioner) metav1.ObjectMeta {
 	obj := metav1.ObjectMeta{}
-	for _, defs := range d.Definitions() {
-		for _, def := range defs {
-			switch d := def.(type) {
+	for _, opts := range optioner.Options() {
+		for _, opt := range opts {
+			switch o := opt.(type) {
 			case Name:
-				d.apply(&obj)
+				o.apply(&obj)
 			case Namespace:
-				d.apply(&obj)
+				o.apply(&obj)
 			}
 		}
 	}

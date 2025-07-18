@@ -13,13 +13,11 @@ import (
 var _ sdk.Converter = (*listConverter)(nil)
 
 type listConverter struct {
-	mngr *Manager
 	name string
 }
 
-func List(mngr *Manager) sdk.Converter {
+func List() sdk.Converter {
 	return &listConverter{
-		mngr: mngr,
 		name: "list",
 	}
 }
@@ -98,7 +96,7 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 
 func (l *listConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.LIST {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s\n", m.Kind, marker.LIST)
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s", m.Kind, marker.LIST)
 	}
 	return nil
 }
@@ -119,9 +117,9 @@ func (l *listConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value
 
 func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	rvalue := reflect.ValueOf(v)
-	conv, err := l.mngr.GetConverter(typ)
-	if err != nil {
-		return _rvzero, err
+	conv := Get(typ)
+	if conv == nil {
+		return _rvzero, fmt.Errorf("no converter found for: %s", typ)
 	}
 	mkind := sdkutil.MarkerKindOf(rvalue.Type())
 	fakeMarker := maker.MakeFakeMarker(mkind, rvalue)

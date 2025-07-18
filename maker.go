@@ -8,6 +8,6 @@ var MakeOptWithDoc = maker.MakeOptWithDoc
 
 var MustMakeOpt = maker.MustMakeOpt
 
-var MustMakeDefWithDoc = maker.MustMakeOptWithDoc
+var MustMakeOptWithDoc = maker.MustMakeOptWithDoc
 
 var MakeFakeMarker = maker.MakeFakeMarker

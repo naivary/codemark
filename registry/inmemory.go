@@ -9,7 +9,7 @@ import (
 
 func InMemory() Registry {
 	return &inmem{
-		defs: make(map[string]*core.Option),
+		opts: make(map[string]*core.Option),
 	}
 }
 
@@ -18,37 +18,37 @@ var _ Registry = (*inmem)(nil)
 type inmem struct {
 	mu sync.Mutex
 
-	defs map[string]*core.Option
+	opts map[string]*core.Option
 }
 
 func (mem *inmem) Define(d *core.Option) error {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
-	def, isDefined := mem.defs[d.Ident]
-	if isDefined {
-		return fmt.Errorf("definition is already defined: %s", def.Ident)
+	opt, exists := mem.opts[d.Ident]
+	if exists {
+		return fmt.Errorf("option already exists: %s", opt.Ident)
 	}
-	mem.defs[d.Ident] = d
+	mem.opts[d.Ident] = d
 	return nil
 }
 
 func (mem *inmem) Get(idn string) (*core.Option, error) {
-	def, found := mem.defs[idn]
-	if found {
-		return def, nil
+	opt, exists := mem.opts[idn]
+	if exists {
+		return opt, nil
 	}
-	return nil, fmt.Errorf("definition not found: `%s`", idn)
+	return nil, fmt.Errorf("option not found: `%s`", idn)
 }
 
 func (mem *inmem) DocOf(ident string) (*core.OptionDoc, error) {
-	def, err := mem.Get(ident)
+	opt, err := mem.Get(ident)
 	if err != nil {
 		return nil, err
 	}
-	return def.Doc, nil
+	return opt.Doc, nil
 }
 
 func (mem *inmem) All() map[string]*core.Option {
-	return mem.defs
+	return mem.opts
 }

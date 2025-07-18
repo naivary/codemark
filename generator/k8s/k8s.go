@@ -52,7 +52,7 @@ func (g k8sGenerator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Project) error {
+func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Information) error {
 	for _, proj := range infos {
 		for _, strc := range proj.Structs {
 			if shouldGenerateConfigMap(strc) {

@@ -174,9 +174,9 @@ func AliasOpts() []*core.Option {
 	}
 }
 
-// NewDefSet returns all the definitions matching the default markers available with
+// NewOptSet returns all the definitions matching the default markers available with
 // the correct type
-func NewDefSet() []*core.Option {
+func NewOptSet() []*core.Option {
 	types := AllTypes()
 	aliases := AliasOpts()
 	defs := make([]*core.Option, 0, len(types)+len(aliases))
@@ -184,8 +184,8 @@ func NewDefSet() []*core.Option {
 		rtype := reflect.TypeOf(typ)
 		name := sdkutil.NameFor(rtype)
 		ident := NewIdent(name)
-		def := maker.MustMakeOpt(ident, rtype, core.TargetAny)
-		defs = append(defs, def)
+		opt := maker.MustMakeOpt(ident, rtype, core.TargetAny)
+		defs = append(defs, opt)
 	}
 	return slices.Concat(defs, aliases)
 }

@@ -70,7 +70,7 @@ func (i *intConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if mkind == marker.STRING && out.Kind() == _byte || out.Kind() == _rune {
 		return nil
 	}
-	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s\n", mkind, marker.INT, marker.STRING)
+	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s", mkind, marker.INT, marker.STRING)
 }
 
 func (i *intConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -87,13 +87,13 @@ func (i *intConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value,
 	if i.isRune(to, mkind) {
 		return i.runee(m, to)
 	}
-	return _rvzero, fmt.Errorf("cannot convert %s to %v\n", m.Ident, to)
+	return _rvzero, fmt.Errorf("cannot convert %s to %v", m.Ident, to)
 }
 
 func (i *intConverter) integer(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	n := m.Value.Int()
 	if i.isOverflowingInt(to, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), to)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
 	return sdkutil.ConvertTo(m.Value, to)
 }
@@ -101,7 +101,7 @@ func (i *intConverter) integer(m marker.Marker, to reflect.Type) (reflect.Value,
 func (i *intConverter) uinteger(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	n := m.Value.Int()
 	if i.isOverflowingUint(to, uint64(n)) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), to)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
 	return sdkutil.ConvertTo(m.Value, to)
 }
@@ -109,7 +109,7 @@ func (i *intConverter) uinteger(m marker.Marker, to reflect.Type) (reflect.Value
 func (i *intConverter) runee(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	v := m.Value.String()
 	if len(v) > 1 {
-		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s\n", v)
+		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s", v)
 	}
 	rvalue := reflect.ValueOf(rune(v[0]))
 	return sdkutil.ConvertTo(rvalue, to)
@@ -118,7 +118,7 @@ func (i *intConverter) runee(m marker.Marker, to reflect.Type) (reflect.Value, e
 func (i *intConverter) bytee(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	v := m.Value.String()
 	if len(v) > 1 {
-		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s\n", v)
+		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s", v)
 	}
 	bvalue := reflect.ValueOf(byte(v[0]))
 	return sdkutil.ConvertTo(bvalue, to)

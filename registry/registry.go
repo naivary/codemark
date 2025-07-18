@@ -11,9 +11,8 @@ var (
 )
 
 type Registry interface {
-	// Define the definition in the registry for future retrieval. It's
-	// important to make sure `def.ident` is unique in the Registry.
-	Define(def *core.Option) error
+	// Define defines the option in the registry. Options must be unique.
+	Define(opt *core.Option) error
 
 	// Get the definition by the unique identiffier
 	Get(ident string) (*core.Option, error)

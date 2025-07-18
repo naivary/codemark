@@ -5,7 +5,6 @@ import (
 	"log/slog"
 	"reflect"
 	"slices"
-	"strings"
 
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/parser"
@@ -15,14 +14,14 @@ import (
 	sdkutil "github.com/naivary/codemark/sdk/utils"
 )
 
-type definitions map[string][]any
+type options map[string][]any
 
-func (d definitions) Add(idn string, value any) {
-	defs, ok := d[idn]
+func (o options) Add(idn string, value any) {
+	opts, ok := o[idn]
 	if !ok {
-		d[idn] = []any{value}
+		o[idn] = []any{value}
 	}
-	d[idn] = append(defs, value)
+	o[idn] = append(opts, value)
 }
 
 type Manager struct {
@@ -54,7 +53,7 @@ func (m *Manager) GetConverter(rtype reflect.Type) (sdk.Converter, error) {
 	}
 	conv, found := m.convs[rtype]
 	if !found {
-		return nil, fmt.Errorf("no converter found: %v\n", rtype)
+		return nil, fmt.Errorf("no converter found: %v", rtype)
 	}
 	return conv, nil
 }
@@ -65,7 +64,7 @@ func (m *Manager) addConverter(conv sdk.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		_, found := m.convs[rtype]
 		if found {
-			return fmt.Errorf("converter already exists: %v\n", conv)
+			return fmt.Errorf("converter already exists: %v", conv)
 		}
 		m.convs[rtype] = conv
 	}
@@ -73,35 +72,34 @@ func (m *Manager) addConverter(conv sdk.Converter) error {
 }
 
 func (m *Manager) AddConverter(conv sdk.Converter) error {
-	if err := m.isValidName(conv.Name()); err != nil {
-		return fmt.Errorf("converter is not following naming conventions: %s\n", err.Error())
+	if err := isValidName(conv.Name()); err != nil {
+		return fmt.Errorf("converter is not following naming conventions: %s", err.Error())
 	}
 	return m.addConverter(conv)
 }
 
-// Convert converts the marker by finding the correlating definition in the
-// registry with respect to the target.
+// Convert converts the marker to a defined option with respect to the target `t`
 func (m *Manager) Convert(mrk marker.Marker, t coreapi.Target) (any, error) {
 	idn := mrk.Ident
-	def, err := m.reg.Get(idn)
+	opt, err := m.reg.Get(idn)
 	if err != nil {
 		return nil, err
 	}
-	if inFavorOf, isDepcrecated := def.IsDeprecated(); isDepcrecated {
-		msg := fmt.Sprintf("MARKER[%s] IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
+	if inFavorOf, isDepcrecated := opt.IsDeprecated(); isDepcrecated {
+		msg := fmt.Sprintf("%s IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
 		slog.Warn(msg)
 	}
-	if !(slices.Contains(def.Targets, t) || slices.Contains(def.Targets, coreapi.TargetAny)) {
-		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, def.Targets, t)
+	if isCorrectTarget(*opt, t) {
+		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, opt.Targets, t)
 	}
-	conv, err := m.GetConverter(def.Output)
+	conv, err := m.GetConverter(opt.Output)
 	if err != nil {
 		return nil, err
 	}
-	if err := conv.CanConvert(mrk, def.Output); err != nil {
+	if err := conv.CanConvert(mrk, opt.Output); err != nil {
 		return nil, err
 	}
-	out, err := conv.Convert(mrk, def.Output)
+	out, err := conv.Convert(mrk, opt.Output)
 	if err != nil {
 		return nil, err
 	}
@@ -113,15 +111,15 @@ func (m *Manager) ParseDefs(doc string, t coreapi.Target) (map[string][]any, err
 	if err != nil {
 		return nil, err
 	}
-	defs := make(definitions, len(markers))
+	opts := make(options, len(markers))
 	for _, marker := range markers {
 		value, err := m.Convert(marker, t)
 		if err != nil {
 			return nil, err
 		}
-		defs.Add(marker.Ident, value)
+		opts.Add(marker.Ident, value)
 	}
-	return defs, nil
+	return opts, nil
 }
 
 func (m *Manager) builtinConvs() []sdk.Converter {
@@ -131,22 +129,9 @@ func (m *Manager) builtinConvs() []sdk.Converter {
 		Float(),
 		Bool(),
 		Complex(),
-		List(m),
+		List(),
 		Any(),
 	}
-}
-
-// isValidName checks if the choosen name of a custom converter is following the
-// convention of prefixing the name with the project name and that the project
-// name is not "codemark".
-func (m *Manager) isValidName(name string) error {
-	if strings.HasPrefix(name, _codemark) {
-		return fmt.Errorf(`the name of your custom converter cannot start with "codemark" because it is reserved for the builtin converters: %s`, name)
-	}
-	if len(strings.Split(name, ".")) != 2 {
-		return fmt.Errorf(`the name of your custom converter has to be seperated with "%s" and must be composed of two segments e.g. "codemark.integer"`, ".")
-	}
-	return nil
 }
 
 // builtin returns a bultin converter if the given rtype can be converterted by
@@ -162,25 +147,8 @@ func (m *Manager) builtin(rtype reflect.Type) sdk.Converter {
 	if found {
 		return conv
 	}
-	// NOTE: The types choose in the function `reflect.TypeFor` are one of the
-	// supported types of the converter. The concrete type choice has no meaning.
 	if sdkutil.IsValidSlice(rtype) {
 		return m.convs[reflect.TypeFor[[]string]()]
 	}
-	if sdkutil.IsBool(rtype) {
-		return m.convs[reflect.TypeFor[bool]()]
-	}
-	if sdkutil.IsString(rtype) {
-		return m.convs[reflect.TypeFor[string]()]
-	}
-	if sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) {
-		return m.convs[reflect.TypeFor[int]()]
-	}
-	if sdkutil.IsFloat(rtype) {
-		return m.convs[reflect.TypeFor[float32]()]
-	}
-	if sdkutil.IsComplex(rtype) {
-		return m.convs[reflect.TypeFor[complex64]()]
-	}
-	return nil
+	return Get(rtype)
 }

@@ -36,25 +36,25 @@ func configMapOpts() []*coreapi.Option {
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 	cm := newConfigMap()
 	cm.ObjectMeta = createObjectMeta(strc)
-	for _, defs := range strc.Defs {
-		for _, def := range defs {
-			switch d := def.(type) {
+	for _, opts := range strc.Opts {
+		for _, opt := range opts {
+			switch o := opt.(type) {
 			case Immutable:
-				d.apply(cm)
+				o.apply(cm)
 			}
 		}
 	}
 	for _, field := range strc.Fields {
-		idents := keys(field.Defs)
+		idents := keys(field.Opts)
 		if !slices.Contains(idents, "k8s:configmap:default") {
 			setDataInConfigMap(field.Idn.Name, "", cm)
 			continue
 		}
-		for _, defs := range field.Defs {
-			for _, def := range defs {
-				switch d := def.(type) {
+		for _, opts := range field.Opts {
+			for _, opt := range opts {
+				switch o := opt.(type) {
 				case Default:
-					d.apply(field.Idn, cm)
+					o.apply(field.Idn, cm)
 				}
 			}
 		}

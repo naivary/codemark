@@ -1,3 +1,6 @@
 package core
 
-type DomainDoc struct {}
+type DomainDoc struct {
+	Doc       string
+	Resources []ResourceDoc
+}

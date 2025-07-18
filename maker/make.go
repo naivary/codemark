@@ -9,42 +9,42 @@ import (
 )
 
 func MakeOption(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
-	def := &core.Option{
+	opt := &core.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
 	}
-	return def, def.IsValid()
+	return opt, opt.IsValid()
 }
 
 func MustMakeOpt(idn string, output reflect.Type, targets ...core.Target) *core.Option {
-	def := &core.Option{
+	opt := &core.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
 	}
-	if err := def.IsValid(); err != nil {
+	if err := opt.IsValid(); err != nil {
 		panic(err)
 	}
-	return def
+	return opt
 }
 
 func MakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, targets ...core.Target) (*core.Option, error) {
-	def, err := MakeOption(name, output, targets...)
+	opt, err := MakeOption(name, output, targets...)
 	if err != nil {
 		return nil, err
 	}
-	def.Doc = &doc
-	return def, def.IsValid()
+	opt.Doc = &doc
+	return opt, opt.IsValid()
 }
 
 func MustMakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, targets ...core.Target) *core.Option {
-	def, err := MakeOption(name, output, targets...)
+	opt, err := MakeOption(name, output, targets...)
 	if err != nil {
 		panic(err)
 	}
-	def.Doc = &doc
-	return def
+	opt.Doc = &doc
+	return opt
 }
 
 func MakeFakeMarker(mkind marker.Kind, value reflect.Value) marker.Marker {

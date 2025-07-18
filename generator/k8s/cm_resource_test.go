@@ -6,7 +6,7 @@ import (
 	"github.com/naivary/codemark"
 )
 
-func TestConfigMapResourec(t *testing.T) {
+func TestConfigMapResource(t *testing.T) {
 	gen, err := NewGenerator()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

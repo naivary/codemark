@@ -20,7 +20,7 @@ func TestLoaderLocal(t *testing.T) {
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
-	reg, err := sdktesting.NewRegistry(sdktesting.NewDefSet())
+	reg, err := sdktesting.NewRegistry(sdktesting.NewOptSet())
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
@@ -51,20 +51,20 @@ func validateMarker(want []marker.Marker, got map[string][]any) error {
 	return nil
 }
 
-func validate[T markers, V defs](want map[string]T, got map[types.Object]V) error {
+func validate[T markers, V loaderapi.Optioner](want map[string]T, got map[types.Object]V) error {
 	if len(got) != len(want) {
 		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(got), len(want))
 	}
 	for typ, info := range got {
 		m := want[typ.Name()].markers()
-		if err := validateMarker(m, info.Definitions()); err != nil {
+		if err := validateMarker(m, info.Options()); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func isValid(tc loaderTestCase, proj *loaderapi.Project) error {
+func isValid(tc loaderTestCase, proj *loaderapi.Information) error {
 	// check struct
 	if err := validate(tc.Structs, proj.Structs); err != nil {
 		return err
@@ -119,7 +119,7 @@ func isValid(tc loaderTestCase, proj *loaderapi.Project) error {
 	}
 	for filename, info := range proj.Files {
 		markers := tc.Files[filename].markers()
-		if err := validateMarker(markers, info.Defs); err != nil {
+		if err := validateMarker(markers, info.Opts); err != nil {
 			return err
 		}
 	}

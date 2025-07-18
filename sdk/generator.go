@@ -19,7 +19,7 @@ type Generator interface {
 	Ressources() []string
 
 	// Generate the artificats based on the given information
-	Generate(infos map[*packages.Package]*loaderapi.Project) error
+	Generate(infos map[*packages.Package]*loaderapi.Information) error
 
 	// OptionsOf returns the options for a choosen resource e.g.
 	// codemark:resource.

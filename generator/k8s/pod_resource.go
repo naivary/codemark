@@ -30,14 +30,14 @@ func podOpts() []*core.Option {
 func createPod(fn loaderapi.FuncInfo) (*corev1.Pod, error) {
 	pod := newPod()
 	pod.ObjectMeta = createObjectMeta(fn)
-	for _, defs := range fn.Defs {
-		for _, def := range defs {
+	for _, opts := range fn.Opts {
+		for _, opt := range opts {
 			var err error
-			switch d := def.(type) {
+			switch o := opt.(type) {
 			case Image:
-				err = d.apply(&pod.Spec.Containers[0])
+				err = o.apply(&pod.Spec.Containers[0])
 			case ImagePullPolicy:
-				err = d.apply(&pod.Spec.Containers[0])
+				err = o.apply(&pod.Spec.Containers[0])
 			}
 			if err != nil {
 				return nil, err

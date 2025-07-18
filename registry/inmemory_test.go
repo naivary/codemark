@@ -48,14 +48,14 @@ func (r *registryTester) run(t *testing.T, tc registryTestCase) {
 	if err != nil && tc.IsValid {
 		t.Errorf("could not define definition: %v\n", tc.Opt)
 	}
-	def, err := r.reg.Get(tc.Opt.Ident)
+	opt, err := r.reg.Get(tc.Opt.Ident)
 	if err != nil {
 		t.Errorf("get failed with an error: %s\n", err)
 	}
-	if def != tc.Opt {
-		t.Errorf("definitions are not equal after retrieval. got: %v\n want: %v\n", def, tc.Opt)
+	if opt != tc.Opt {
+		t.Errorf("definitions are not equal after retrieval. got: %v\n want: %v\n", opt, tc.Opt)
 	}
-	r.validateDoc(t, tc.Opt, def)
+	r.validateDoc(t, tc.Opt, opt)
 	t.Logf("test case sucessfull: %s\n", tc.Name)
 }
 
@@ -85,8 +85,8 @@ func TestInMemory(t *testing.T) {
 	tester := newRegTester(reg)
 	opts := opts()
 	tests := make([]registryTestCase, 0, len(opts))
-	for _, def := range opts {
-		tests = append(tests, tester.newTest(def, true))
+	for _, opt := range opts {
+		tests = append(tests, tester.newTest(opt, true))
 	}
 
 	for _, tc := range tests {

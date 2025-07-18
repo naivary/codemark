@@ -23,17 +23,17 @@ func newRegistry() (registry.Registry, error) {
 	return reg, nil
 }
 
-func makeDefs(resource string, opts map[any][]core.Target) []*core.Option {
-	defs := make([]*core.Option, 0, len(opts))
-	for opt, targets := range opts {
+func makeDefs(resource string, optionTypes map[any][]core.Target) []*core.Option {
+	opts := make([]*core.Option, 0, len(optionTypes))
+	for opt, targets := range optionTypes {
 		to := reflect.TypeOf(opt)
 		name := strings.ToLower(to.Name())
 		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
 		doc := opt.(core.Docer[core.OptionDoc]).Doc()
-		def := maker.MustMakeOptWithDoc(ident, to, doc, targets...)
-		defs = append(defs, def)
+		opt := maker.MustMakeOptWithDoc(ident, to, doc, targets...)
+		opts = append(opts, opt)
 	}
-	return defs
+	return opts
 }
 
 func keys[K comparable, V any](m map[K]V) []K {
@@ -46,7 +46,7 @@ func keys[K comparable, V any](m map[K]V) []K {
 
 func shouldGenerateConfigMap(strc *loaderapi.StructInfo) bool {
 	for _, field := range strc.Fields {
-		for ident := range field.Defs {
+		for ident := range field.Opts {
 			if ident == "k8s:configmap:default" {
 				return true
 			}

@@ -43,7 +43,7 @@ func (f *floatConverter) SupportedTypes() []reflect.Type {
 
 func (f *floatConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.FLOAT {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a float. valid option is: %s\n", m.Kind, marker.FLOAT)
+		return fmt.Errorf("marker kind of `%s` cannot be converted to a float. valid option is: %s", m.Kind, marker.FLOAT)
 	}
 	return nil
 }
@@ -51,7 +51,7 @@ func (f *floatConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 func (f *floatConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	n := m.Value.Float()
 	if f.isOverflowing(to, n) {
-		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`\n", m.String(), to)
+		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
 	return sdkutil.ConvertTo(m.Value, to)
 }
