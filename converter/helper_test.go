@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/naivary/codemark/definition/target"
+	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/sdk"
 	sdktesting "github.com/naivary/codemark/sdk/testing"
@@ -73,7 +73,7 @@ func validTestsFor(conv sdk.Converter, tester sdktesting.ConverterTester) ([]sdk
 	tests := make([]sdktesting.ConverterTestCase, 0, len(types))
 	for _, to := range types {
 		rtype := reflect.TypeOf(to)
-		tc, err := tester.NewTest(rtype, true, target.ANY)
+		tc, err := tester.NewTest(rtype, true, coreapi.TargetAny)
 		if err != nil {
 			return nil, err
 		}

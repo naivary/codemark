@@ -6,19 +6,15 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/naivary/codemark/api"
+	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/registry"
 )
 
-type docer interface {
-	Doc() api.OptionDoc
-}
-
 func newRegistry() (registry.Registry, error) {
 	reg := registry.InMemory()
-	defs := slices.Concat(configMapDefs(), objectMetaDefs(), podDefs())
+	defs := slices.Concat(configMapOpts(), objectMetaOpts(), podOpts())
 	for _, def := range defs {
 		if err := reg.Define(def); err != nil {
 			return nil, err
@@ -27,14 +23,14 @@ func newRegistry() (registry.Registry, error) {
 	return reg, nil
 }
 
-func makeDefs(resource string, opts ...any) []*api.Definition {
-	defs := make([]*api.Definition, 0, len(opts))
-	for _, opt := range opts {
+func makeDefs(resource string, opts map[any][]core.Target) []*core.Option {
+	defs := make([]*core.Option, 0, len(opts))
+	for opt, targets := range opts {
 		to := reflect.TypeOf(opt)
 		name := strings.ToLower(to.Name())
 		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
-		doc := opt.(docer).Doc()
-		def := maker.MustMakeDefWithDoc(ident, to, doc, doc.Targets...)
+		doc := opt.(core.Docer[core.OptionDoc]).Doc()
+		def := maker.MustMakeOptWithDoc(ident, to, doc, targets...)
 		defs = append(defs, def)
 	}
 	return defs

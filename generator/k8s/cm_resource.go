@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/naivary/codemark/api"
+	coreapi "github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -25,12 +25,12 @@ func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
 	cm.Data[lower] = value
 }
 
-func configMapDefs() []*api.Definition {
+func configMapOpts() []*coreapi.Option {
 	const resource = "configmap"
-	return makeDefs(resource,
-		Immutable(false),
-		Default(""),
-	)
+	return makeDefs(resource, map[any][]coreapi.Target{
+		Immutable(false): {coreapi.TargetStruct},
+		Default(""):      {coreapi.TargetField},
+	})
 }
 
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {

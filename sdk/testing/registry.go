@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/naivary/codemark/api"
-	"github.com/naivary/codemark/definition/target"
+	"github.com/naivary/codemark/api/core"
+
 	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/registry"
 	sdkutil "github.com/naivary/codemark/sdk/utils"
@@ -158,42 +158,42 @@ func AllTypes() []any {
 	)
 }
 
-// AliasDefs are go-native types which are supported by the default
+// AliasOpts are go-native types which are supported by the default
 // converters but cannot be registered using the native types because they are
 // aliases of others e.g. byte and rune.
-func AliasDefs() []*api.Definition {
-	return []*api.Definition{
-		maker.MustMakeDef(NewIdent("byte"), reflect.TypeOf(Byte(0)), target.ANY),
-		maker.MustMakeDef(NewIdent("rune"), reflect.TypeOf(Rune(0)), target.ANY),
-		maker.MustMakeDef(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), target.ANY),
-		maker.MustMakeDef(NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), target.ANY),
+func AliasOpts() []*core.Option {
+	return []*core.Option{
+		maker.MustMakeOpt(NewIdent("byte"), reflect.TypeOf(Byte(0)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("rune"), reflect.TypeOf(Rune(0)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), core.TargetAny),
+		maker.MustMakeOpt(NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), core.TargetAny),
 	}
 }
 
 // NewDefSet returns all the definitions matching the default markers available with
 // the correct type
-func NewDefSet() []*api.Definition {
+func NewDefSet() []*core.Option {
 	types := AllTypes()
-	aliases := AliasDefs()
-	defs := make([]*api.Definition, 0, len(types)+len(aliases))
+	aliases := AliasOpts()
+	defs := make([]*core.Option, 0, len(types)+len(aliases))
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		name := sdkutil.NameFor(rtype)
 		ident := NewIdent(name)
-		def := maker.MustMakeDef(ident, rtype, target.ANY)
+		def := maker.MustMakeOpt(ident, rtype, core.TargetAny)
 		defs = append(defs, def)
 	}
 	return slices.Concat(defs, aliases)
 }
 
-func NewRegistry(defs []*api.Definition) (registry.Registry, error) {
+func NewRegistry(opts []*core.Option) (registry.Registry, error) {
 	reg := registry.InMemory()
-	for _, def := range defs {
-		if err := reg.Define(def); err != nil {
+	for _, opt := range opts {
+		if err := reg.Define(opt); err != nil {
 			return nil, err
 		}
 	}

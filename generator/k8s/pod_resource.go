@@ -1,7 +1,7 @@
 package k8s
 
 import (
-	"github.com/naivary/codemark/api"
+	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,17 +14,17 @@ func newPod() *corev1.Pod {
 			Kind:       "Pod",
 		},
 		Spec: corev1.PodSpec{
-			Containers: make([]corev1.Container, 1, 1),
+			Containers: make([]corev1.Container, 1),
 		},
 	}
 }
 
-func podDefs() []*api.Definition {
+func podOpts() []*core.Option {
 	const resource = "pod"
-	return makeDefs(resource,
-		Image(""),
-		ImagePullPolicy(""),
-	)
+	return makeDefs(resource, map[any][]core.Target{
+		Image(""):           {core.TargetFunc},
+		ImagePullPolicy(""): {core.TargetFunc},
+	})
 }
 
 func createPod(fn loaderapi.FuncInfo) (*corev1.Pod, error) {

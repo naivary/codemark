@@ -2,12 +2,12 @@ package codemark
 
 import "github.com/naivary/codemark/maker"
 
-var MakeDef = maker.MakeDef
+var MakeOption = maker.MakeOption
 
-var MakeDefWithDoc = maker.MakeDefWithDoc
+var MakeOptWithDoc = maker.MakeOptWithDoc
 
-var MustMakeDef = maker.MustMakeDef
+var MustMakeOpt = maker.MustMakeOpt
 
-var MustMakeDefWithDoc = maker.MustMakeDefWithDoc
+var MustMakeDefWithDoc = maker.MustMakeOptWithDoc
 
 var MakeFakeMarker = maker.MakeFakeMarker

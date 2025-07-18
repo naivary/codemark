@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/naivary/codemark/definition/target"
+	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/parser/marker"
 	"github.com/naivary/codemark/registry"
@@ -81,7 +81,7 @@ func (m *Manager) AddConverter(conv sdk.Converter) error {
 
 // Convert converts the marker by finding the correlating definition in the
 // registry with respect to the target.
-func (m *Manager) Convert(mrk marker.Marker, t target.Target) (any, error) {
+func (m *Manager) Convert(mrk marker.Marker, t coreapi.Target) (any, error) {
 	idn := mrk.Ident
 	def, err := m.reg.Get(idn)
 	if err != nil {
@@ -91,7 +91,7 @@ func (m *Manager) Convert(mrk marker.Marker, t target.Target) (any, error) {
 		msg := fmt.Sprintf("MARKER[%s] IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
 		slog.Warn(msg)
 	}
-	if !(slices.Contains(def.Targets, t) || slices.Contains(def.Targets, target.ANY)) {
+	if !(slices.Contains(def.Targets, t) || slices.Contains(def.Targets, coreapi.TargetAny)) {
 		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, def.Targets, t)
 	}
 	conv, err := m.GetConverter(def.Output)
@@ -108,7 +108,7 @@ func (m *Manager) Convert(mrk marker.Marker, t target.Target) (any, error) {
 	return out.Interface(), nil
 }
 
-func (m *Manager) ParseDefs(doc string, t target.Target) (map[string][]any, error) {
+func (m *Manager) ParseDefs(doc string, t coreapi.Target) (map[string][]any, error) {
 	markers, err := parser.Parse(doc)
 	if err != nil {
 		return nil, err
