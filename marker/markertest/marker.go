@@ -2,17 +2,13 @@ package markertest
 
 import (
 	"fmt"
-	"math"
-	"math/rand/v2"
+	randv2 "math/rand/v2"
 	"reflect"
-	"strconv"
-	"unicode"
 
+	"github.com/naivary/codemark/internal/rand"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/typeutil"
 )
-
-const RandLen = -1
 
 // NewIdent returns a identifier which can be used for both marker and definition.
 // This function should only be used for test purposes. The produced marker is in
@@ -42,19 +38,6 @@ func RandMarker(rtype reflect.Type) (*marker.Marker, error) {
 	return RandMarkerWithIdent(ident, rtype)
 }
 
-// RandGoIdent returns a random string which can be used as a go identifier.
-func RandGoIdent() string {
-	name := RandString(RandLen)
-	for {
-		firstLetter := rune(name[0])
-		if !unicode.IsDigit(firstLetter) {
-			break
-		}
-		name = RandString(RandLen)
-	}
-	return name
-}
-
 // randValue returns a valid marker value for the given rtype.
 func randValue(rtype reflect.Type) any {
 	if !typeutil.IsSupported(rtype) {
@@ -64,7 +47,7 @@ func randValue(rtype reflect.Type) any {
 		return randPrimitiveValue(rtype)
 	}
 	if typeutil.IsValidSlice(rtype) {
-		return randList(rtype.Elem(), RandLen)
+		return randList(rtype.Elem(), rand.RandLen)
 	}
 	return nil
 }
@@ -73,19 +56,19 @@ func randValue(rtype reflect.Type) any {
 // primitive marker type e.g. non LIST.
 func randPrimitiveValue(rtype reflect.Type) any {
 	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
-		return randInt(rtype)()
+		return rand.IntFromType(rtype)()
 	}
 	if typeutil.IsString(rtype) {
-		return RandString(RandLen)
+		return rand.String(rand.RandLen)
 	}
 	if typeutil.IsBool(rtype) {
-		return RandBool()
+		return rand.Bool()
 	}
 	if typeutil.IsFloat(rtype) {
-		return RandFloat64()
+		return rand.Float64()
 	}
 	if typeutil.IsComplex(rtype) {
-		return RandComplex()
+		return rand.Complex()
 	}
 	if typeutil.IsAny(rtype) {
 		return randPrimitiveValue(randPrimitiveType())
@@ -94,7 +77,7 @@ func randPrimitiveValue(rtype reflect.Type) any {
 }
 
 func randPrimitiveType() reflect.Type {
-	i := rand.IntN(5)
+	i := randv2.IntN(5)
 	switch i {
 	case 0:
 		return reflect.TypeFor[int]()
@@ -115,69 +98,11 @@ func randPrimitiveType() reflect.Type {
 // If n is <= 0 then the length of the list will be choosen randomly.
 func randList(rtype reflect.Type, n int) []any {
 	if n <= 0 {
-		n = rand.IntN(8) + 1
+		n = randv2.IntN(8) + 1
 	}
 	values := make([]any, 0, n)
 	for range n {
 		values = append(values, randPrimitiveValue(rtype))
 	}
 	return values
-}
-
-func randInt(rtype reflect.Type) func() int64 {
-	kind := typeutil.Deref(rtype).Kind()
-	maximums := map[reflect.Kind]int64{
-		reflect.Int:    math.MaxInt,
-		reflect.Int8:   math.MaxInt8,
-		reflect.Int16:  math.MaxInt16,
-		reflect.Int32:  math.MaxInt32,
-		reflect.Int64:  math.MaxInt64,
-		reflect.Uint:   math.MaxInt,
-		reflect.Uint8:  math.MaxInt8,
-		reflect.Uint16: math.MaxInt16,
-		reflect.Uint32: math.MaxInt32,
-		reflect.Uint64: math.MaxInt64,
-	}
-	return func() int64 {
-		return rand.Int64N(maximums[kind])
-	}
-}
-
-func RandInt64() int64 {
-	typ := reflect.TypeFor[int64]()
-	return randInt(typ)()
-}
-
-func RandFloat64() float64 {
-	const minN = 1
-	const maxN = 100
-	f := minN + rand.Float64()*(maxN-minN)
-	return f
-}
-
-func RandBool() bool {
-	return RandInt64()%2 == 1
-}
-
-func RandString(n int) string {
-	if n <= 0 {
-		n = 12
-	}
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = charset[rand.IntN(len(charset))]
-	}
-	return string(b)
-}
-
-func RandComplex() complex128 {
-	r := rand.IntN(100)
-	c := rand.IntN(100)
-	compString := fmt.Sprintf("%d+%di", r, c)
-	comp, err := strconv.ParseComplex(compString, 128)
-	if err != nil {
-		panic(err)
-	}
-	return comp
 }

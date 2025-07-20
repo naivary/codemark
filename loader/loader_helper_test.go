@@ -7,6 +7,7 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/naivary/codemark/internal/rand"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/marker/markertest"
 )
@@ -83,14 +84,14 @@ func newloaderTestCase() loaderTestCase {
 }
 
 func (l loaderTestCase) randomize() {
-	l.randStructs(markertest.RandLen)
-	l.randFuncs(markertest.RandLen)
-	l.randAliases(markertest.RandLen)
-	l.randVars(markertest.RandLen)
-	l.randConsts(markertest.RandLen)
-	l.randIfaces(markertest.RandLen)
-	l.randImports(markertest.RandLen)
-	l.randNameds(markertest.RandLen)
+	l.randStructs(rand.RandLen)
+	l.randFuncs(rand.RandLen)
+	l.randAliases(rand.RandLen)
+	l.randVars(rand.RandLen)
+	l.randConsts(rand.RandLen)
+	l.randIfaces(rand.RandLen)
+	l.randImports(rand.RandLen)
+	l.randNameds(rand.RandLen)
 }
 
 func (l *loaderTestCase) randStructs(n int) {
@@ -198,7 +199,7 @@ func randImport() Import {
 
 func randNamed() Named {
 	n := Named{
-		Name:    markertest.RandGoIdent(),
+		Name:    rand.GoIdent(),
 		Markers: randMarkers(),
 		Type:    randType(),
 		Methods: make(map[string]Func),
@@ -213,7 +214,7 @@ func randNamed() Named {
 
 func randAlias() Alias {
 	return Alias{
-		Name:    markertest.RandGoIdent(),
+		Name:    rand.GoIdent(),
 		Markers: randMarkers(),
 		Type:    randType(),
 	}
@@ -222,7 +223,7 @@ func randAlias() Alias {
 func randIface() Iface {
 	sigQuantity := quantity(5)
 	iface := Iface{
-		Name:       markertest.RandGoIdent(),
+		Name:       rand.GoIdent(),
 		Markers:    randMarkers(),
 		Signatures: make(map[string]Func),
 	}
@@ -247,7 +248,7 @@ func randStruct() Struct {
 		methods[m.Name] = m
 	}
 	s := Struct{
-		Name:    markertest.RandGoIdent(),
+		Name:    rand.GoIdent(),
 		Fields:  fields,
 		Markers: randMarkers(),
 		Methods: methods,
@@ -258,7 +259,7 @@ func randStruct() Struct {
 func randField() Field {
 	return Field{
 		F: reflect.StructField{
-			Name: markertest.RandGoIdent(),
+			Name: rand.GoIdent(),
 			Type: randType(),
 		},
 		Markers: randMarkers(),
@@ -268,7 +269,7 @@ func randField() Field {
 func randFunc() Func {
 	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
 	return Func{
-		Name:    markertest.RandGoIdent(),
+		Name:    rand.GoIdent(),
 		Fn:      fn,
 		Markers: randMarkers(),
 	}
@@ -276,17 +277,17 @@ func randFunc() Func {
 
 func randConst() Const {
 	return Const{
-		Name:    markertest.RandGoIdent(),
+		Name:    rand.GoIdent(),
 		Markers: randMarkers(),
-		Value:   markertest.RandInt64(),
+		Value:   rand.Int64(),
 	}
 }
 
 func randVar() Var {
 	return Var{
-		Name:    markertest.RandGoIdent(),
+		Name:    rand.GoIdent(),
 		Markers: randMarkers(),
-		Value:   markertest.RandInt64(),
+		Value:   rand.Int64(),
 	}
 }
 
@@ -356,6 +357,6 @@ func randType() reflect.Type {
 
 // quantity returns a random number from [1, n)
 func quantity(mx int) int {
-	q := (markertest.RandInt64() % int64(mx)) + 1
+	q := (rand.Int64() % int64(mx)) + 1
 	return int(q)
 }

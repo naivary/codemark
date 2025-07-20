@@ -3,8 +3,8 @@ module github.com/naivary/codemark
 go 1.24.4
 
 require (
-	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476
-	golang.org/x/tools v0.34.0
+	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
+	golang.org/x/tools v0.35.0
 	k8s.io/api v0.33.3
 	k8s.io/apimachinery v0.33.3
 )
@@ -18,10 +18,10 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
-	golang.org/x/mod v0.25.0 // indirect
-	golang.org/x/net v0.41.0 // indirect
-	golang.org/x/sync v0.15.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/mod v0.26.0 // indirect
+	golang.org/x/net v0.42.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
