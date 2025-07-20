@@ -7,15 +7,6 @@ import (
 	"golang.org/x/exp/constraints"
 )
 
-func isNotEmpty[T ~string | []any](v any) bool {
-	return len(v.(T)) != 0
-}
-
-func isValidNumber[T constraints.Integer | constraints.Float](got any) bool {
-	i := got.(T)
-	return i >= 0
-}
-
 func TestRandMarker(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -110,4 +101,13 @@ func TestRandMarker(t *testing.T) {
 			}
 		})
 	}
+}
+
+func isNotEmpty[T ~string | []any](v any) bool {
+	return len(v.(T)) != 0
+}
+
+func isValidNumber[T constraints.Integer | constraints.Float](got any) bool {
+	i := got.(T)
+	return i >= 0
 }
