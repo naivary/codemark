@@ -55,3 +55,8 @@ func (m *Marker) IsValid() error {
 	}
 	return nil
 }
+
+// TODO: check if this is posisble and is making comparing easier for the user
+func (m *Marker) IsEqual(v reflect.Value) bool {
+	return false
+}
