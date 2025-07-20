@@ -4,9 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/parser/marker"
-	sdktesting "github.com/naivary/codemark/sdk/testing"
-	"github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/converter/convertertest"
+	"github.com/naivary/codemark/marker"
 )
 
 const multiLineString = `this is a multi line 
@@ -16,7 +15,7 @@ something
 
 func valueFor[T any](v T) want {
 	value := reflect.ValueOf(v)
-	mkind := utils.MarkerKindOf(value.Type())
+	mkind := marker.KindOf(value.Type())
 	return want{kind: mkind, value: value}
 }
 
@@ -78,7 +77,7 @@ func TestParse(t *testing.T) {
 				if m.Kind != want.kind {
 					t.Errorf("marker kind not equal. got: %s; want: %s\n", m.Kind, want.kind)
 				}
-				vvfn := sdktesting.GetVVFn(m.Value.Type())
+				vvfn := convertertest.GetVVFn(m.Value.Type())
 				if !vvfn(m.Value, want.value) {
 					t.Errorf("marker value not equal. got: %v; want: %v\n", m.Value, want.value)
 				}

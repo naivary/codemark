@@ -1,4 +1,4 @@
-package testing
+package convertertest
 
 import (
 	"errors"
@@ -7,8 +7,9 @@ import (
 	"testing"
 
 	"github.com/naivary/codemark/api/core"
-	"github.com/naivary/codemark/parser/marker"
-	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/marker/markertest"
 )
 
 // ValidValueFunc defines the logic to check if the converter correctly
@@ -54,7 +55,7 @@ type ConverterTester interface {
 var _ ConverterTester = (*converterTester)(nil)
 
 type converterTester struct {
-	conv  sdk.Converter
+	conv  converter.Converter
 	vvfns map[reflect.Type]ValidValueFunc
 }
 
@@ -62,7 +63,7 @@ type converterTester struct {
 // parameter `toTypes` is providing a map of a supported type to an example
 // custom type which is being used by the converter as a test. For example the
 // built in integer converter is converter an int to a type Int int.
-func NewConvTester(conv sdk.Converter) (ConverterTester, error) {
+func NewConvTester(conv converter.Converter) (ConverterTester, error) {
 	c := &converterTester{
 		conv:  conv,
 		vvfns: make(map[reflect.Type]ValidValueFunc),
@@ -72,7 +73,7 @@ func NewConvTester(conv sdk.Converter) (ConverterTester, error) {
 
 // from should only be customizable for list others are
 func (c *converterTester) NewTest(to reflect.Type, isValidCase bool, t core.Target) (ConverterTestCase, error) {
-	marker, err := RandMarker(to)
+	marker, err := markertest.RandMarker(to)
 	if err != nil {
 		return ConverterTestCase{}, err
 	}

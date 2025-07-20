@@ -3,7 +3,7 @@ package loader
 import (
 	"reflect"
 
-	"github.com/naivary/codemark/parser/marker"
+	"github.com/naivary/codemark/marker"
 )
 
 type markers interface {

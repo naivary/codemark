@@ -1,4 +1,4 @@
-package testing
+package markertest
 
 import (
 	"fmt"
@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"unicode"
 
-	"github.com/naivary/codemark/parser/marker"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/typeutil"
 )
 
 const RandLen = -1
@@ -30,14 +30,14 @@ func RandMarkerWithIdent(ident string, rtype reflect.Type) (*marker.Marker, erro
 		return nil, fmt.Errorf("no value could be generated for given type: %v\n", rtype)
 	}
 	value := reflect.ValueOf(v)
-	m := marker.New(ident, sdkutil.MarkerKindOf(rtype), value)
+	m := marker.New(ident, marker.KindOf(rtype), value)
 	return &m, nil
 }
 
 // RandMarker returns a random marker based on the given rtype. The returned
 // marker is always valid if not error is returned.
 func RandMarker(rtype reflect.Type) (*marker.Marker, error) {
-	name := sdkutil.NameFor(rtype)
+	name := typeutil.NameFor(rtype)
 	ident := NewIdent(name)
 	return RandMarkerWithIdent(ident, rtype)
 }
@@ -57,13 +57,13 @@ func RandGoIdent() string {
 
 // randValue returns a valid marker value for the given rtype.
 func randValue(rtype reflect.Type) any {
-	if !sdkutil.IsSupported(rtype) {
+	if !typeutil.IsSupported(rtype) {
 		return nil
 	}
-	if sdkutil.IsPrimitive(rtype) {
+	if typeutil.IsPrimitive(rtype) {
 		return randPrimitiveValue(rtype)
 	}
-	if sdkutil.IsValidSlice(rtype) {
+	if typeutil.IsValidSlice(rtype) {
 		return randList(rtype.Elem(), RandLen)
 	}
 	return nil
@@ -72,22 +72,22 @@ func randValue(rtype reflect.Type) any {
 // randPrimitiveValue returns a random value for the given rtype iff rtype is a
 // primitive marker type e.g. non LIST.
 func randPrimitiveValue(rtype reflect.Type) any {
-	if sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) {
+	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
 		return randInt(rtype)()
 	}
-	if sdkutil.IsString(rtype) {
+	if typeutil.IsString(rtype) {
 		return RandString(RandLen)
 	}
-	if sdkutil.IsBool(rtype) {
+	if typeutil.IsBool(rtype) {
 		return RandBool()
 	}
-	if sdkutil.IsFloat(rtype) {
+	if typeutil.IsFloat(rtype) {
 		return RandFloat64()
 	}
-	if sdkutil.IsComplex(rtype) {
+	if typeutil.IsComplex(rtype) {
 		return RandComplex()
 	}
-	if sdkutil.IsAny(rtype) {
+	if typeutil.IsAny(rtype) {
 		return randPrimitiveValue(randPrimitiveType())
 	}
 	return nil
@@ -125,7 +125,7 @@ func randList(rtype reflect.Type, n int) []any {
 }
 
 func randInt(rtype reflect.Type) func() int64 {
-	kind := sdkutil.Deref(rtype).Kind()
+	kind := typeutil.Deref(rtype).Kind()
 	maximums := map[reflect.Kind]int64{
 		reflect.Int:    math.MaxInt,
 		reflect.Int8:   math.MaxInt8,

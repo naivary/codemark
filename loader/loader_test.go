@@ -7,8 +7,8 @@ import (
 
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/converter"
-	"github.com/naivary/codemark/parser/marker"
-	sdktesting "github.com/naivary/codemark/sdk/testing"
+	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/registry/registrytest"
 	"golang.org/x/tools/go/packages"
 )
 
@@ -20,7 +20,7 @@ func TestLoaderLocal(t *testing.T) {
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
-	reg, err := sdktesting.NewRegistry(sdktesting.NewOptSet())
+	reg, err := registrytest.NewRegistry(registrytest.NewOptSet())
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

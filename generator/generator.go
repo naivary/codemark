@@ -1,4 +1,4 @@
-package sdk
+package generator
 
 import (
 	"github.com/naivary/codemark/api/core"

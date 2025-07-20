@@ -5,7 +5,7 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/api/core"
-	"github.com/naivary/codemark/parser/marker"
+	"github.com/naivary/codemark/marker"
 )
 
 func MakeOption(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {

@@ -1,32 +1,32 @@
-package testing
+package convertertest
 
 import (
 	"math"
 	"reflect"
 
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/typeutil"
 )
 
 func GetVVFn(rtype reflect.Type) ValidValueFunc {
-	if sdkutil.IsValidSlice(rtype) {
+	if typeutil.IsValidSlice(rtype) {
 		return isValidList
 	}
-	if sdkutil.IsInt(rtype) || sdkutil.IsUint(rtype) {
+	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
 		return isValidInteger
 	}
-	if sdkutil.IsFloat(rtype) {
+	if typeutil.IsFloat(rtype) {
 		return isValidFloat
 	}
-	if sdkutil.IsComplex(rtype) {
+	if typeutil.IsComplex(rtype) {
 		return isValidComplex
 	}
-	if sdkutil.IsBool(rtype) {
+	if typeutil.IsBool(rtype) {
 		return isValidBool
 	}
-	if sdkutil.IsString(rtype) {
+	if typeutil.IsString(rtype) {
 		return isValidString
 	}
-	if sdkutil.IsAny(rtype) {
+	if typeutil.IsAny(rtype) {
 		return isValidAny
 	}
 	return nil
@@ -102,7 +102,7 @@ func almostEqual(a, b float64) bool {
 }
 
 func derefValue(v reflect.Value) reflect.Value {
-	if sdkutil.IsPointer(v.Type()) {
+	if typeutil.IsPointer(v.Type()) {
 		return v.Elem()
 	}
 	return v
