@@ -8,7 +8,8 @@ import (
 	"github.com/naivary/codemark/lexer/token"
 )
 
-// TODO: should we allow multi line string in list?
+// TODO: add a good error message that multi line strings are not supported in
+// lists
 
 const (
 	_eof        = -1
