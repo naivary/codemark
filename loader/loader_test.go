@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/internal/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
 	"golang.org/x/tools/go/packages"

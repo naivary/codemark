@@ -1,8 +1,12 @@
 package converter
 
 import (
+	"fmt"
 	"reflect"
+	"slices"
+	"strings"
 
+	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/typeutil"
 )
@@ -37,6 +41,23 @@ func Get(rtype reflect.Type) converter.Converter {
 	}
 	if typeutil.IsAny(rtype) {
 		return Any()
+	}
+	return nil
+}
+
+func isCorrectTarget(opt coreapi.Option, t coreapi.Target) bool {
+	return !(slices.Contains(opt.Targets, t) || slices.Contains(opt.Targets, coreapi.TargetAny))
+}
+
+// isValidName checks if the choosen name of a custom converter is following the
+// convention of prefixing the name with the project name and that the project
+// name is not "codemark".
+func isValidName(name string) error {
+	if strings.HasPrefix(name, _codemark) {
+		return fmt.Errorf(`the name of your custom converter cannot start with "codemark" because it is reserved for the builtin converters: %s`, name)
+	}
+	if len(strings.Split(name, ".")) != 2 {
+		return fmt.Errorf(`the name of your custom converter has to be seperated with "%s" and must be composed of two segments e.g. "codemark.integer"`, ".")
 	}
 	return nil
 }

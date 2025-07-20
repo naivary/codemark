@@ -1,4 +1,4 @@
-package syntax
+package marker
 
 import (
 	"math"
@@ -7,7 +7,10 @@ import (
 	"github.com/naivary/codemark/typeutil"
 )
 
-func GetVVFn(rtype reflect.Type) func(got, want reflect.Value) bool {
+// TODO: I dont like the Equal function strucutre rn
+// GetEqualFunc returns a function which can be used to compare to values. One
+// being the marker value and the other a value produced by some processing.
+func GetEqualFunc(rtype reflect.Type) func(got, want reflect.Value) bool {
 	if typeutil.IsValidSlice(rtype) {
 		return isValidList
 	}
@@ -36,11 +39,11 @@ func isValidList(got, want reflect.Value) bool {
 	for i := range want.Len() {
 		wantElem := want.Index(i)
 		gotElem := got.Index(i)
-		vvfn := GetVVFn(gotElem.Type())
-		if vvfn == nil {
+		equal := GetEqualFunc(gotElem.Type())
+		if equal == nil {
 			return false
 		}
-		if !vvfn(gotElem, wantElem) {
+		if !equal(gotElem, wantElem) {
 			return false
 		}
 	}

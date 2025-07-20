@@ -11,7 +11,7 @@ import (
 
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/internal/converter"
 	"golang.org/x/tools/go/packages"
 )
 

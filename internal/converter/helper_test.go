@@ -7,8 +7,8 @@ import (
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/converter/convertertest"
+	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
-	"github.com/naivary/codemark/syntax"
 )
 
 func newConvTester(conv converter.Converter, customTypes []any) (convertertest.ConverterTester, error) {
@@ -18,8 +18,8 @@ func newConvTester(conv converter.Converter, customTypes []any) (convertertest.C
 	}
 	for _, typ := range customTypes {
 		to := reflect.TypeOf(typ)
-		vvfn := syntax.GetVVFn(to)
-		if err := tester.AddVVFunc(to, vvfn); err != nil {
+		equal := marker.GetEqualFunc(to)
+		if err := tester.AddEqualFunc(to, equal); err != nil {
 			return nil, err
 		}
 	}
