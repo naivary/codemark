@@ -5,10 +5,9 @@ import (
 	"slices"
 
 	"github.com/naivary/codemark/api/core"
-
 	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/registry"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/typeutil"
 )
 
 type (
@@ -179,15 +178,15 @@ func AliasOpts() []*core.Option {
 func NewOptSet() []*core.Option {
 	types := AllTypes()
 	aliases := AliasOpts()
-	defs := make([]*core.Option, 0, len(types)+len(aliases))
+	opts := make([]*core.Option, 0, len(types)+len(aliases))
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
-		name := sdkutil.NameFor(rtype)
+		name := typeutil.NameFor(rtype)
 		ident := NewIdent(name)
 		opt := maker.MustMakeOpt(ident, rtype, core.TargetAny)
-		defs = append(defs, opt)
+		opts = append(opts, opt)
 	}
-	return slices.Concat(defs, aliases)
+	return slices.Concat(opts, aliases)
 }
 
 func NewRegistry(opts []*core.Option) (registry.Registry, error) {

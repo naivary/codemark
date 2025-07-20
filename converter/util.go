@@ -7,8 +7,6 @@ import (
 	"github.com/naivary/codemark/typeutil"
 )
 
-const NameSep = "."
-
 // NewName is returning a valid converter name. The convention is to prefix
 // every converter with your project name, followed by a custom name for the
 // converter seperated by a dot.

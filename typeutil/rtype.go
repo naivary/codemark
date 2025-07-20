@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+const NameSep = "."
+
+// Deref dereferences the type. If the given type is not a pointer it will be
+// returned without any dereferencing.
 func Deref(typ reflect.Type) reflect.Type {
 	if typ == nil {
 		return typ
