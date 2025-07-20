@@ -12,10 +12,6 @@ import (
 	"github.com/naivary/codemark/marker/markertest"
 )
 
-// ValidValueFunc defines the logic to check if the converter correctly
-// converted the value of the marker to the custom type.
-type ValidValueFunc func(got, want reflect.Value) bool
-
 type ConverterTestCase struct {
 	// Name of the test case
 	Name string
@@ -29,7 +25,7 @@ type ConverterTestCase struct {
 	IsValidCase bool
 	// Function to validate the value of the converter (after conversion) with
 	// the value of the given marker.
-	IsValidValue ValidValueFunc
+	IsValidValue func(got, want reflect.Value) bool
 }
 
 // ConverterTester is providing useful abstractions for testing a converter in
@@ -43,9 +39,9 @@ type ConverterTester interface {
 	MustNewTest(to reflect.Type, isValidCase bool, t core.Target) ConverterTestCase
 	MustNewTestWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) ConverterTestCase
 
-	// AddVVFunc defines a ValidValueFunc for an example type to which a
+	// AddVVFunc defines a func(got, want reflect.Value) bool for an example type to which a
 	// supported type of the converter will be converted.
-	AddVVFunc(to reflect.Type, fn ValidValueFunc) error
+	AddVVFunc(to reflect.Type, fn func(got, want reflect.Value) bool) error
 
 	// Run runs the given test case against and checks if the conversion was
 	// successful.
@@ -56,7 +52,7 @@ var _ ConverterTester = (*converterTester)(nil)
 
 type converterTester struct {
 	conv  converter.Converter
-	vvfns map[reflect.Type]ValidValueFunc
+	vvfns map[reflect.Type]func(got, want reflect.Value) bool
 }
 
 // NewConvTester returns a new ConverterTester for the given converter. The
@@ -66,7 +62,7 @@ type converterTester struct {
 func NewConvTester(conv converter.Converter) (ConverterTester, error) {
 	c := &converterTester{
 		conv:  conv,
-		vvfns: make(map[reflect.Type]ValidValueFunc),
+		vvfns: make(map[reflect.Type]func(got, want reflect.Value) bool),
 	}
 	return c, nil
 }
@@ -90,7 +86,7 @@ func (c *converterTester) NewTestWithMarker(m *marker.Marker, to reflect.Type, i
 	name := fmt.Sprintf("marker[%s] to %v", m.Ident, to)
 	vvfn := c.vvfns[to]
 	if vvfn == nil {
-		return ConverterTestCase{}, fmt.Errorf("ValidValueFunc not found for: %v\n", to)
+		return ConverterTestCase{}, fmt.Errorf("func(got, want reflect.Value) bool not found for: %v\n", to)
 	}
 	tc := ConverterTestCase{
 		Name:         name,
@@ -137,10 +133,10 @@ func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
 	t.Logf("succesfully converted. got: %v; want: %v\n", gotType, tc.To)
 }
 
-func (c *converterTester) AddVVFunc(to reflect.Type, fn ValidValueFunc) error {
+func (c *converterTester) AddVVFunc(to reflect.Type, fn func(got, want reflect.Value) bool) error {
 	_, found := c.vvfns[to]
 	if found {
-		return fmt.Errorf("ValidValueFunc already exists: %s\n", to)
+		return fmt.Errorf("func(got, want reflect.Value) bool already exists: %s\n", to)
 	}
 	c.vvfns[to] = fn
 	return nil

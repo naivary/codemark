@@ -3,7 +3,7 @@ package converter
 import (
 	"reflect"
 
-	"github.com/naivary/codemark/sdk"
+	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/typeutil"
 )
 
@@ -12,12 +12,14 @@ const (
 	_byte = reflect.Uint8
 )
 
+const _codemark = "codemark"
+
 var (
 	// _rvzero is the zero value for a reflect.Value used for convenience
 	_rvzero = reflect.Value{}
 )
 
-func Get(rtype reflect.Type) sdk.Converter {
+func Get(rtype reflect.Type) converter.Converter {
 	if typeutil.IsBool(rtype) {
 		return Bool()
 	}

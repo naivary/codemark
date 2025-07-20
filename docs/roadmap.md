@@ -11,4 +11,5 @@
 - makewith doc struct not doc just as string
 - restructure the project. packages are useless rn. remove some of it. Rename
   Definition to Option because it Describe it much better.
-- remove the builtin converters from the manager and dont add them to the map. Just get them using `Get`
+- syntax has to be named better
+- global codemark variable holding the name "codemark"

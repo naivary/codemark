@@ -1,4 +1,4 @@
-package convertertest
+package syntax
 
 import (
 	"math"
@@ -7,7 +7,7 @@ import (
 	"github.com/naivary/codemark/typeutil"
 )
 
-func GetVVFn(rtype reflect.Type) ValidValueFunc {
+func GetVVFn(rtype reflect.Type) func(got, want reflect.Value) bool {
 	if typeutil.IsValidSlice(rtype) {
 		return isValidList
 	}

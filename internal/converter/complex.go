@@ -4,25 +4,25 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/parser/marker"
-	"github.com/naivary/codemark/sdk"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/typeutil"
 )
 
-var _ sdk.Converter = (*complexConverter)(nil)
+var _ converter.Converter = (*complexConverter)(nil)
 
 type complexConverter struct {
 	name string
 }
 
-func Complex() sdk.Converter {
+func Complex() converter.Converter {
 	return &complexConverter{
 		name: "complex",
 	}
 }
 
 func (c *complexConverter) Name() string {
-	return sdkutil.NewConvName(_codemark, c.name)
+	return converter.NewName(_codemark, c.name)
 }
 
 func (c *complexConverter) SupportedTypes() []reflect.Type {
@@ -57,9 +57,9 @@ func (c *complexConverter) complexx(m marker.Marker, to reflect.Type) (reflect.V
 	if c.isOverflowing(to, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
-	return sdkutil.ConvertTo(m.Value, to)
+	return converter.ConvertTo(m.Value, to)
 }
 
 func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {
-	return sdkutil.Deref(out).OverflowComplex(n)
+	return typeutil.Deref(out).OverflowComplex(n)
 }

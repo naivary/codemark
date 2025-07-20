@@ -14,6 +14,8 @@ import (
 	"github.com/naivary/codemark/typeutil"
 )
 
+const _codemark = "codemark"
+
 type options map[string][]any
 
 func (o options) Add(idn string, value any) {

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/converter/convertertest"
 	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/syntax"
 )
 
 const multiLineString = `this is a multi line 
@@ -77,7 +77,7 @@ func TestParse(t *testing.T) {
 				if m.Kind != want.kind {
 					t.Errorf("marker kind not equal. got: %s; want: %s\n", m.Kind, want.kind)
 				}
-				vvfn := convertertest.GetVVFn(m.Value.Type())
+				vvfn := syntax.GetVVFn(m.Value.Type())
 				if !vvfn(m.Value, want.value) {
 					t.Errorf("marker value not equal. got: %v; want: %v\n", m.Value, want.value)
 				}

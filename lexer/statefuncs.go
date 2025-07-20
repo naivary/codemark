@@ -274,7 +274,7 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 	case r == _eof:
 		return lexEOF
 	default:
-		return l.errorf("after a finished marker expression only a newline can follow but found: `%s`\n", string(r))
+		return l.errorf("after a finished marker expression only a newline can follow but found: `%s`", string(r))
 	}
 }
 

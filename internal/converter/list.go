@@ -4,26 +4,25 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/maker"
-	"github.com/naivary/codemark/parser/marker"
-	"github.com/naivary/codemark/sdk"
-	sdkutil "github.com/naivary/codemark/sdk/utils"
+	"github.com/naivary/codemark/marker"
 )
 
-var _ sdk.Converter = (*listConverter)(nil)
+var _ converter.Converter = (*listConverter)(nil)
 
 type listConverter struct {
 	name string
 }
 
-func List() sdk.Converter {
+func List() converter.Converter {
 	return &listConverter{
 		name: "list",
 	}
 }
 
 func (l *listConverter) Name() string {
-	return sdkutil.NewConvName(_codemark, l.name)
+	return converter.NewName(_codemark, l.name)
 }
 
 func (l *listConverter) SupportedTypes() []reflect.Type {
@@ -121,7 +120,7 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	if conv == nil {
 		return _rvzero, fmt.Errorf("no converter found for: %s", typ)
 	}
-	mkind := sdkutil.MarkerKindOf(rvalue.Type())
+	mkind := marker.KindOf(rvalue.Type())
 	fakeMarker := maker.MakeFakeMarker(mkind, rvalue)
 	return conv.Convert(fakeMarker, typ)
 }
