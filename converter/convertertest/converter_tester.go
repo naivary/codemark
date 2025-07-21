@@ -12,7 +12,9 @@ import (
 	"github.com/naivary/codemark/marker/markertest"
 )
 
-type ConverterTestCase struct {
+var _casez = Case{}
+
+type Case struct {
 	// Name of the test case
 	Name string
 	// Marker to convert by the converter
@@ -28,16 +30,16 @@ type ConverterTestCase struct {
 	IsEqual func(got, want reflect.Value) bool
 }
 
-// ConverterTester is providing useful abstractions for testing a converter in
+// Tester is providing useful abstractions for testing a converter in
 // a convenient and easy way.
-type ConverterTester interface {
-	// NewTest returns a new ConverterTestCase.
-	NewTest(to reflect.Type, isValidCase bool, t core.Target) (ConverterTestCase, error)
+type Tester interface {
+	// NewCase returns a new test case
+	NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error)
 
-	NewTestWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (ConverterTestCase, error)
+	NewCaseWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error)
 
-	MustNewTest(to reflect.Type, isValidCase bool, t core.Target) ConverterTestCase
-	MustNewTestWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) ConverterTestCase
+	MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case
+	MustNewCaseWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) Case
 
 	// AddVVFunc defines a func(got, want reflect.Value) bool for an example type to which a
 	// supported type of the converter will be converted.
@@ -45,21 +47,21 @@ type ConverterTester interface {
 
 	// Run runs the given test case against and checks if the conversion was
 	// successful.
-	Run(t *testing.T, tc ConverterTestCase)
+	Run(t *testing.T, tc Case)
 }
 
-var _ ConverterTester = (*converterTester)(nil)
+var _ Tester = (*converterTester)(nil)
 
 type converterTester struct {
 	conv       converter.Converter
 	equalFuncs map[reflect.Type]func(got, want reflect.Value) bool
 }
 
-// NewConvTester returns a new ConverterTester for the given converter. The
+// NewTester returns a new ConverterTester for the given converter. The
 // parameter `toTypes` is providing a map of a supported type to an example
 // custom type which is being used by the converter as a test. For example the
 // built in integer converter is converter an int to a type Int int.
-func NewConvTester(conv converter.Converter) (ConverterTester, error) {
+func NewTester(conv converter.Converter) (Tester, error) {
 	c := &converterTester{
 		conv:       conv,
 		equalFuncs: make(map[reflect.Type]func(got, want reflect.Value) bool),
@@ -68,27 +70,27 @@ func NewConvTester(conv converter.Converter) (ConverterTester, error) {
 }
 
 // from should only be customizable for list others are
-func (c *converterTester) NewTest(to reflect.Type, isValidCase bool, t core.Target) (ConverterTestCase, error) {
+func (c *converterTester) NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
 	marker, err := markertest.RandMarker(to)
 	if err != nil {
-		return ConverterTestCase{}, err
+		return _casez, err
 	}
-	return c.NewTestWithMarker(marker, to, isValidCase, t)
+	return c.NewCaseWithMarker(marker, to, isValidCase, t)
 }
 
-func (c *converterTester) NewTestWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (ConverterTestCase, error) {
+func (c *converterTester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
 	if m == nil {
-		return ConverterTestCase{}, errors.New("marker cannot be nil. use NewTest if you want a random marker")
+		return _casez, errors.New("marker cannot be nil. use NewTest if you want a random marker")
 	}
 	if to == nil {
-		return ConverterTestCase{}, errors.New("to cannot be nil")
+		return _casez, errors.New("to cannot be nil")
 	}
 	name := fmt.Sprintf("marker[%s] to %v", m.Ident, to)
 	equal := c.equalFuncs[to]
 	if equal == nil {
-		return ConverterTestCase{}, fmt.Errorf("func(got, want reflect.Value) bool not found for: %v\n", to)
+		return _casez, fmt.Errorf("func(got, want reflect.Value) bool not found for: %v\n", to)
 	}
-	tc := ConverterTestCase{
+	tc := Case{
 		Name:        name,
 		Marker:      *m,
 		Target:      t,
@@ -100,23 +102,23 @@ func (c *converterTester) NewTestWithMarker(m *marker.Marker, to reflect.Type, i
 
 }
 
-func (c *converterTester) MustNewTest(to reflect.Type, isValidCase bool, t core.Target) ConverterTestCase {
-	tc, err := c.NewTest(to, isValidCase, t)
+func (c *converterTester) MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case {
+	tc, err := c.NewCase(to, isValidCase, t)
 	if err != nil {
 		panic(err)
 	}
 	return tc
 }
 
-func (c *converterTester) MustNewTestWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) ConverterTestCase {
-	tc, err := c.NewTestWithMarker(m, to, isValidCase, t)
+func (c *converterTester) MustNewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) Case {
+	tc, err := c.NewCaseWithMarker(m, to, isValidCase, t)
 	if err != nil {
 		panic(err)
 	}
 	return tc
 }
 
-func (c *converterTester) Run(t *testing.T, tc ConverterTestCase) {
+func (c *converterTester) Run(t *testing.T, tc Case) {
 	v, err := c.conv.Convert(tc.Marker, tc.To)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

@@ -11,8 +11,8 @@ import (
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
-func newConvTester(conv converter.Converter, customTypes []any) (convertertest.ConverterTester, error) {
-	tester, err := convertertest.NewConvTester(conv)
+func newConvTester(conv converter.Converter, customTypes []any) (convertertest.Tester, error) {
+	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		return nil, err
 	}
@@ -48,12 +48,12 @@ func customTypesFor(conv converter.Converter) []any {
 	return nil
 }
 
-func validTestsFor(conv converter.Converter, tester convertertest.ConverterTester) ([]convertertest.ConverterTestCase, error) {
+func validTestsFor(conv converter.Converter, tester convertertest.Tester) ([]convertertest.Case, error) {
 	types := customTypesFor(conv)
-	tests := make([]convertertest.ConverterTestCase, 0, len(types))
+	tests := make([]convertertest.Case, 0, len(types))
 	for _, to := range types {
 		rtype := reflect.TypeOf(to)
-		tc, err := tester.NewTest(rtype, true, coreapi.TargetAny)
+		tc, err := tester.NewCase(rtype, true, coreapi.TargetAny)
 		if err != nil {
 			return nil, err
 		}

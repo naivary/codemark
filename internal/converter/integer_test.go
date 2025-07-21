@@ -10,12 +10,12 @@ import (
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
-func customTests(tester convertertest.ConverterTester) []convertertest.ConverterTestCase {
+func customTests(tester convertertest.Tester) []convertertest.Case {
 	b := marker.New("codemark:testing:byte", marker.STRING, reflect.ValueOf("b"))
 	r := marker.New("codemark:testing:rune", marker.STRING, reflect.ValueOf("r"))
-	return []convertertest.ConverterTestCase{
-		tester.MustNewTestWithMarker(&b, reflect.TypeFor[registrytest.String](), true, coreapi.TargetAny),
-		tester.MustNewTestWithMarker(&r, reflect.TypeFor[registrytest.String](), true, coreapi.TargetAny),
+	return []convertertest.Case{
+		tester.MustNewCaseWithMarker(&b, reflect.TypeFor[registrytest.String](), true, coreapi.TargetAny),
+		tester.MustNewCaseWithMarker(&r, reflect.TypeFor[registrytest.String](), true, coreapi.TargetAny),
 	}
 }
 

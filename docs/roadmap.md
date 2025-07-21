@@ -8,8 +8,4 @@
 - map converter (prio: 1)
 - Itereator for *Info types of loader to itereator over the defs without nesting
 - extending by using codemark as a library
-- makewith doc struct not doc just as string
-- restructure the project. packages are useless rn. remove some of it. Rename
-  Definition to Option because it Describe it much better.
 - syntax has to be named better
-- global codemark variable holding the name "codemark"

@@ -18,6 +18,9 @@ func Int64() int64 {
 	return IntFromType(typ)()
 }
 
+// IntFromType returns a random integer respecting the MaxInt of the type e.g.
+// if a type of Int8 is passed the random integer cannot be greater than
+// math.MaxInt8. This allows to assure no overflow will occur.
 func IntFromType(rtype reflect.Type) func() int64 {
 	kind := typeutil.Deref(rtype).Kind()
 	maximums := map[reflect.Kind]int64{
