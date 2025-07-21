@@ -15,27 +15,27 @@ import (
 func TestLoaderLocal(t *testing.T) {
 	tc, err := randLoaderTestCase()
 	if err != nil {
-		t.Errorf("err occured: %s\n", err)
+		t.Errorf("err occured: %s", err)
 	}
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
 	reg, err := registrytest.NewRegistry(registrytest.NewOptsSet())
 	if err != nil {
-		t.Errorf("err occured: %s\n", err)
+		t.Errorf("err occured: %s", err)
 	}
 	mngr, err := converter.NewManager(reg)
 	if err != nil {
-		t.Errorf("err occured: %s\n", err)
+		t.Errorf("err occured: %s", err)
 	}
 	l := New(mngr, cfg)
 	projs, err := l.Load(".")
 	if err != nil {
-		t.Errorf("err occured: %s\n", err)
+		t.Errorf("err occured: %s", err)
 	}
 	for _, proj := range projs {
 		if err := isValid(tc, proj); err != nil {
-			t.Errorf("err occured while reading %s: %s\n", tc.Dir, err)
+			t.Errorf("err occured while reading %s: %s", tc.Dir, err)
 		}
 	}
 }

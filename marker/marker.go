@@ -51,7 +51,7 @@ func (m *Marker) IsValid() error {
 		return fmt.Errorf("marker identifier is invalid: %s\n", m.Ident)
 	}
 	if !m.Value.IsValid() {
-		return fmt.Errorf("value of markeris not valid: %v\n", m.Value)
+		return fmt.Errorf("value of marker is not valid: %v\n", m.Value)
 	}
 	return nil
 }
