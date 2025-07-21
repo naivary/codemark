@@ -7,7 +7,6 @@ import (
 	"github.com/naivary/codemark/typeutil"
 )
 
-// TODO: I dont like the Equal function strucutre rn
 // GetEqualFunc returns a function which can be used to compare to values. One
 // being the marker value and the other a value produced by some processing.
 func GetEqualFunc(rtype reflect.Type) func(got, want reflect.Value) bool {
@@ -51,13 +50,13 @@ func isValidList(got, want reflect.Value) bool {
 }
 
 func isValidAny(got, want reflect.Value) bool {
-	got = derefValue(got)
-	want = derefValue(want)
+	got = typeutil.DerefValue(got)
+	want = typeutil.DerefValue(want)
 	return reflect.DeepEqual(got.Interface(), want.Interface())
 }
 
 func isValidInteger(got, want reflect.Value) bool {
-	got = derefValue(got)
+	got = typeutil.DerefValue(got)
 	var i64 int64
 	switch got.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -76,25 +75,25 @@ func isValidInteger(got, want reflect.Value) bool {
 }
 
 func isValidFloat(got, want reflect.Value) bool {
-	got = derefValue(got)
+	got = typeutil.DerefValue(got)
 	w := want.Interface().(float64)
 	return almostEqual(got.Float(), w)
 }
 
 func isValidBool(got, want reflect.Value) bool {
-	got = derefValue(got)
+	got = typeutil.DerefValue(got)
 	w := want.Interface().(bool)
 	return got.Bool() == w
 }
 
 func isValidString(got, want reflect.Value) bool {
-	got = derefValue(got)
+	got = typeutil.DerefValue(got)
 	w := want.Interface().(string)
 	return got.String() == w
 }
 
 func isValidComplex(got, want reflect.Value) bool {
-	got = derefValue(got)
+	got = typeutil.DerefValue(got)
 	w := want.Interface().(complex128)
 	return got.Complex() == w
 }
@@ -102,11 +101,4 @@ func isValidComplex(got, want reflect.Value) bool {
 func almostEqual(a, b float64) bool {
 	const float64EqualityThreshold = 1e-5
 	return math.Abs(a-b) <= float64EqualityThreshold
-}
-
-func derefValue(v reflect.Value) reflect.Value {
-	if typeutil.IsPointer(v.Type()) {
-		return v.Elem()
-	}
-	return v
 }

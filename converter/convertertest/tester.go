@@ -12,6 +12,7 @@ import (
 	"github.com/naivary/codemark/marker/markertest"
 )
 
+// _casez is the zero value
 var _casez = Case{}
 
 type Case struct {
@@ -33,9 +34,10 @@ type Case struct {
 // Tester is providing useful abstractions for testing a converter in
 // a convenient and easy way.
 type Tester interface {
-	// NewCase returns a new test case
+	// NewCase returns a new test case.
 	NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error)
 
+	// NewCaseWithMarker returns a test case with a custom marker.
 	NewCaseWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error)
 
 	MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case
@@ -50,9 +52,9 @@ type Tester interface {
 	Run(t *testing.T, tc Case)
 }
 
-var _ Tester = (*converterTester)(nil)
+var _ Tester = (*tester)(nil)
 
-type converterTester struct {
+type tester struct {
 	conv       converter.Converter
 	equalFuncs map[reflect.Type]func(got, want reflect.Value) bool
 }
@@ -62,7 +64,7 @@ type converterTester struct {
 // custom type which is being used by the converter as a test. For example the
 // built in integer converter is converter an int to a type Int int.
 func NewTester(conv converter.Converter) (Tester, error) {
-	c := &converterTester{
+	c := &tester{
 		conv:       conv,
 		equalFuncs: make(map[reflect.Type]func(got, want reflect.Value) bool),
 	}
@@ -70,7 +72,7 @@ func NewTester(conv converter.Converter) (Tester, error) {
 }
 
 // from should only be customizable for list others are
-func (c *converterTester) NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
+func (c *tester) NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
 	marker, err := markertest.RandMarker(to)
 	if err != nil {
 		return _casez, err
@@ -78,7 +80,7 @@ func (c *converterTester) NewCase(to reflect.Type, isValidCase bool, t core.Targ
 	return c.NewCaseWithMarker(marker, to, isValidCase, t)
 }
 
-func (c *converterTester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
+func (c *tester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
 	if m == nil {
 		return _casez, errors.New("marker cannot be nil. use NewTest if you want a random marker")
 	}
@@ -88,7 +90,7 @@ func (c *converterTester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, i
 	name := fmt.Sprintf("marker[%s] to %v", m.Ident, to)
 	equal := c.equalFuncs[to]
 	if equal == nil {
-		return _casez, fmt.Errorf("func(got, want reflect.Value) bool not found for: %v\n", to)
+		return _casez, fmt.Errorf("func(got, want reflect.Value) bool not found for: %v", to)
 	}
 	tc := Case{
 		Name:        name,
@@ -102,7 +104,7 @@ func (c *converterTester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, i
 
 }
 
-func (c *converterTester) MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case {
+func (c *tester) MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case {
 	tc, err := c.NewCase(to, isValidCase, t)
 	if err != nil {
 		panic(err)
@@ -110,7 +112,7 @@ func (c *converterTester) MustNewCase(to reflect.Type, isValidCase bool, t core.
 	return tc
 }
 
-func (c *converterTester) MustNewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) Case {
+func (c *tester) MustNewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) Case {
 	tc, err := c.NewCaseWithMarker(m, to, isValidCase, t)
 	if err != nil {
 		panic(err)
@@ -118,7 +120,7 @@ func (c *converterTester) MustNewCaseWithMarker(m *marker.Marker, to reflect.Typ
 	return tc
 }
 
-func (c *converterTester) Run(t *testing.T, tc Case) {
+func (c *tester) Run(t *testing.T, tc Case) {
 	v, err := c.conv.Convert(tc.Marker, tc.To)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -135,10 +137,10 @@ func (c *converterTester) Run(t *testing.T, tc Case) {
 	t.Logf("succesfully converted. got: %v; want: %v\n", gotType, tc.To)
 }
 
-func (c *converterTester) AddEqualFunc(to reflect.Type, fn func(got, want reflect.Value) bool) error {
+func (c *tester) AddEqualFunc(to reflect.Type, fn func(got, want reflect.Value) bool) error {
 	_, found := c.equalFuncs[to]
 	if found {
-		return fmt.Errorf("func(got, want reflect.Value) bool already exists: %s\n", to)
+		return fmt.Errorf("equal function already exists: %s", to)
 	}
 	c.equalFuncs[to] = fn
 	return nil

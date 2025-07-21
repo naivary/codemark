@@ -3,9 +3,11 @@ package converter
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/typeutil"
 )
 
 var _ converter.Converter = (*stringConverter)(nil)
@@ -27,8 +29,10 @@ func (s *stringConverter) Name() string {
 func (s *stringConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		string(""),
+		time.Time{},
 		// pointer
 		new(string),
+		new(time.Time),
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
@@ -46,5 +50,22 @@ func (s *stringConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 }
 
 func (s *stringConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
-	return converter.ConvertTo(m.Value, to)
+	if !s.isTime(to) {
+		return converter.ConvertTo(m.Value, to)
+	}
+	return s.time(m, to)
+}
+
+func (s *stringConverter) isTime(to reflect.Type) bool {
+	to = typeutil.Deref(to)
+	return to.ConvertibleTo(reflect.TypeOf(time.Time{}))
+}
+
+func (s *stringConverter) time(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	t, err := time.Parse(time.RFC3339, m.Value.String())
+	if err != nil {
+		return _rvzero, err
+	}
+	v := reflect.ValueOf(t)
+	return converter.ConvertTo(v, to)
 }

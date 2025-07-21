@@ -57,6 +57,12 @@ func (m *Marker) IsValid() error {
 }
 
 // TODO: check if this is posisble and is making comparing easier for the user
+// IsEqual checks if the given reflect.Value is equal to the marker value. The
+// given value must be of the same kind of the marker e.g. a STRING marker can
+// only be compared to a value which is also a string e.g. the method
+// `reflect.Value.String()` will not fail. So before providing the value to the
+// function make sure it is of the type expected.
 func (m *Marker) IsEqual(v reflect.Value) bool {
-	return false
+	equal := GetEqualFunc(v.Type())
+	return equal(v, m.Value)
 }

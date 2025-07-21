@@ -78,3 +78,10 @@ func nameFor(typ reflect.Type, b *strings.Builder) string {
 	}
 	return nameFor(nil, b)
 }
+
+func DerefValue(v reflect.Value) reflect.Value {
+	if IsPointer(v.Type()) {
+		return v.Elem()
+	}
+	return v
+}

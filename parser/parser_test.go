@@ -76,8 +76,7 @@ func TestParse(t *testing.T) {
 				if m.Kind != want.kind {
 					t.Errorf("marker kind not equal. got: %s; want: %s\n", m.Kind, want.kind)
 				}
-				equal := marker.GetEqualFunc(m.Value.Type())
-				if !equal(m.Value, want.value) {
+				if !m.IsEqual(want.value) {
 					t.Errorf("marker value not equal. got: %v; want: %v\n", m.Value, want.value)
 				}
 				t.Logf("SUCCESS. kind: `%v`; value: `%v`\n", m.Kind, m.Value)

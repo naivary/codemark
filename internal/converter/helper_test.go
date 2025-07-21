@@ -3,12 +3,14 @@ package converter
 import (
 	"reflect"
 	"slices"
+	"time"
 
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/converter/convertertest"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
+	"github.com/naivary/codemark/typeutil"
 )
 
 func newConvTester(conv converter.Converter, customTypes []any) (convertertest.Tester, error) {
@@ -18,7 +20,7 @@ func newConvTester(conv converter.Converter, customTypes []any) (convertertest.T
 	}
 	for _, typ := range customTypes {
 		to := reflect.TypeOf(typ)
-		equal := marker.GetEqualFunc(to)
+		equal := getEqualFunc(to)
 		if err := tester.AddEqualFunc(to, equal); err != nil {
 			return nil, err
 		}
@@ -43,7 +45,7 @@ func customTypesFor(conv converter.Converter) []any {
 		return registrytest.BoolTypes()
 	}
 	if _, isString := conv.(*stringConverter); isString {
-		return registrytest.StringTypes()
+		return slices.Concat(registrytest.StringTypes())
 	}
 	return nil
 }
@@ -60,4 +62,22 @@ func validTestsFor(conv converter.Converter, tester convertertest.Tester) ([]con
 		tests = append(tests, tc)
 	}
 	return tests, nil
+}
+
+func getEqualFunc(to reflect.Type) func(got, want reflect.Value) bool {
+	derefed := typeutil.Deref(to)
+	if derefed == reflect.TypeOf(Time(time.Time{})) || derefed == reflect.TypeOf(time.Time{}) {
+		return equalTime
+	}
+	return marker.GetEqualFunc(to)
+}
+
+func equalTime(got, want reflect.Value) bool {
+	t := reflect.TypeOf(time.Time{})
+	gotTime := typeutil.DerefValue(got).Convert(t).Interface().(time.Time)
+	wantTime, err := time.Parse(time.RFC3339, want.String())
+	if err != nil {
+		return false
+	}
+	return gotTime.Equal(wantTime)
 }
