@@ -25,7 +25,7 @@ func Ident(ident string) error {
 	}
 	for pathSegment := range strings.SplitSeq(ident, colon) {
 		lastChar := rune(pathSegment[len(pathSegment)-1])
-		if !(unicode.IsLetter(lastChar) || unicode.IsDigit(lastChar)) {
+		if !unicode.IsLetter(lastChar) && !unicode.IsDigit(lastChar) {
 			return fmt.Errorf("identifier cannot end with an underscore `_` or dot `.`: %s in %s", pathSegment, ident)
 		}
 	}

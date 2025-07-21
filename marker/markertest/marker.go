@@ -23,7 +23,7 @@ func NewIdent(name string) string {
 func RandMarkerWithIdent(ident string, rtype reflect.Type) (*marker.Marker, error) {
 	v := randValue(rtype)
 	if v == nil {
-		return nil, fmt.Errorf("no value could be generated for given type: %v\n", rtype)
+		return nil, fmt.Errorf("no value could be generated for given type: %v", rtype)
 	}
 	value := reflect.ValueOf(v)
 	m := marker.New(ident, marker.KindOf(rtype), value)

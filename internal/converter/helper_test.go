@@ -8,7 +8,7 @@ import (
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/converter/convertertest"
-	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/internal/equal"
 	"github.com/naivary/codemark/registry/registrytest"
 	"github.com/naivary/codemark/typeutil"
 )
@@ -45,11 +45,12 @@ func customTypesFor(conv converter.Converter) []any {
 		return registrytest.BoolTypes()
 	}
 	if _, isString := conv.(*stringConverter); isString {
-		return slices.Concat(registrytest.StringTypes())
+		return registrytest.StringTypes()
 	}
 	return nil
 }
 
+// TODO: rename to validCasesFor
 func validTestsFor(conv converter.Converter, tester convertertest.Tester) ([]convertertest.Case, error) {
 	types := customTypesFor(conv)
 	tests := make([]convertertest.Case, 0, len(types))
@@ -65,11 +66,10 @@ func validTestsFor(conv converter.Converter, tester convertertest.Tester) ([]con
 }
 
 func getEqualFunc(to reflect.Type) func(got, want reflect.Value) bool {
-	derefed := typeutil.Deref(to)
-	if derefed == reflect.TypeOf(Time(time.Time{})) || derefed == reflect.TypeOf(time.Time{}) {
+	if isTypeT[time.Time](to) {
 		return equalTime
 	}
-	return marker.GetEqualFunc(to)
+	return equal.GetFunc(to)
 }
 
 func equalTime(got, want reflect.Value) bool {

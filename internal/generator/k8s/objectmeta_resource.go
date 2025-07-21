@@ -1,9 +1,10 @@
 package k8s
 
 import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func objectMetaOpts() []*core.Option {
@@ -14,17 +15,21 @@ func objectMetaOpts() []*core.Option {
 	})
 }
 
-func createObjectMeta(optioner loaderapi.Optioner) metav1.ObjectMeta {
-	obj := metav1.ObjectMeta{}
+func createObjectMeta(optioner loaderapi.Optioner) (*metav1.ObjectMeta, error) {
+	obj := &metav1.ObjectMeta{}
 	for _, opts := range optioner.Options() {
 		for _, opt := range opts {
+			var err error
 			switch o := opt.(type) {
 			case Name:
-				o.apply(&obj)
+				err = o.apply(obj)
 			case Namespace:
-				o.apply(&obj)
+				err = o.apply(obj)
+			}
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
-	return obj
+	return obj, nil
 }

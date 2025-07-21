@@ -53,13 +53,13 @@ func lexIdent(l *Lexer) stateFunc {
 	l.acceptFunc(valid)
 	ident := l.currentValue()
 	if err := syntax.Ident(ident); err != nil {
-		return l.errorf("err: %s\n", err.Error())
+		return l.errorf("err: %s", err.Error())
 	}
 	l.emit(token.IDENT)
-	switch r := l.peek(); {
-	case r == _assign:
+	switch l.peek() {
+	case _assign:
 		return lexAssignment
-	case r == _eof || r == _newline:
+	case _eof, _newline:
 		return lexBoolWithoutAssignment
 	default:
 		return l.errorf("expected an assignment operator or a newline after the identifier `%s`", ident)
@@ -89,14 +89,14 @@ func lexStartTick(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanMultiLineString(l); err != nil {
-		return l.errorf("error: %s\n", err.Error())
+		return l.errorf("error: %s", err.Error())
 	}
 	l.emit(token.STRING)
-	switch r := l.peek(); {
-	case r == _tick:
+	switch l.peek() {
+	case _tick:
 		return lexEndTick
 	default:
-		return l.errorf("expected `\"` got `%s`", string(r))
+		return l.errorf("expected `\"` got `%s`", string(l.peek()))
 	}
 }
 
@@ -134,7 +134,7 @@ func lexBool(l *Lexer) stateFunc {
 func lexNumber(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
-		return l.errorf("error: %s\n", err.Error())
+		return l.errorf("error: %s", err.Error())
 	}
 	l.emit(kind)
 	return lexEndOfExpr
@@ -162,10 +162,10 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 }
 
 func lexListSequence(l *Lexer) stateFunc {
-	switch r := l.peek(); {
-	case r == _comma:
+	switch l.peek() {
+	case _comma:
 		return lexListComma
-	case r == _rbrack:
+	case _rbrack:
 		return lexCloseSquareBracket
 	default:
 		return l.errorf("expected next array value or closing bracket")
@@ -192,7 +192,7 @@ func lexBoolListValue(l *Lexer) stateFunc {
 func lexNumberListValue(l *Lexer) stateFunc {
 	kind, err := scanNumber(l)
 	if err != nil {
-		return l.errorf("error: %s\n", err.Error())
+		return l.errorf("error: %s", err.Error())
 	}
 	l.emit(kind)
 	return lexListSequence
@@ -221,14 +221,14 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanString(l); err != nil {
-		return l.errorf("error: %s\n", err.Error())
+		return l.errorf("error: %s", err.Error())
 	}
 	l.emit(token.STRING)
-	switch r := l.peek(); {
-	case r == _dquot:
+	switch l.peek() {
+	case _dquot:
 		return lexEndDoubleQuotationMarkString
 	default:
-		return l.errorf("expected `\"` got `%s`", string(r))
+		return l.errorf("expected `\"` got `%s`", string(l.peek()))
 	}
 }
 
@@ -242,14 +242,14 @@ func lexStartDoubleQuotationMarkStringList(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanString(l); err != nil {
-		return l.errorf("error: %s\n", err.Error())
+		return l.errorf("error: %s", err.Error())
 	}
 	l.emit(token.STRING)
-	switch r := l.peek(); {
-	case r == _dquot:
+	switch l.peek() {
+	case _dquot:
 		return lexEndDoubleQuotationMarkStringList
 	default:
-		return l.errorf("expected `\"` got `%s`", string(r))
+		return l.errorf("expected `\"` got `%s`", string(l.peek()))
 	}
 }
 

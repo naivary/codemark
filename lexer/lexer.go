@@ -120,7 +120,7 @@ func (l *Lexer) peek() rune {
 // accept is accepting the next rune
 // if it's from the `valid` set.
 func (l *Lexer) accept(valid string) bool {
-	if strings.IndexRune(valid, l.next()) >= 0 {
+	if strings.ContainsRune(valid, l.next()) {
 		return true
 	}
 	l.backup()
@@ -128,7 +128,7 @@ func (l *Lexer) accept(valid string) bool {
 }
 
 func (l *Lexer) acceptRun(valid string) {
-	for strings.IndexRune(valid, l.next()) >= 0 {
+	for strings.ContainsRune(valid, l.next()) {
 	}
 	l.backup()
 }

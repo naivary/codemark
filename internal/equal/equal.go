@@ -1,4 +1,4 @@
-package marker
+package equal
 
 import (
 	"math"
@@ -7,38 +7,43 @@ import (
 	"github.com/naivary/codemark/typeutil"
 )
 
-// GetEqualFunc returns a function which can be used to compare to values. One
+func IsEqual(got, want reflect.Value) bool {
+	equal := GetFunc(got.Type())
+	return equal(got, want)
+}
+
+// GetFunc returns a function which can be used to compare to values. One
 // being the marker value and the other a value produced by some processing.
-func GetEqualFunc(rtype reflect.Type) func(got, want reflect.Value) bool {
+func GetFunc(rtype reflect.Type) func(got, want reflect.Value) bool {
 	if typeutil.IsValidSlice(rtype) {
-		return isValidList
+		return list
 	}
 	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
-		return isValidInteger
+		return integer
 	}
 	if typeutil.IsFloat(rtype) {
-		return isValidFloat
+		return float
 	}
 	if typeutil.IsComplex(rtype) {
-		return isValidComplex
+		return complexx
 	}
 	if typeutil.IsBool(rtype) {
-		return isValidBool
+		return boolean
 	}
 	if typeutil.IsString(rtype) {
-		return isValidString
+		return stringg
 	}
 	if typeutil.IsAny(rtype) {
-		return isValidAny
+		return anything
 	}
 	return nil
 }
 
-func isValidList(got, want reflect.Value) bool {
+func list(got, want reflect.Value) bool {
 	for i := range want.Len() {
 		wantElem := want.Index(i)
 		gotElem := got.Index(i)
-		equal := GetEqualFunc(gotElem.Type())
+		equal := GetFunc(gotElem.Type())
 		if equal == nil {
 			return false
 		}
@@ -49,13 +54,13 @@ func isValidList(got, want reflect.Value) bool {
 	return true
 }
 
-func isValidAny(got, want reflect.Value) bool {
+func anything(got, want reflect.Value) bool {
 	got = typeutil.DerefValue(got)
 	want = typeutil.DerefValue(want)
 	return reflect.DeepEqual(got.Interface(), want.Interface())
 }
 
-func isValidInteger(got, want reflect.Value) bool {
+func integer(got, want reflect.Value) bool {
 	got = typeutil.DerefValue(got)
 	var i64 int64
 	switch got.Kind() {
@@ -74,25 +79,25 @@ func isValidInteger(got, want reflect.Value) bool {
 	return i64 == w
 }
 
-func isValidFloat(got, want reflect.Value) bool {
+func float(got, want reflect.Value) bool {
 	got = typeutil.DerefValue(got)
 	w := want.Interface().(float64)
 	return almostEqual(got.Float(), w)
 }
 
-func isValidBool(got, want reflect.Value) bool {
+func boolean(got, want reflect.Value) bool {
 	got = typeutil.DerefValue(got)
 	w := want.Interface().(bool)
 	return got.Bool() == w
 }
 
-func isValidString(got, want reflect.Value) bool {
+func stringg(got, want reflect.Value) bool {
 	got = typeutil.DerefValue(got)
 	w := want.Interface().(string)
 	return got.String() == w
 }
 
-func isValidComplex(got, want reflect.Value) bool {
+func complexx(got, want reflect.Value) bool {
 	got = typeutil.DerefValue(got)
 	w := want.Interface().(complex128)
 	return got.Complex() == w

@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"os"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/generator"
 	"github.com/naivary/codemark/registry"
-	"golang.org/x/tools/go/packages"
 )
 
 var _ generator.Generator = (*k8sGenerator)(nil)
@@ -60,7 +61,10 @@ func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Informatio
 				if err != nil {
 					return err
 				}
-				json.NewEncoder(os.Stdout).Encode(cm)
+				err = json.NewEncoder(os.Stdout).Encode(cm)
+				if err != nil {
+					return err
+				}
 			}
 		}
 		for _, fn := range proj.Funcs {
@@ -69,7 +73,10 @@ func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Informatio
 				if err != nil {
 					return err
 				}
-				json.NewEncoder(os.Stdout).Encode(pod)
+				err = json.NewEncoder(os.Stdout).Encode(pod)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}

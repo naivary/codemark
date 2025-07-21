@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/naivary/codemark/internal/equal"
 	"github.com/naivary/codemark/syntax"
 )
 
@@ -48,21 +49,19 @@ func (m *Marker) String() string {
 
 func (m *Marker) IsValid() error {
 	if err := syntax.Ident(m.Ident); err != nil {
-		return fmt.Errorf("marker identifier is invalid: %s\n", m.Ident)
+		return fmt.Errorf("marker identifier is invalid: %s", m.Ident)
 	}
 	if !m.Value.IsValid() {
-		return fmt.Errorf("value of marker is not valid: %v\n", m.Value)
+		return fmt.Errorf("value of marker is not valid: %v", m.Value)
 	}
 	return nil
 }
 
-// TODO: check if this is posisble and is making comparing easier for the user
 // IsEqual checks if the given reflect.Value is equal to the marker value. The
 // given value must be of the same kind of the marker e.g. a STRING marker can
 // only be compared to a value which is also a string e.g. the method
 // `reflect.Value.String()` will not fail. So before providing the value to the
 // function make sure it is of the type expected.
 func (m *Marker) IsEqual(v reflect.Value) bool {
-	equal := GetEqualFunc(v.Type())
-	return equal(v, m.Value)
+	return equal.IsEqual(v, m.Value)
 }

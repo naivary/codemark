@@ -18,10 +18,8 @@ const (
 
 const _codemark = "codemark"
 
-var (
-	// _rvzero is the zero value for a reflect.Value used for convenience
-	_rvzero = reflect.Value{}
-)
+// _rvzero is the zero value for a reflect.Value used for convenience
+var _rvzero = reflect.Value{}
 
 func Get(rtype reflect.Type) converter.Converter {
 	if typeutil.IsBool(rtype) {
@@ -46,7 +44,7 @@ func Get(rtype reflect.Type) converter.Converter {
 }
 
 func isCorrectTarget(opt coreapi.Option, t coreapi.Target) bool {
-	return !(slices.Contains(opt.Targets, t) || slices.Contains(opt.Targets, coreapi.TargetAny))
+	return !slices.Contains(opt.Targets, t) && !slices.Contains(opt.Targets, coreapi.TargetAny)
 }
 
 // isValidName checks if the choosen name of a custom converter is following the
@@ -60,4 +58,10 @@ func isValidName(name string) error {
 		return fmt.Errorf(`the name of your custom converter has to be seperated with "%s" and must be composed of two segments e.g. "codemark.integer"`, ".")
 	}
 	return nil
+}
+
+func isTypeT[T any](to reflect.Type) bool {
+	var from T
+	to = typeutil.Deref(to)
+	return to.ConvertibleTo(reflect.TypeOf(from))
 }

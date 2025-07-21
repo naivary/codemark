@@ -7,7 +7,6 @@ import (
 
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
-	"github.com/naivary/codemark/typeutil"
 )
 
 var _ converter.Converter = (*stringConverter)(nil)
@@ -30,9 +29,11 @@ func (s *stringConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		string(""),
 		time.Time{},
+		time.Duration(0),
 		// pointer
 		new(string),
 		new(time.Time),
+		new(time.Duration),
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
@@ -50,15 +51,13 @@ func (s *stringConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 }
 
 func (s *stringConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
-	if !s.isTime(to) {
-		return converter.ConvertTo(m.Value, to)
+	if isTypeT[time.Time](to) {
+		return s.time(m, to)
 	}
-	return s.time(m, to)
-}
-
-func (s *stringConverter) isTime(to reflect.Type) bool {
-	to = typeutil.Deref(to)
-	return to.ConvertibleTo(reflect.TypeOf(time.Time{}))
+	if isTypeT[time.Duration](to) {
+		return s.duration(m, to)
+	}
+	return converter.ConvertTo(m.Value, to)
 }
 
 func (s *stringConverter) time(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -68,4 +67,8 @@ func (s *stringConverter) time(m marker.Marker, to reflect.Type) (reflect.Value,
 	}
 	v := reflect.ValueOf(t)
 	return converter.ConvertTo(v, to)
+}
+
+func (s *stringConverter) duration(_ marker.Marker, _ reflect.Type) (reflect.Value, error) {
+	return _rvzero, nil
 }

@@ -4,10 +4,11 @@ import (
 	"slices"
 	"strings"
 
-	coreapi "github.com/naivary/codemark/api/core"
-	loaderapi "github.com/naivary/codemark/api/loader"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	coreapi "github.com/naivary/codemark/api/core"
+	loaderapi "github.com/naivary/codemark/api/loader"
 )
 
 func newConfigMap() *corev1.ConfigMap {
@@ -35,12 +36,20 @@ func configMapOpts() []*coreapi.Option {
 
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 	cm := newConfigMap()
-	cm.ObjectMeta = createObjectMeta(strc)
+	objectMeta, err := createObjectMeta(strc)
+	if err != nil {
+		return nil, err
+	}
+	cm.ObjectMeta = *objectMeta
 	for _, opts := range strc.Opts {
 		for _, opt := range opts {
+			var err error
 			switch o := opt.(type) {
 			case Immutable:
-				o.apply(cm)
+				err = o.apply(cm)
+			}
+			if err != nil {
+				return nil, err
 			}
 		}
 	}
@@ -52,9 +61,13 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 		}
 		for _, opts := range field.Opts {
 			for _, opt := range opts {
+				var err error
 				switch o := opt.(type) {
 				case Default:
-					o.apply(field.Idn, cm)
+					err = o.apply(field.Idn, cm)
+				}
+				if err != nil {
+					return nil, err
 				}
 			}
 		}

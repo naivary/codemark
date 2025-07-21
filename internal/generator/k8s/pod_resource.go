@@ -1,10 +1,11 @@
 package k8s
 
 import (
-	"github.com/naivary/codemark/api/core"
-	loaderapi "github.com/naivary/codemark/api/loader"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/naivary/codemark/api/core"
+	loaderapi "github.com/naivary/codemark/api/loader"
 )
 
 func newPod() *corev1.Pod {
@@ -29,7 +30,11 @@ func podOpts() []*core.Option {
 
 func createPod(fn loaderapi.FuncInfo) (*corev1.Pod, error) {
 	pod := newPod()
-	pod.ObjectMeta = createObjectMeta(fn)
+	objectMeta, err := createObjectMeta(fn)
+	if err != nil {
+		return nil, err
+	}
+	pod.ObjectMeta = *objectMeta
 	for _, opts := range fn.Opts {
 		for _, opt := range opts {
 			var err error

@@ -32,7 +32,7 @@ func (m *Manager) Generate(domains ...string) error {
 func (m *Manager) Get(domain string) (Generator, error) {
 	gen, found := m.gens[domain]
 	if !found {
-		return nil, fmt.Errorf("generator not found for domain: %s\n", domain)
+		return nil, fmt.Errorf("generator not found for domain: %s", domain)
 	}
 	return gen, nil
 }
@@ -40,7 +40,7 @@ func (m *Manager) Get(domain string) (Generator, error) {
 func (m *Manager) Add(gen Generator) error {
 	domain := gen.Domain()
 	if _, found := m.gens[domain]; found {
-		return fmt.Errorf("generator for domain already exists: %s\n", domain)
+		return fmt.Errorf("generator for domain already exists: %s", domain)
 	}
 	m.gens[domain] = gen
 	return nil
