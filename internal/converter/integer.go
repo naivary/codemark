@@ -3,6 +3,8 @@ package converter
 import (
 	"fmt"
 	"reflect"
+	"slices"
+	"time"
 
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
@@ -67,12 +69,13 @@ func (i *intConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if mkind == marker.INT {
 		return nil
 	}
-	if mkind == marker.STRING && out.Kind() == _byte || out.Kind() == _rune {
+	if mkind == marker.STRING && slices.Contains([]reflect.Kind{_byte, _rune, _duration}, out.Kind()) {
 		return nil
 	}
 	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s", mkind, marker.INT, marker.STRING)
 }
 
+// TODO: decision making is wrong. if its a byte rn it will rand in duration
 func (i *intConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	mkind := m.Kind
 	if i.isInteger(to, mkind) {
@@ -80,6 +83,9 @@ func (i *intConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value,
 	}
 	if i.isUint(to, mkind) {
 		return i.uinteger(m, to)
+	}
+	if i.isDuration(to, mkind) {
+		return i.duration(m, to)
 	}
 	if i.isByte(to, mkind) {
 		return i.bytee(m, to)
@@ -124,6 +130,15 @@ func (i *intConverter) bytee(m marker.Marker, to reflect.Type) (reflect.Value, e
 	return converter.ConvertTo(bvalue, to)
 }
 
+func (i *intConverter) duration(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	duration, err := time.ParseDuration(m.Value.String())
+	if err != nil {
+		return _rvzero, err
+	}
+	v := reflect.ValueOf(duration)
+	return converter.ConvertTo(v, to)
+}
+
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {
 	return typeutil.Deref(out).OverflowInt(n)
 }
@@ -146,4 +161,9 @@ func (i *intConverter) isByte(rtype reflect.Type, mkind marker.Kind) bool {
 
 func (i *intConverter) isRune(rtype reflect.Type, mkind marker.Kind) bool {
 	return (typeutil.IsUint(rtype) || typeutil.IsString(rtype)) && mkind == marker.STRING
+}
+
+func (i *intConverter) isDuration(rtype reflect.Type, mkind marker.Kind) bool {
+	rtype = typeutil.Deref(rtype)
+	return rtype.Kind() == _duration && mkind == marker.STRING
 }

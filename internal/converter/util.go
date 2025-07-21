@@ -12,8 +12,9 @@ import (
 )
 
 const (
-	_rune = reflect.Int32
-	_byte = reflect.Uint8
+	_rune     = reflect.Int32
+	_byte     = reflect.Uint8
+	_duration = reflect.Int64
 )
 
 const _codemark = "codemark"
