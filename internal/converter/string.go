@@ -69,6 +69,11 @@ func (s *stringConverter) time(m marker.Marker, to reflect.Type) (reflect.Value,
 	return converter.ConvertTo(v, to)
 }
 
-func (s *stringConverter) duration(_ marker.Marker, _ reflect.Type) (reflect.Value, error) {
-	return _rvzero, nil
+func (s *stringConverter) duration(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	duration, err := time.ParseDuration(m.Value.String())
+	if err != nil {
+		return _rvzero, err
+	}
+	v := reflect.ValueOf(duration)
+	return converter.ConvertTo(v, to)
 }

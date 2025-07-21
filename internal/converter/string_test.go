@@ -22,9 +22,10 @@ func timeTypes() []any {
 	}
 }
 
-func customStringTests(tester convertertest.Tester) []convertertest.Case {
+func customTimeCases(tester convertertest.Tester) []convertertest.Case {
 	t := marker.New("codemark:testing:time", marker.STRING, reflect.ValueOf("2006-01-02T15:04:05Z"))
 	ptrT := marker.New("codemark:testing:ptr.time", marker.STRING, reflect.ValueOf("2006-01-02T15:04:05Z"))
+
 	return []convertertest.Case{
 		tester.MustNewCaseWithMarker(&t, reflect.TypeFor[Time](), true, coreapi.TargetAny),
 		tester.MustNewCaseWithMarker(&ptrT, reflect.TypeFor[PtrTime](), true, coreapi.TargetAny),
@@ -54,10 +55,9 @@ func TestStringConverter_Time(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	for _, tc := range customStringTests(tester) {
+	for _, tc := range customTimeCases(tester) {
 		t.Run(tc.Name, func(t *testing.T) {
 			tester.Run(t, tc)
 		})
 	}
-
 }
