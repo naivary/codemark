@@ -20,7 +20,7 @@ func TestLoaderLocal(t *testing.T) {
 	cfg := &packages.Config{
 		Dir: tc.Dir,
 	}
-	reg, err := registrytest.NewRegistry(registrytest.NewOptSet())
+	reg, err := registrytest.NewRegistry(registrytest.NewOptsSet())
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
@@ -113,7 +113,7 @@ func isValid(tc loaderTestCase, proj *loaderapi.Information) error {
 	if err := validate(tc.Funcs, proj.Funcs); err != nil {
 		return err
 	}
-	// check filee bcause its a special case because of the missing types.Object
+	// check file because its a special case because of the missing types.Object
 	if len(tc.Files) != len(proj.Files) {
 		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(proj.Files), len(tc.Files))
 	}

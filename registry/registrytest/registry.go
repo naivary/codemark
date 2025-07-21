@@ -160,7 +160,7 @@ func AllTypes() []any {
 
 // AliasOpts are go-native types which are supported by the default
 // converters but cannot be registered using the native types because they are
-// aliases of others e.g. byte and rune.
+// aliases of others e.g. byte=uint8 and rune=int32.
 func AliasOpts() []*core.Option {
 	return []*core.Option{
 		maker.MustMakeOpt(markertest.NewIdent("byte"), reflect.TypeOf(Byte(0)), core.TargetAny),
@@ -174,9 +174,9 @@ func AliasOpts() []*core.Option {
 	}
 }
 
-// NewOptSet returns all the definitions matching the default markers available with
+// NewOptsSet returns all the options matching the default markers available with
 // the correct type
-func NewOptSet() []*core.Option {
+func NewOptsSet() []*core.Option {
 	types := AllTypes()
 	aliases := AliasOpts()
 	opts := make([]*core.Option, 0, len(types)+len(aliases))
