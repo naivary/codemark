@@ -23,20 +23,6 @@ type Information struct {
 	Files   map[Filename]FileInfo
 }
 
-func NewInformation() *Information {
-	return &Information{
-		Structs: make(map[types.Object]*StructInfo),
-		Ifaces:  make(map[types.Object]IfaceInfo),
-		Aliases: make(map[types.Object]AliasInfo),
-		Named:   make(map[types.Object]*NamedInfo),
-		Consts:  make(map[types.Object]ConstInfo),
-		Vars:    make(map[types.Object]VarInfo),
-		Imports: make(map[types.Object]ImportInfo),
-		Funcs:   make(map[types.Object]FuncInfo),
-		Files:   make(map[Filename]FileInfo),
-	}
-}
-
 type FuncInfo struct {
 	Decl *ast.FuncDecl
 	Opts map[string][]any
@@ -121,7 +107,7 @@ func (i IfaceInfo) Options() map[string][]any {
 
 type SignatureInfo struct {
 	Method *ast.Field
-	Idn    *ast.Ident
+	Ident  *ast.Ident
 	Opts   map[string][]any
 }
 
@@ -144,7 +130,7 @@ func (s StructInfo) Options() map[string][]any {
 
 type FieldInfo struct {
 	Field *ast.Field
-	Idn   *ast.Ident
+	Ident *ast.Ident
 	Opts  map[string][]any
 }
 

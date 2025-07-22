@@ -18,7 +18,7 @@ func (i Image) apply(c *corev1.Container) error {
 
 func (i Image) Doc() core.OptionDoc {
 	return core.OptionDoc{
-		Desc:     `Image to use as the container`,
+		Desc:    `Image to use as the container`,
 		Default: "",
 	}
 }
@@ -40,7 +40,7 @@ func (i ImagePullPolicy) apply(c *corev1.Container) error {
 
 func (i ImagePullPolicy) Doc() core.OptionDoc {
 	return core.OptionDoc{
-		Desc:     `Image Pull Policy of the container`,
+		Desc:    `Image Pull Policy of the container`,
 		Default: "Always",
 	}
 }

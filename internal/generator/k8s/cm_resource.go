@@ -56,7 +56,7 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 	for _, field := range strc.Fields {
 		idents := keys(field.Opts)
 		if !slices.Contains(idents, "k8s:configmap:default") {
-			setDataInConfigMap(field.Idn.Name, "", cm)
+			setDataInConfigMap(field.Ident.Name, "", cm)
 			continue
 		}
 		for _, opts := range field.Opts {
@@ -64,7 +64,7 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 				var err error
 				switch o := opt.(type) {
 				case Default:
-					err = o.apply(field.Idn, cm)
+					err = o.apply(field.Ident, cm)
 				}
 				if err != nil {
 					return nil, err

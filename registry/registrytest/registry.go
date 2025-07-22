@@ -5,8 +5,8 @@ import (
 	"slices"
 
 	"github.com/naivary/codemark/api/core"
-	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/marker/markertest"
+	"github.com/naivary/codemark/option"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/typeutil"
 )
@@ -163,34 +163,34 @@ func AllTypes() []any {
 // aliases of others e.g. byte=uint8 and rune=int32.
 func AliasOpts() []*core.Option {
 	return []*core.Option{
-		maker.MustMakeOpt(markertest.NewIdent("byte"), reflect.TypeOf(Byte(0)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("rune"), reflect.TypeOf(Rune(0)), core.TargetAny),
-		maker.MustMakeOpt(
+		option.MustMake(markertest.NewIdent("byte"), reflect.TypeOf(Byte(0)), core.TargetAny),
+		option.MustMake(markertest.NewIdent("rune"), reflect.TypeOf(Rune(0)), core.TargetAny),
+		option.MustMake(
 			markertest.NewIdent("ptr.byte"),
 			reflect.TypeOf(PtrByte(nil)),
 			core.TargetAny,
 		),
-		maker.MustMakeOpt(
+		option.MustMake(
 			markertest.NewIdent("ptr.rune"),
 			reflect.TypeOf(PtrRune(nil)),
 			core.TargetAny,
 		),
-		maker.MustMakeOpt(
+		option.MustMake(
 			markertest.NewIdent("slice.byte"),
 			reflect.TypeOf(ByteList(nil)),
 			core.TargetAny,
 		),
-		maker.MustMakeOpt(
+		option.MustMake(
 			markertest.NewIdent("slice.rune"),
 			reflect.TypeOf(RuneList(nil)),
 			core.TargetAny,
 		),
-		maker.MustMakeOpt(
+		option.MustMake(
 			markertest.NewIdent("slice.ptr.byte"),
 			reflect.TypeOf(PtrByteList(nil)),
 			core.TargetAny,
 		),
-		maker.MustMakeOpt(
+		option.MustMake(
 			markertest.NewIdent("slice.ptr.rune"),
 			reflect.TypeOf(PtrRuneList(nil)),
 			core.TargetAny,
@@ -208,7 +208,7 @@ func NewOptsSet() []*core.Option {
 		rtype := reflect.TypeOf(typ)
 		name := typeutil.NameFor(rtype)
 		ident := markertest.NewIdent(name)
-		opt := maker.MustMakeOpt(ident, rtype, core.TargetAny)
+		opt := option.MustMake(ident, rtype, core.TargetAny)
 		opts = append(opts, opt)
 	}
 	return slices.Concat(opts, aliases)

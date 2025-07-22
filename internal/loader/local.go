@@ -16,14 +16,6 @@ import (
 	"github.com/naivary/codemark/internal/converter"
 )
 
-var ErrPkgsEmpty = errors.New(
-	"loaded packages are empty. check that the defined patterns are matching any files",
-)
-
-type Loader interface {
-	Load(patterns ...string) (map[*packages.Package]*loaderapi.Information, error)
-}
-
 var _ Loader = (*localLoader)(nil)
 
 type localLoader struct {
@@ -40,7 +32,7 @@ type localLoader struct {
 func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	l := &localLoader{
 		mngr: mngr,
-		info: loaderapi.NewInformation(),
+		info: newInformation(),
 		cfg:  &packages.Config{},
 	}
 	if cfg != nil {
@@ -79,7 +71,7 @@ func (l *localLoader) Load(
 }
 
 func (l *localLoader) reset() {
-	l.info = loaderapi.NewInformation()
+	l.info = newInformation()
 	l.pkg = nil
 }
 
@@ -366,7 +358,7 @@ func (l *localLoader) extractIfaceSignatureInfo(
 				return nil, err
 			}
 			info := loaderapi.SignatureInfo{
-				Idn:    name,
+				Ident:  name,
 				Method: meth,
 				Opts:   opts,
 			}
@@ -438,7 +430,7 @@ func (l *localLoader) extractFieldInfo(
 		}
 		for _, name := range field.Names {
 			info := loaderapi.FieldInfo{
-				Idn:   name,
+				Ident: name,
 				Field: field,
 				Opts:  opts,
 			}

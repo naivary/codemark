@@ -23,7 +23,7 @@ formatters:
       local-prefixes:
         - github.com/naivary/codemark
     golines:
-      max-len: 100
+      max-len: 150
       # Length of a tabulation.
       # Default: 4
       tab-len: 2

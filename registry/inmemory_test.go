@@ -7,7 +7,7 @@ import (
 
 	"github.com/naivary/codemark/api/core"
 
-	"github.com/naivary/codemark/maker"
+	"github.com/naivary/codemark/option"
 )
 
 type registryTestCase struct {
@@ -75,8 +75,8 @@ func (r *registryTester) validateDoc(t *testing.T, got, want *core.Option) {
 
 func opts() []*core.Option {
 	return []*core.Option{
-		maker.MustMakeOpt("codemark:registry:plain", reflect.TypeFor[string](), core.TargetAny),
-		maker.MustMakeOptWithDoc(
+		option.MustMake("codemark:registry:plain", reflect.TypeFor[string](), core.TargetAny),
+		option.MustMakeWithDoc(
 			"codemark:registry:doc",
 			reflect.TypeFor[string](),
 			core.OptionDoc{Desc: "some doc"},

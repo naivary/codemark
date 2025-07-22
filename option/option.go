@@ -1,4 +1,4 @@
-package maker
+package option
 
 import (
 	"reflect"
@@ -6,7 +6,7 @@ import (
 	"github.com/naivary/codemark/api/core"
 )
 
-func MakeOption(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
+func Make(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
 	opt := &core.Option{
 		Ident:   idn,
 		Targets: targets,
@@ -15,7 +15,7 @@ func MakeOption(idn string, output reflect.Type, targets ...core.Target) (*core.
 	return opt, opt.IsValid()
 }
 
-func MustMakeOpt(idn string, output reflect.Type, targets ...core.Target) *core.Option {
+func MustMake(idn string, output reflect.Type, targets ...core.Target) *core.Option {
 	opt := &core.Option{
 		Ident:   idn,
 		Targets: targets,
@@ -27,13 +27,13 @@ func MustMakeOpt(idn string, output reflect.Type, targets ...core.Target) *core.
 	return opt
 }
 
-func MakeOptWithDoc(
+func MakeWithDoc(
 	name string,
 	output reflect.Type,
 	doc core.OptionDoc,
 	targets ...core.Target,
 ) (*core.Option, error) {
-	opt, err := MakeOption(name, output, targets...)
+	opt, err := Make(name, output, targets...)
 	if err != nil {
 		return nil, err
 	}
@@ -41,13 +41,13 @@ func MakeOptWithDoc(
 	return opt, opt.IsValid()
 }
 
-func MustMakeOptWithDoc(
+func MustMakeWithDoc(
 	name string,
 	output reflect.Type,
 	doc core.OptionDoc,
 	targets ...core.Target,
 ) *core.Option {
-	opt, err := MakeOption(name, output, targets...)
+	opt, err := Make(name, output, targets...)
 	if err != nil {
 		panic(err)
 	}

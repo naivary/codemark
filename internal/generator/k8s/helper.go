@@ -8,7 +8,7 @@ import (
 
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/maker"
+	"github.com/naivary/codemark/option"
 	"github.com/naivary/codemark/registry"
 )
 
@@ -30,7 +30,7 @@ func makeDefs(resource string, optionTypes map[any][]core.Target) []*core.Option
 		name := strings.ToLower(to.Name())
 		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
 		doc := opt.(core.Docer[core.OptionDoc]).Doc()
-		opt := maker.MustMakeOptWithDoc(ident, to, doc, targets...)
+		opt := option.MustMakeWithDoc(ident, to, doc, targets...)
 		opts = append(opts, opt)
 	}
 	return opts
