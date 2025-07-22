@@ -4,27 +4,11 @@ import (
 	"reflect"
 	"slices"
 
-	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/converter/convertertest"
-	"github.com/naivary/codemark/internal/equal"
+	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
 )
-
-func newConvTester(conv converter.Converter, customTypes []any) (convertertest.Tester, error) {
-	tester, err := convertertest.NewTester(conv)
-	if err != nil {
-		return nil, err
-	}
-	for _, typ := range customTypes {
-		to := reflect.TypeOf(typ)
-		equal := equal.GetFunc(to)
-		if err := tester.AddEqualFunc(to, equal); err != nil {
-			return nil, err
-		}
-	}
-	return tester, nil
-}
 
 func customTypesFor(conv converter.Converter) []any {
 	if _, isList := conv.(*listConverter); isList {
@@ -48,20 +32,22 @@ func customTypesFor(conv converter.Converter) []any {
 	return nil
 }
 
-// TODO: rename to validCasesFor
-func validTestsFor(
-	conv converter.Converter,
-	tester convertertest.Tester,
-) ([]convertertest.Case, error) {
+func validCasesFor(conv converter.Converter) ([]convertertest.Case, error) {
 	types := customTypesFor(conv)
-	tests := make([]convertertest.Case, 0, len(types))
-	for _, to := range types {
-		rtype := reflect.TypeOf(to)
-		tc, err := tester.NewCase(rtype, true, coreapi.TargetAny)
+	cases := make([]convertertest.Case, 0, len(types))
+	for _, typ := range types {
+		to := reflect.TypeOf(typ)
+		equal := eql.get(to)
+		c, err := convertertest.NewCase(nil, to, true, equal)
 		if err != nil {
 			return nil, err
 		}
-		tests = append(tests, tc)
+		cases = append(cases, c)
 	}
-	return tests, nil
+	return cases, nil
+}
+
+func createCase(to any, m marker.Marker, isValidCase bool) convertertest.Case {
+	rto := reflect.TypeOf(to)
+	return convertertest.MustNewCase(&m, rto, isValidCase, eql.get(rto))
 }

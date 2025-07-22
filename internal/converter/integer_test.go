@@ -1,16 +1,13 @@
 package converter
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter/convertertest"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/marker/markertest"
 	"github.com/naivary/codemark/registry/registrytest"
-	"github.com/naivary/codemark/typeutil"
 )
 
 type (
@@ -18,38 +15,18 @@ type (
 	PtrDuration *time.Duration
 )
 
-func equalDuration(got, want reflect.Value) bool {
-	t := reflect.TypeFor[time.Duration]()
-	gotDuration := typeutil.DerefValue(got).Convert(t).Interface().(time.Duration)
-	wantDuration, err := time.ParseDuration(want.String())
-	if err != nil {
-		return false
-	}
-	return gotDuration == wantDuration
-}
-
-func equalByte(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
-	return want.String() == string(byte(got.Uint()))
-}
-
-func equalRune(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
-	return want.String() == string(rune(got.Int()))
-}
-
 // TODO: target cann raus beim convertertest.Tester
 func TestIntConverter(t *testing.T) {
 	conv := Integer()
-	tester, err := newConvTester(conv, customTypesFor(conv))
+	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := validTestsFor(conv, tester)
+	cases, err := validCasesFor(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	for _, tc := range tests {
+	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			tester.Run(t, tc)
 		})
@@ -62,25 +39,9 @@ func TestIntConverter_Duration(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	equalFuncs := map[reflect.Type]func(got, want reflect.Value) bool{
-		reflect.TypeFor[Duration]():    equalDuration,
-		reflect.TypeFor[PtrDuration](): equalDuration,
-	}
-	for typ, equalFunc := range equalFuncs {
-		if err := tester.AddEqualFunc(typ, equalFunc); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-	}
-	duration := markertest.NewMarker("duration", marker.STRING, "10h")
-	ptrDuration := markertest.NewMarker("ptr.duration", marker.STRING, "10h")
 	cases := []convertertest.Case{
-		tester.MustNewCaseWithMarker(&duration, reflect.TypeOf(Duration(0)), true, core.TargetAny),
-		tester.MustNewCaseWithMarker(
-			&ptrDuration,
-			reflect.TypeOf(PtrDuration(nil)),
-			true,
-			core.TargetAny,
-		),
+		createCase(Duration(0), markertest.NewMarker("duration", marker.STRING, "10h"), true),
+		createCase(PtrDuration(nil), markertest.NewMarker("ptr.duration", marker.STRING, "10h"), true),
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -95,24 +56,12 @@ func TestIntConverter_Byte(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	equalFuncs := map[reflect.Type]func(got, want reflect.Value) bool{
-		reflect.TypeFor[registrytest.Byte]():    equalByte,
-		reflect.TypeFor[registrytest.PtrByte](): equalByte,
-	}
-	for typ, equalFunc := range equalFuncs {
-		if err := tester.AddEqualFunc(typ, equalFunc); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-	}
-	b := markertest.NewMarker("byte", marker.STRING, "b")
-	ptrByte := markertest.NewMarker("ptr.byte", marker.STRING, "b")
 	cases := []convertertest.Case{
-		tester.MustNewCaseWithMarker(&b, reflect.TypeOf(registrytest.Byte(0)), true, core.TargetAny),
-		tester.MustNewCaseWithMarker(
-			&ptrByte,
-			reflect.TypeOf(registrytest.PtrByte(nil)),
+		createCase(registrytest.Byte(0), markertest.NewMarker("byte", marker.STRING, "b"), true),
+		createCase(
+			registrytest.PtrByte(nil),
+			markertest.NewMarker("ptr.byte", marker.STRING, "b"),
 			true,
-			core.TargetAny,
 		),
 	}
 	for _, tc := range cases {
@@ -128,25 +77,16 @@ func TestIntConverter_Rune(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	equalFuncs := map[reflect.Type]func(got, want reflect.Value) bool{
-		reflect.TypeFor[registrytest.Rune]():    equalRune,
-		reflect.TypeFor[registrytest.PtrRune](): equalRune,
-	}
-	for typ, equalFunc := range equalFuncs {
-		if err := tester.AddEqualFunc(typ, equalFunc); err != nil {
-			t.Errorf("err occured: %s\n", err)
-		}
-	}
-	r := markertest.NewMarker("rune", marker.STRING, "r")
-	ptrRune := markertest.NewMarker("ptr.rune", marker.STRING, "r")
 	cases := []convertertest.Case{
-		tester.MustNewCaseWithMarker(&r, reflect.TypeOf(registrytest.Rune(0)), true, core.TargetAny),
-		tester.MustNewCaseWithMarker(
-			&ptrRune,
-			reflect.TypeOf(registrytest.PtrRune(nil)),
+		createCase(registrytest.Rune(0), markertest.NewMarker("rune", marker.STRING, "r"), true),
+		createCase(
+			registrytest.PtrRune(nil),
+			markertest.NewMarker("ptr.rune", marker.STRING, "r"),
 			true,
-			core.TargetAny,
 		),
+	}
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {

@@ -2,15 +2,17 @@ package converter
 
 import (
 	"testing"
+
+	"github.com/naivary/codemark/converter/convertertest"
 )
 
 func TestFloatConverter(t *testing.T) {
 	conv := Float()
-	tester, err := newConvTester(conv, customTypesFor(conv))
+	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := validTestsFor(conv, tester)
+	tests, err := validCasesFor(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

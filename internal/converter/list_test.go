@@ -2,19 +2,21 @@ package converter
 
 import (
 	"testing"
+
+	"github.com/naivary/codemark/converter/convertertest"
 )
 
 func TestListConverter(t *testing.T) {
 	conv := List()
-	tester, err := newConvTester(conv, customTypesFor(conv))
+	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	tests, err := validTestsFor(conv, tester)
+	cases, err := validCasesFor(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	for _, tc := range tests {
+	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
 			tester.Run(t, tc)
 		})

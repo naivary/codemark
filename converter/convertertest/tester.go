@@ -6,7 +6,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/marker/markertest"
@@ -20,8 +19,6 @@ type Case struct {
 	Name string
 	// Marker to convert by the converter
 	Marker marker.Marker
-	// Target of the marker
-	Target core.Target
 	// Type to convert the marker to.
 	To reflect.Type
 	// If the test case is a valid or invalid case
@@ -31,31 +28,67 @@ type Case struct {
 	IsEqual func(got, want reflect.Value) bool
 }
 
+func NewCase(
+	m *marker.Marker,
+	to reflect.Type,
+	isValidCase bool,
+	equal func(got, want reflect.Value) bool,
+) (Case, error) {
+	var err error
+	if m == nil {
+		m, err = markertest.RandMarker(to)
+	}
+	if err != nil {
+		return _casez, err
+	}
+	if to == nil {
+		return _casez, errors.New("to cannot be nil")
+	}
+	if equal == nil {
+		return _casez, fmt.Errorf("func(got, want reflect.Value) bool cannot be nil: %s", m)
+	}
+
+	name := fmt.Sprintf("marker[%s] to %v", m.Ident, to)
+	tc := Case{
+		Name:        name,
+		Marker:      *m,
+		To:          to,
+		IsValidCase: isValidCase,
+		IsEqual:     equal,
+	}
+	return tc, nil
+}
+
+func MustNewCase(
+	m *marker.Marker,
+	to reflect.Type,
+	isValidCase bool,
+	equal func(got, want reflect.Value) bool,
+) Case {
+	cas, err := NewCase(m, to, isValidCase, equal)
+	if err != nil {
+		panic(err)
+	}
+	return cas
+}
+
 // Tester is providing useful abstractions for testing a converter in
 // a convenient and easy way.
 type Tester interface {
 	// NewCase returns a new test case.
-	NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error)
-
-	// NewCaseWithMarker returns a test case with a custom marker.
-	NewCaseWithMarker(
-		marker *marker.Marker,
+	NewCase(
+		m *marker.Marker,
 		to reflect.Type,
 		isValidCase bool,
-		t core.Target,
+		equal func(got, want reflect.Value) bool,
 	) (Case, error)
 
-	MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case
-	MustNewCaseWithMarker(
-		marker *marker.Marker,
+	MustNewCase(
+		m *marker.Marker,
 		to reflect.Type,
 		isValidCase bool,
-		t core.Target,
+		equal func(got, want reflect.Value) bool,
 	) Case
-
-	// AddVVFunc defines a func(got, want reflect.Value) bool for an example type to which a
-	// supported type of the converter will be converted.
-	AddEqualFunc(to reflect.Type, fn func(got, want reflect.Value) bool) error
 
 	// Run runs the given test case against and checks if the conversion was
 	// successful.
@@ -81,70 +114,29 @@ func NewTester(conv converter.Converter) (Tester, error) {
 	return c, nil
 }
 
-// from should only be customizable for list others are
-func (c *tester) NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
-	marker, err := markertest.RandMarker(to)
-	if err != nil {
-		return _casez, err
-	}
-	return c.NewCaseWithMarker(marker, to, isValidCase, t)
-}
-
-func (c *tester) NewCaseWithMarker(
+func (c *tester) NewCase(
 	m *marker.Marker,
 	to reflect.Type,
 	isValidCase bool,
-	t core.Target,
+	equal func(got, want reflect.Value) bool,
 ) (Case, error) {
-	if m == nil {
-		return _casez, errors.New("marker cannot be nil. use NewTest if you want a random marker")
-	}
-	if to == nil {
-		return _casez, errors.New("to cannot be nil")
-	}
-	name := fmt.Sprintf("marker[%s] to %v", m.Ident, to)
-	equal := c.equalFuncs[to]
-	if equal == nil {
-		return _casez, fmt.Errorf("func(got, want reflect.Value) bool not found for: %v", to)
-	}
-	tc := Case{
-		Name:        name,
-		Marker:      *m,
-		Target:      t,
-		To:          to,
-		IsValidCase: isValidCase,
-		IsEqual:     equal,
-	}
-	return tc, nil
+	return NewCase(m, to, isValidCase, equal)
 }
 
-func (c *tester) MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case {
-	tc, err := c.NewCase(to, isValidCase, t)
-	if err != nil {
-		panic(err)
-	}
-	return tc
-}
-
-func (c *tester) MustNewCaseWithMarker(
+func (c *tester) MustNewCase(
 	m *marker.Marker,
 	to reflect.Type,
 	isValidCase bool,
-	t core.Target,
+	equal func(got, want reflect.Value) bool,
 ) Case {
-	tc, err := c.NewCaseWithMarker(m, to, isValidCase, t)
-	if err != nil {
-		panic(err)
-	}
-	return tc
+	return MustNewCase(m, to, isValidCase, equal)
 }
 
 func (c *tester) Run(t *testing.T, tc Case) {
-	// TODO: this has to work
-	// err := c.conv.CanConvert(tc.Marker, tc.To)
-	// if err != nil {
-	// 	t.Errorf("err occured: %s\n", err)
-	// }
+	err := c.conv.CanConvert(tc.Marker, tc.To)
+	if err != nil {
+		t.Errorf("err occured: %s\n", err)
+	}
 	v, err := c.conv.Convert(tc.Marker, tc.To)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -159,13 +151,4 @@ func (c *tester) Run(t *testing.T, tc Case) {
 		t.Fatalf("value is not correct. got: %v; want: %v\n", gotValue, tc.Marker.Value)
 	}
 	t.Logf("succesfully converted. got: %v; want: %v\n", gotType, tc.To)
-}
-
-func (c *tester) AddEqualFunc(to reflect.Type, fn func(got, want reflect.Value) bool) error {
-	_, found := c.equalFuncs[to]
-	if found {
-		return fmt.Errorf("equal function already exists: %s", to)
-	}
-	c.equalFuncs[to] = fn
-	return nil
 }
