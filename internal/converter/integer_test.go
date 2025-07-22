@@ -38,7 +38,6 @@ func equalRune(got, want reflect.Value) bool {
 	return want.String() == string(rune(got.Int()))
 }
 
-// TODO: byte and rune test cases missing
 // TODO: target cann raus beim convertertest.Tester
 func TestIntConverter(t *testing.T) {
 	conv := Integer()
@@ -72,8 +71,8 @@ func TestIntConverter_Duration(t *testing.T) {
 			t.Errorf("err occured: %s\n", err)
 		}
 	}
-	duration := markertest.NewMarker("duration", marker.STRING, reflect.ValueOf("10h"))
-	ptrDuration := markertest.NewMarker("ptr.duration", marker.STRING, reflect.ValueOf("10h"))
+	duration := markertest.NewMarker("duration", marker.STRING, "10h")
+	ptrDuration := markertest.NewMarker("ptr.duration", marker.STRING, "10h")
 	cases := []convertertest.Case{
 		tester.MustNewCaseWithMarker(&duration, reflect.TypeOf(Duration(0)), true, core.TargetAny),
 		tester.MustNewCaseWithMarker(
@@ -105,8 +104,8 @@ func TestIntConverter_Byte(t *testing.T) {
 			t.Errorf("err occured: %s\n", err)
 		}
 	}
-	b := markertest.NewMarker("byte", marker.STRING, reflect.ValueOf("b"))
-	ptrByte := markertest.NewMarker("ptr.byte", marker.STRING, reflect.ValueOf("b"))
+	b := markertest.NewMarker("byte", marker.STRING, "b")
+	ptrByte := markertest.NewMarker("ptr.byte", marker.STRING, "b")
 	cases := []convertertest.Case{
 		tester.MustNewCaseWithMarker(&b, reflect.TypeOf(registrytest.Byte(0)), true, core.TargetAny),
 		tester.MustNewCaseWithMarker(
@@ -138,8 +137,8 @@ func TestIntConverter_Rune(t *testing.T) {
 			t.Errorf("err occured: %s\n", err)
 		}
 	}
-	r := markertest.NewMarker("rune", marker.STRING, reflect.ValueOf("r"))
-	ptrRune := markertest.NewMarker("ptr.rune", marker.STRING, reflect.ValueOf("r"))
+	r := markertest.NewMarker("rune", marker.STRING, "r")
+	ptrRune := markertest.NewMarker("ptr.rune", marker.STRING, "r")
 	cases := []convertertest.Case{
 		tester.MustNewCaseWithMarker(&r, reflect.TypeOf(registrytest.Rune(0)), true, core.TargetAny),
 		tester.MustNewCaseWithMarker(

@@ -134,6 +134,7 @@ func (i *intConverter) runee(m marker.Marker, to reflect.Type) (reflect.Value, e
 }
 
 func (i *intConverter) bytee(m marker.Marker, to reflect.Type) (reflect.Value, error) {
+	fmt.Println(m.Value.String())
 	v := m.Value.String()
 	if len(v) > 1 {
 		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s", v)

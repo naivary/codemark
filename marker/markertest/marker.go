@@ -18,8 +18,8 @@ func NewIdent(name string) string {
 	return fmt.Sprintf("codemark:testing:%s", name)
 }
 
-func NewMarker(option string, kind marker.Kind, value reflect.Value) marker.Marker {
-	return marker.New(NewIdent(option), kind, value)
+func NewMarker(option string, kind marker.Kind, value any) marker.Marker {
+	return marker.New(NewIdent(option), kind, reflect.ValueOf(value))
 }
 
 // RandMarkerWithIdent is the same as RandMarker but allows to set a custom
