@@ -5,7 +5,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/internal/lexer/token"
 )
 
 // TODO: add a good error message that multi line strings are not supported in

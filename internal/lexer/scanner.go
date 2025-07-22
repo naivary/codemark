@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/internal/lexer/token"
 )
 
 // scanRealNumber is readin in the next characters from the lexer and trying to

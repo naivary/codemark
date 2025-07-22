@@ -7,8 +7,8 @@ import (
 
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/internal/parser"
 	"github.com/naivary/codemark/marker"
-	"github.com/naivary/codemark/parser"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/typeutil"
 )

@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/naivary/codemark/lexer"
-	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/internal/lexer"
+	"github.com/naivary/codemark/internal/lexer/token"
 	"github.com/naivary/codemark/marker"
 )
 
