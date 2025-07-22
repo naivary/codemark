@@ -6,4 +6,3 @@
 - variables for marker over sdk (prio: 1)
 - Itereator for *Info types of loader to itereator over the defs without nesting
 - extending by using codemark as a library
-- find better name for syntax
