@@ -45,11 +45,11 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 		[]uint32{},
 		[]uint64{},
 
-		//float
+		// float
 		[]float32{},
 		[]float64{},
 
-		//complex
+		// complex
 		[]complex64{},
 		[]complex128{},
 
@@ -95,7 +95,11 @@ func (l *listConverter) SupportedTypes() []reflect.Type {
 
 func (l *listConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.LIST {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s", m.Kind, marker.LIST)
+		return fmt.Errorf(
+			"marker kind of `%s` cannot be converted to a string. valid option is: %s",
+			m.Kind,
+			marker.LIST,
+		)
 	}
 	return nil
 }

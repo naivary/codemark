@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/naivary/codemark/api/core"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/naivary/codemark/api/core"
 )
 
 type Image string
@@ -27,7 +28,11 @@ type ImagePullPolicy string
 func (i ImagePullPolicy) apply(c *corev1.Container) error {
 	options := []corev1.PullPolicy{corev1.PullAlways, corev1.PullIfNotPresent, corev1.PullNever}
 	if !slices.Contains(options, corev1.PullPolicy(i)) {
-		return fmt.Errorf("value for ImagePullPolicy is not valid: %s. Valid options are: %v", i, options)
+		return fmt.Errorf(
+			"value for ImagePullPolicy is not valid: %s. Valid options are: %v",
+			i,
+			options,
+		)
 	}
 	c.ImagePullPolicy = corev1.PullPolicy(i)
 	return nil

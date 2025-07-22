@@ -51,7 +51,10 @@ func customTypesFor(conv converter.Converter) []any {
 }
 
 // TODO: rename to validCasesFor
-func validTestsFor(conv converter.Converter, tester convertertest.Tester) ([]convertertest.Case, error) {
+func validTestsFor(
+	conv converter.Converter,
+	tester convertertest.Tester,
+) ([]convertertest.Case, error) {
 	types := customTypesFor(conv)
 	tests := make([]convertertest.Case, 0, len(types))
 	for _, to := range types {

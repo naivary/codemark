@@ -79,7 +79,6 @@ func (l *Lexer) errorf(format string, args ...any) stateFunc {
 	l.pos = 0
 	l.input = l.input[:0]
 	return nil
-
 }
 
 func (l *Lexer) next() rune {

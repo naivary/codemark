@@ -53,10 +53,16 @@ func isCorrectTarget(opt coreapi.Option, t coreapi.Target) bool {
 // name is not "codemark".
 func isValidName(name string) error {
 	if strings.HasPrefix(name, _codemark) {
-		return fmt.Errorf(`the name of your custom converter cannot start with "codemark" because it is reserved for the builtin converters: %s`, name)
+		return fmt.Errorf(
+			`the name of your custom converter cannot start with "codemark" because it is reserved for the builtin converters: %s`,
+			name,
+		)
 	}
 	if len(strings.Split(name, ".")) != 2 {
-		return fmt.Errorf(`the name of your custom converter has to be seperated with "%s" and must be composed of two segments e.g. "codemark.integer"`, ".")
+		return fmt.Errorf(
+			`the name of your custom converter has to be seperated with "%s" and must be composed of two segments e.g. "codemark.integer"`,
+			".",
+		)
 	}
 	return nil
 }

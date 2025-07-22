@@ -23,7 +23,7 @@ func (b *boolConverter) Name() string {
 func (b *boolConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		bool(false),
-		//pointer
+		// pointer
 		new(bool),
 	}
 	supported := make([]reflect.Type, 0, len(types))
@@ -36,7 +36,11 @@ func (b *boolConverter) SupportedTypes() []reflect.Type {
 
 func (b *boolConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.BOOL {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a boolean. valid option is: %s", m.Kind, marker.BOOL)
+		return fmt.Errorf(
+			"marker kind of `%s` cannot be converted to a boolean. valid option is: %s",
+			m.Kind,
+			marker.BOOL,
+		)
 	}
 	return nil
 }

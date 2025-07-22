@@ -43,7 +43,11 @@ func (f *floatConverter) SupportedTypes() []reflect.Type {
 
 func (f *floatConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.FLOAT {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a float. valid option is: %s", m.Kind, marker.FLOAT)
+		return fmt.Errorf(
+			"marker kind of `%s` cannot be converted to a float. valid option is: %s",
+			m.Kind,
+			marker.FLOAT,
+		)
 	}
 	return nil
 }

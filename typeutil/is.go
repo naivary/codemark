@@ -60,7 +60,8 @@ func IsAny(rtype reflect.Type) bool {
 // IsPrimitive is returning true iff the given type is non-slice and a type
 // which can be converted by a builtin converter.
 func IsPrimitive(rtype reflect.Type) bool {
-	return IsInt(rtype) || IsUint(rtype) || IsFloat(rtype) || IsString(rtype) || IsBool(rtype) || IsComplex(rtype)
+	return IsInt(rtype) || IsUint(rtype) || IsFloat(rtype) || IsString(rtype) || IsBool(rtype) ||
+		IsComplex(rtype)
 }
 
 func IsValidSlice(rtype reflect.Type) bool {

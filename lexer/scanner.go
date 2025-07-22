@@ -61,7 +61,10 @@ func scanNumber(l *Lexer) (token.Kind, error) {
 		return token.ERROR, err
 	}
 	if !l.accept("i") {
-		return token.ERROR, fmt.Errorf("two numbers can only be defined if you want to define an complex number e.g. 2+3i: %s", l.currentValue())
+		return token.ERROR, fmt.Errorf(
+			"two numbers can only be defined if you want to define an complex number e.g. 2+3i: %s",
+			l.currentValue(),
+		)
 	}
 	return token.COMPLEX, nil
 }

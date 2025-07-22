@@ -9,13 +9,16 @@ import (
 	"go/types"
 	"path/filepath"
 
+	"golang.org/x/tools/go/packages"
+
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/internal/converter"
-	"golang.org/x/tools/go/packages"
 )
 
-var ErrPkgsEmpty = errors.New("loaded packages are empty. check that the defined patterns are matching any files")
+var ErrPkgsEmpty = errors.New(
+	"loaded packages are empty. check that the defined patterns are matching any files",
+)
 
 type Loader interface {
 	Load(patterns ...string) (map[*packages.Package]*loaderapi.Information, error)
@@ -50,7 +53,9 @@ func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	return l
 }
 
-func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderapi.Information, error) {
+func (l *localLoader) Load(
+	patterns ...string,
+) (map[*packages.Package]*loaderapi.Information, error) {
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -345,7 +350,9 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	return nil
 }
 
-func (l *localLoader) extractIfaceSignatureInfo(spec *ast.InterfaceType) (map[types.Object]loaderapi.SignatureInfo, error) {
+func (l *localLoader) extractIfaceSignatureInfo(
+	spec *ast.InterfaceType,
+) (map[types.Object]loaderapi.SignatureInfo, error) {
 	infos := make(map[types.Object]loaderapi.SignatureInfo, spec.Methods.NumFields())
 	for _, meth := range spec.Methods.List {
 		doc := meth.Doc.Text()
@@ -415,7 +422,9 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]loaderapi.FieldInfo, error) {
+func (l *localLoader) extractFieldInfo(
+	spec *ast.StructType,
+) (map[types.Object]loaderapi.FieldInfo, error) {
 	infos := make(map[types.Object]loaderapi.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped

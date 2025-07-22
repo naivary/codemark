@@ -6,8 +6,8 @@ import (
 	"github.com/naivary/codemark/api/core"
 )
 
-var (
-	ErrRegistryEmpty = errors.New("the registry contains no definitions. Make sure to add your definitions using the `Define` method")
+var ErrRegistryEmpty = errors.New(
+	"the registry contains no definitions. Make sure to add your definitions using the `Define` method",
 )
 
 type Registry interface {

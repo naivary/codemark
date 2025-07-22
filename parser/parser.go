@@ -129,7 +129,10 @@ func parseValue(p *parser, t lexer.Token) (parseFunc, bool) {
 	case token.LBRACK:
 		return parseListStart, _keep
 	default:
-		return p.errorf("A wrong kind is passed as a TokenKind from the lexer. This should usually never happen! Found kind is: `%s`", t)
+		return p.errorf(
+			"A wrong kind is passed as a TokenKind from the lexer. This should usually never happen! Found kind is: `%s`",
+			t,
+		)
 	}
 }
 

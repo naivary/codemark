@@ -1,10 +1,11 @@
 package generator
 
 import (
+	"golang.org/x/tools/go/packages"
+
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/registry"
-	"golang.org/x/tools/go/packages"
 )
 
 type Generator interface {

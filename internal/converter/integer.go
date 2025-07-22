@@ -69,10 +69,16 @@ func (i *intConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if mkind == marker.INT {
 		return nil
 	}
-	if mkind == marker.STRING && slices.Contains([]reflect.Kind{_byte, _rune, _duration}, out.Kind()) {
+	if mkind == marker.STRING &&
+		slices.Contains([]reflect.Kind{_byte, _rune, _duration}, out.Kind()) {
 		return nil
 	}
-	return fmt.Errorf("marker kind of `%s` cannot be converted to a int. valid options are: %s;%s", mkind, marker.INT, marker.STRING)
+	return fmt.Errorf(
+		"marker kind of `%s` cannot be converted to a int. valid options are: %s;%s",
+		mkind,
+		marker.INT,
+		marker.STRING,
+	)
 }
 
 // TODO: decision making is wrong. if its a byte rn it will rand in duration
@@ -115,7 +121,10 @@ func (i *intConverter) uinteger(m marker.Marker, to reflect.Type) (reflect.Value
 func (i *intConverter) runee(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	v := m.Value.String()
 	if len(v) > 1 {
-		return _rvzero, fmt.Errorf("marker value cannot be bigger than 2 chars for rune conversion: %s", v)
+		return _rvzero, fmt.Errorf(
+			"marker value cannot be bigger than 2 chars for rune conversion: %s",
+			v,
+		)
 	}
 	rvalue := reflect.ValueOf(rune(v[0]))
 	return converter.ConvertTo(rvalue, to)

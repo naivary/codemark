@@ -38,7 +38,10 @@ func lexPlus(l *Lexer) stateFunc {
 	l.emit(token.PLUS)
 	switch r := l.peek(); {
 	case !isLower(r):
-		return l.errorf("after a `%s` an immediate identifier is expected. The identifier can only be in lower letters and has to contain two `:` describing the path", string(_plus))
+		return l.errorf(
+			"after a `%s` an immediate identifier is expected. The identifier can only be in lower letters and has to contain two `:` describing the path",
+			string(_plus),
+		)
 	}
 	return lexIdent
 }
@@ -48,7 +51,9 @@ func lexIdent(l *Lexer) stateFunc {
 		return l.errorf("marker identifier cannot start with a digit: %d", r)
 	}
 	valid := func(r rune) bool {
-		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon || r == _underscore || r == _dot
+		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon ||
+			r == _underscore ||
+			r == _dot
 	}
 	l.acceptFunc(valid)
 	ident := l.currentValue()
@@ -81,7 +86,9 @@ func lexAssignment(l *Lexer) stateFunc {
 	case isBool(r):
 		return lexBool
 	default:
-		return l.errorf("expecting value after assignment. For the possible valid values see: <docs link>")
+		return l.errorf(
+			"expecting value after assignment. For the possible valid values see: <docs link>",
+		)
 	}
 }
 
@@ -157,7 +164,9 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	case r == _comma:
 		return l.errorf("expected value in array not seperator")
 	default:
-		return l.errorf("expected closing bracket. Be sure that there is no whitespace between the last element and `]`")
+		return l.errorf(
+			"expected closing bracket. Be sure that there is no whitespace between the last element and `]`",
+		)
 	}
 }
 
@@ -274,7 +283,10 @@ func lexEndOfExpr(l *Lexer) stateFunc {
 	case r == _eof:
 		return lexEOF
 	default:
-		return l.errorf("after a finished marker expression only a newline can follow but found: `%s`", string(r))
+		return l.errorf(
+			"after a finished marker expression only a newline can follow but found: `%s`",
+			string(r),
+		)
 	}
 }
 

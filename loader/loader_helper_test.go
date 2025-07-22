@@ -50,7 +50,6 @@ func randProj(glob string, tc *loaderTestCase) error {
 		}
 	}
 	return err
-
 }
 
 type loaderTestCase struct {

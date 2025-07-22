@@ -38,10 +38,20 @@ type Tester interface {
 	NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case, error)
 
 	// NewCaseWithMarker returns a test case with a custom marker.
-	NewCaseWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error)
+	NewCaseWithMarker(
+		marker *marker.Marker,
+		to reflect.Type,
+		isValidCase bool,
+		t core.Target,
+	) (Case, error)
 
 	MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case
-	MustNewCaseWithMarker(marker *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) Case
+	MustNewCaseWithMarker(
+		marker *marker.Marker,
+		to reflect.Type,
+		isValidCase bool,
+		t core.Target,
+	) Case
 
 	// AddVVFunc defines a func(got, want reflect.Value) bool for an example type to which a
 	// supported type of the converter will be converted.
@@ -80,7 +90,12 @@ func (c *tester) NewCase(to reflect.Type, isValidCase bool, t core.Target) (Case
 	return c.NewCaseWithMarker(marker, to, isValidCase, t)
 }
 
-func (c *tester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) (Case, error) {
+func (c *tester) NewCaseWithMarker(
+	m *marker.Marker,
+	to reflect.Type,
+	isValidCase bool,
+	t core.Target,
+) (Case, error) {
 	if m == nil {
 		return _casez, errors.New("marker cannot be nil. use NewTest if you want a random marker")
 	}
@@ -101,7 +116,6 @@ func (c *tester) NewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCas
 		IsEqual:     equal,
 	}
 	return tc, nil
-
 }
 
 func (c *tester) MustNewCase(to reflect.Type, isValidCase bool, t core.Target) Case {
@@ -112,7 +126,12 @@ func (c *tester) MustNewCase(to reflect.Type, isValidCase bool, t core.Target) C
 	return tc
 }
 
-func (c *tester) MustNewCaseWithMarker(m *marker.Marker, to reflect.Type, isValidCase bool, t core.Target) Case {
+func (c *tester) MustNewCaseWithMarker(
+	m *marker.Marker,
+	to reflect.Type,
+	isValidCase bool,
+	t core.Target,
+) Case {
 	tc, err := c.NewCaseWithMarker(m, to, isValidCase, t)
 	if err != nil {
 		panic(err)

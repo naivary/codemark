@@ -165,12 +165,36 @@ func AliasOpts() []*core.Option {
 	return []*core.Option{
 		maker.MustMakeOpt(markertest.NewIdent("byte"), reflect.TypeOf(Byte(0)), core.TargetAny),
 		maker.MustMakeOpt(markertest.NewIdent("rune"), reflect.TypeOf(Rune(0)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("ptr.byte"), reflect.TypeOf(PtrByte(nil)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("ptr.rune"), reflect.TypeOf(PtrRune(nil)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("slice.byte"), reflect.TypeOf(ByteList(nil)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("slice.rune"), reflect.TypeOf(RuneList(nil)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("slice.ptr.byte"), reflect.TypeOf(PtrByteList(nil)), core.TargetAny),
-		maker.MustMakeOpt(markertest.NewIdent("slice.ptr.rune"), reflect.TypeOf(PtrRuneList(nil)), core.TargetAny),
+		maker.MustMakeOpt(
+			markertest.NewIdent("ptr.byte"),
+			reflect.TypeOf(PtrByte(nil)),
+			core.TargetAny,
+		),
+		maker.MustMakeOpt(
+			markertest.NewIdent("ptr.rune"),
+			reflect.TypeOf(PtrRune(nil)),
+			core.TargetAny,
+		),
+		maker.MustMakeOpt(
+			markertest.NewIdent("slice.byte"),
+			reflect.TypeOf(ByteList(nil)),
+			core.TargetAny,
+		),
+		maker.MustMakeOpt(
+			markertest.NewIdent("slice.rune"),
+			reflect.TypeOf(RuneList(nil)),
+			core.TargetAny,
+		),
+		maker.MustMakeOpt(
+			markertest.NewIdent("slice.ptr.byte"),
+			reflect.TypeOf(PtrByteList(nil)),
+			core.TargetAny,
+		),
+		maker.MustMakeOpt(
+			markertest.NewIdent("slice.ptr.rune"),
+			reflect.TypeOf(PtrRuneList(nil)),
+			core.TargetAny,
+		),
 	}
 }
 

@@ -3,8 +3,9 @@ package k8s
 import (
 	"fmt"
 
-	"github.com/naivary/codemark/api/core"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/naivary/codemark/api/core"
 )
 
 type Name string

@@ -5,11 +5,12 @@ import (
 	"go/types"
 	"testing"
 
+	"golang.org/x/tools/go/packages"
+
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/internal/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
-	"golang.org/x/tools/go/packages"
 )
 
 func TestLoaderLocal(t *testing.T) {

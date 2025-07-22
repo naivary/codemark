@@ -43,7 +43,11 @@ func (c *complexConverter) SupportedTypes() []reflect.Type {
 
 func (c *complexConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.COMPLEX {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s", m.Kind, marker.COMPLEX)
+		return fmt.Errorf(
+			"marker kind of `%s` cannot be converted to a string. valid option is: %s",
+			m.Kind,
+			marker.COMPLEX,
+		)
 	}
 	return nil
 }

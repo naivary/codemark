@@ -24,7 +24,11 @@ func timeTypes() []any {
 
 func customTimeCases(tester convertertest.Tester) []convertertest.Case {
 	t := marker.New("codemark:testing:time", marker.STRING, reflect.ValueOf("2006-01-02T15:04:05Z"))
-	ptrT := marker.New("codemark:testing:ptr.time", marker.STRING, reflect.ValueOf("2006-01-02T15:04:05Z"))
+	ptrT := marker.New(
+		"codemark:testing:ptr.time",
+		marker.STRING,
+		reflect.ValueOf("2006-01-02T15:04:05Z"),
+	)
 
 	return []convertertest.Case{
 		tester.MustNewCaseWithMarker(&t, reflect.TypeFor[Time](), true, coreapi.TargetAny),

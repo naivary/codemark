@@ -76,7 +76,12 @@ func (r *registryTester) validateDoc(t *testing.T, got, want *core.Option) {
 func opts() []*core.Option {
 	return []*core.Option{
 		maker.MustMakeOpt("codemark:registry:plain", reflect.TypeFor[string](), core.TargetAny),
-		maker.MustMakeOptWithDoc("codemark:registry:doc", reflect.TypeFor[string](), core.OptionDoc{Doc: "some doc"}, core.TargetAny),
+		maker.MustMakeOptWithDoc(
+			"codemark:registry:doc",
+			reflect.TypeFor[string](),
+			core.OptionDoc{Doc: "some doc"},
+			core.TargetAny,
+		),
 	}
 }
 

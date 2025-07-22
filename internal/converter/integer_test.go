@@ -65,7 +65,12 @@ func TestIntConverter_Duration(t *testing.T) {
 	ptrDuration := markertest.NewMarker("ptr.duration", marker.STRING, reflect.ValueOf("10h"))
 	cases := []convertertest.Case{
 		tester.MustNewCaseWithMarker(&duration, reflect.TypeOf(Duration(0)), true, core.TargetAny),
-		tester.MustNewCaseWithMarker(&ptrDuration, reflect.TypeOf(PtrDuration(nil)), true, core.TargetAny),
+		tester.MustNewCaseWithMarker(
+			&ptrDuration,
+			reflect.TypeOf(PtrDuration(nil)),
+			true,
+			core.TargetAny,
+		),
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {

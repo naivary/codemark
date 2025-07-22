@@ -4,8 +4,9 @@ import (
 	"go/ast"
 	"strings"
 
-	"github.com/naivary/codemark/api/core"
 	corev1 "k8s.io/api/core/v1"
+
+	"github.com/naivary/codemark/api/core"
 )
 
 type Default string

@@ -45,7 +45,11 @@ func (s *stringConverter) SupportedTypes() []reflect.Type {
 
 func (s *stringConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	if m.Kind != marker.STRING {
-		return fmt.Errorf("marker kind of `%s` cannot be converted to a string. valid option is: %s", m.Kind, marker.STRING)
+		return fmt.Errorf(
+			"marker kind of `%s` cannot be converted to a string. valid option is: %s",
+			m.Kind,
+			marker.STRING,
+		)
 	}
 	return nil
 }

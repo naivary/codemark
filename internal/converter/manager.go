@@ -88,7 +88,12 @@ func (m *Manager) Convert(mrk marker.Marker, t coreapi.Target) (any, error) {
 		slog.Warn(msg)
 	}
 	if isCorrectTarget(*opt, t) {
-		return nil, fmt.Errorf("marker `%s` is appliable to `%v`. Was applied to `%s`", idn, opt.Targets, t)
+		return nil, fmt.Errorf(
+			"marker `%s` is appliable to `%v`. Was applied to `%s`",
+			idn,
+			opt.Targets,
+			t,
+		)
 	}
 	conv, err := m.GetConverter(opt.Output)
 	if err != nil {

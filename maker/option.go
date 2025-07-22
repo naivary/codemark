@@ -29,7 +29,12 @@ func MustMakeOpt(idn string, output reflect.Type, targets ...core.Target) *core.
 	return opt
 }
 
-func MakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, targets ...core.Target) (*core.Option, error) {
+func MakeOptWithDoc(
+	name string,
+	output reflect.Type,
+	doc core.OptionDoc,
+	targets ...core.Target,
+) (*core.Option, error) {
 	opt, err := MakeOption(name, output, targets...)
 	if err != nil {
 		return nil, err
@@ -38,7 +43,12 @@ func MakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, target
 	return opt, opt.IsValid()
 }
 
-func MustMakeOptWithDoc(name string, output reflect.Type, doc core.OptionDoc, targets ...core.Target) *core.Option {
+func MustMakeOptWithDoc(
+	name string,
+	output reflect.Type,
+	doc core.OptionDoc,
+	targets ...core.Target,
+) *core.Option {
 	opt, err := MakeOption(name, output, targets...)
 	if err != nil {
 		panic(err)
