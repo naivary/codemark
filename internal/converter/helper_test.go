@@ -7,6 +7,7 @@ import (
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/converter/convertertest"
 	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/marker/markertest"
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
@@ -36,18 +37,17 @@ func validCasesFor(conv converter.Converter) ([]convertertest.Case, error) {
 	types := customTypesFor(conv)
 	cases := make([]convertertest.Case, 0, len(types))
 	for _, typ := range types {
-		to := reflect.TypeOf(typ)
-		equal := eql.get(to)
-		c, err := convertertest.NewCase(nil, to, true, equal)
+		rtype := reflect.TypeOf(typ)
+		marker, err := markertest.RandMarker(rtype)
 		if err != nil {
 			return nil, err
 		}
-		cases = append(cases, c)
+		cases = append(cases, makeCase(typ, *marker, true))
 	}
 	return cases, nil
 }
 
 func makeCase(to any, m marker.Marker, isValidCase bool) convertertest.Case {
 	rto := reflect.TypeOf(to)
-	return convertertest.MustNewCase(&m, rto, isValidCase, eql.get(rto))
+	return convertertest.MustNewCase(&m, rto, isValidCase, getEqualFunc(rto))
 }

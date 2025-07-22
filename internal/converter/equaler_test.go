@@ -39,25 +39,19 @@ func equalRune(got, want reflect.Value) bool {
 	return want.String() == string(rune(got.Int()))
 }
 
-var eql = &equaler{
-	funcs: map[reflect.Type]func(got, want reflect.Value) bool{
-		reflect.TypeFor[Duration]():             equalDuration,
-		reflect.TypeFor[PtrDuration]():          equalDuration,
-		reflect.TypeFor[Time]():                 equalTime,
-		reflect.TypeFor[PtrTime]():              equalTime,
-		reflect.TypeFor[registrytest.Byte]():    equalByte,
-		reflect.TypeFor[registrytest.PtrByte](): equalByte,
-		reflect.TypeFor[registrytest.Rune]():    equalRune,
-		reflect.TypeFor[registrytest.PtrRune](): equalRune,
-	},
+var equalFuncs = map[reflect.Type]func(got, want reflect.Value) bool{
+	reflect.TypeFor[Duration]():             equalDuration,
+	reflect.TypeFor[PtrDuration]():          equalDuration,
+	reflect.TypeFor[Time]():                 equalTime,
+	reflect.TypeFor[PtrTime]():              equalTime,
+	reflect.TypeFor[registrytest.Byte]():    equalByte,
+	reflect.TypeFor[registrytest.PtrByte](): equalByte,
+	reflect.TypeFor[registrytest.Rune]():    equalRune,
+	reflect.TypeFor[registrytest.PtrRune](): equalRune,
 }
 
-type equaler struct {
-	funcs map[reflect.Type]func(got, want reflect.Value) bool
-}
-
-func (e equaler) get(t reflect.Type) func(got, want reflect.Value) bool {
-	fn, ok := e.funcs[t]
+func getEqualFunc(t reflect.Type) func(got, want reflect.Value) bool {
+	fn, ok := equalFuncs[t]
 	if !ok {
 		return equal.GetFunc(t)
 	}
