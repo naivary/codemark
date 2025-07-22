@@ -34,6 +34,7 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 		int16(0),
 		// rune
 		int32(0),
+		time.Duration(0),
 		int64(0),
 		uint(0),
 		// byte
@@ -41,6 +42,7 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 		uint16(0),
 		uint32(0),
 		uint64(0),
+
 		// pointer
 		new(int),
 		new(int8),
@@ -48,6 +50,7 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 		// *rune
 		new(int32),
 		new(int64),
+		new(time.Duration),
 		new(uint),
 		// *byte
 		new(uint8),
@@ -161,15 +164,17 @@ func (i *intConverter) isInteger(rtype reflect.Type, mkind marker.Kind) bool {
 }
 
 func (i *intConverter) isUint(rtype reflect.Type, mkind marker.Kind) bool {
-	return typeutil.IsUint(rtype) || mkind == marker.INT
+	return typeutil.IsUint(rtype) && mkind == marker.INT
 }
 
 func (i *intConverter) isByte(rtype reflect.Type, mkind marker.Kind) bool {
-	return (typeutil.IsInt(rtype) || typeutil.IsString(rtype)) && mkind == marker.STRING
+	rtype = typeutil.Deref(rtype)
+	return rtype.Kind() == _byte && mkind == marker.STRING
 }
 
 func (i *intConverter) isRune(rtype reflect.Type, mkind marker.Kind) bool {
-	return (typeutil.IsUint(rtype) || typeutil.IsString(rtype)) && mkind == marker.STRING
+	rtype = typeutil.Deref(rtype)
+	return rtype.Kind() == _rune && mkind == marker.STRING
 }
 
 func (i *intConverter) isDuration(rtype reflect.Type, mkind marker.Kind) bool {

@@ -8,6 +8,7 @@ import (
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/converter/convertertest"
 	"github.com/naivary/codemark/marker"
+	"github.com/naivary/codemark/typeutil"
 )
 
 type (
@@ -15,11 +16,14 @@ type (
 	PtrTime *time.Time
 )
 
-func timeTypes() []any {
-	return []any{
-		Time(time.Time{}),
-		PtrTime(nil),
+func equalTime(got, want reflect.Value) bool {
+	t := reflect.TypeOf(time.Time{})
+	gotTime := typeutil.DerefValue(got).Convert(t).Interface().(time.Time)
+	wantTime, err := time.Parse(time.RFC3339, want.String())
+	if err != nil {
+		return false
 	}
+	return gotTime.Equal(wantTime)
 }
 
 func customTimeCases(tester convertertest.Tester) []convertertest.Case {
@@ -55,9 +59,18 @@ func TestStringConverter(t *testing.T) {
 
 func TestStringConverter_Time(t *testing.T) {
 	conv := String()
-	tester, err := newConvTester(conv, timeTypes())
+	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
+	}
+	equalFuncs := map[reflect.Type]func(got, want reflect.Value) bool{
+		reflect.TypeFor[Time]():    equalTime,
+		reflect.TypeFor[PtrTime](): equalTime,
+	}
+	for to, equal := range equalFuncs {
+		if err := tester.AddEqualFunc(to, equal); err != nil {
+			t.Errorf("err occured: %s\n", err)
+		}
 	}
 	for _, tc := range customTimeCases(tester) {
 		t.Run(tc.Name, func(t *testing.T) {

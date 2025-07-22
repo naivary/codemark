@@ -31,7 +31,7 @@ func KindOf(typ reflect.Type) Kind {
 	switch {
 	case typeutil.IsValidSlice(typ):
 		return LIST
-	case typeutil.IsInt(typ):
+	case typeutil.IsInt(typ), typeutil.IsUint(typ):
 		return INT
 	case typeutil.IsFloat(typ):
 		return FLOAT

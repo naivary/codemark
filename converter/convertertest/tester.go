@@ -140,6 +140,11 @@ func (c *tester) MustNewCaseWithMarker(
 }
 
 func (c *tester) Run(t *testing.T, tc Case) {
+	// TODO: this has to work
+	// err := c.conv.CanConvert(tc.Marker, tc.To)
+	// if err != nil {
+	// 	t.Errorf("err occured: %s\n", err)
+	// }
 	v, err := c.conv.Convert(tc.Marker, tc.To)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
