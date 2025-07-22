@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/converter"
-	"github.com/naivary/codemark/maker"
 	"github.com/naivary/codemark/marker"
 )
 
@@ -125,6 +124,6 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 		return _rvzero, fmt.Errorf("no converter found for: %s", typ)
 	}
 	mkind := marker.KindOf(rvalue.Type())
-	fakeMarker := maker.MakeFakeMarker(mkind, rvalue)
+	fakeMarker := marker.Fake(mkind, rvalue)
 	return conv.Convert(fakeMarker, typ)
 }

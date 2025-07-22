@@ -9,6 +9,14 @@ import (
 	"github.com/naivary/codemark/syntax"
 )
 
+// Fake returns a regular marker with the identifier prefix of
+// "codemark:fake:*". This is useful if you want to call another converter
+// inside a converter.
+func Fake(mkind Kind, value reflect.Value) Marker {
+	ident := fmt.Sprintf("codemark:fake:%s", mkind.String())
+	return New(ident, mkind, value)
+}
+
 type Marker struct {
 	Ident string
 	Kind  Kind
@@ -25,6 +33,7 @@ func New(ident string, kind Kind, value reflect.Value) Marker {
 	}
 }
 
+// String returns the marker as it would be written in a go comment.
 func (m *Marker) String() string {
 	if m.Kind == STRING {
 		return fmt.Sprintf(`%s="%v"`, m.Ident, m.Value)
@@ -47,6 +56,8 @@ func (m *Marker) String() string {
 	return fmt.Sprintf("%s=%v", m.Ident, m.Value)
 }
 
+// IsValid validates the marker. The marker is valid if the returned error is
+// nil.
 func (m *Marker) IsValid() error {
 	if err := syntax.Ident(m.Ident); err != nil {
 		return fmt.Errorf("marker identifier is invalid: %s", m.Ident)

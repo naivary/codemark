@@ -1,11 +1,9 @@
 package maker
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/naivary/codemark/api/core"
-	"github.com/naivary/codemark/marker"
 )
 
 func MakeOption(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
@@ -55,14 +53,4 @@ func MustMakeOptWithDoc(
 	}
 	opt.Doc = &doc
 	return opt
-}
-
-func MakeFakeMarker(mkind marker.Kind, value reflect.Value) marker.Marker {
-	ident := fmt.Sprintf("codemark:fake:%s", mkind.String())
-	return marker.New(ident, mkind, value)
-}
-
-func MakeMarker(ident string, mkind marker.Kind, value reflect.Value) (marker.Marker, error) {
-	m := marker.New(ident, mkind, value)
-	return m, m.IsValid()
 }
