@@ -3,7 +3,7 @@ package lexer
 import (
 	"unicode"
 
-	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/internal/lexer/token"
 	"github.com/naivary/codemark/syntax"
 )
 

@@ -3,7 +3,7 @@ package lexer
 import (
 	"testing"
 
-	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/internal/lexer/token"
 )
 
 func TestScanString(t *testing.T) {

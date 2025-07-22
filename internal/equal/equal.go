@@ -9,6 +9,9 @@ import (
 
 func IsEqual(got, want reflect.Value) bool {
 	equal := GetFunc(got.Type())
+	if equal == nil {
+		return false
+	}
 	return equal(got, want)
 }
 

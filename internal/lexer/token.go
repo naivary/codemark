@@ -3,7 +3,7 @@ package lexer
 import (
 	"fmt"
 
-	"github.com/naivary/codemark/lexer/token"
+	"github.com/naivary/codemark/internal/lexer/token"
 )
 
 func NewToken(kind token.Kind, v string) Token {
