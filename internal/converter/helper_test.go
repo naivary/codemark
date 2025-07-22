@@ -47,7 +47,7 @@ func validCasesFor(conv converter.Converter) ([]convertertest.Case, error) {
 	return cases, nil
 }
 
-func createCase(to any, m marker.Marker, isValidCase bool) convertertest.Case {
+func makeCase(to any, m marker.Marker, isValidCase bool) convertertest.Case {
 	rto := reflect.TypeOf(to)
 	return convertertest.MustNewCase(&m, rto, isValidCase, eql.get(rto))
 }

@@ -38,12 +38,12 @@ func TestStringConverter_Time(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	cases := []convertertest.Case{
-		createCase(
+		makeCase(
 			Time(time.Time{}),
 			markertest.NewMarker("time", marker.STRING, "2006-01-02T15:04:05Z"),
 			true,
 		),
-		createCase(
+		makeCase(
 			PtrTime(nil),
 			markertest.NewMarker("ptr.time", marker.STRING, "2006-01-02T15:04:05Z"),
 			true,
