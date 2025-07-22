@@ -1,6 +1,6 @@
 package core
 
 type ResourceDoc struct {
-	Doc     string
+	Desc    string
 	Options []Option
 }

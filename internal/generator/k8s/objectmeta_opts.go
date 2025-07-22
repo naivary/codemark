@@ -21,7 +21,7 @@ func (n Name) apply(m *metav1.ObjectMeta) error {
 
 func (n Name) Doc() core.OptionDoc {
 	return core.OptionDoc{
-		Doc:     `Name defines the name in the metadata field of the object`,
+		Desc:     `Name defines the name in the metadata field of the object`,
 		Default: "Identifier name of the expression the Option is used on",
 	}
 }
@@ -39,7 +39,7 @@ func (n Namespace) apply(m *metav1.ObjectMeta) error {
 
 func (n Namespace) Doc() core.OptionDoc {
 	return core.OptionDoc{
-		Doc:     `Namespace of the object`,
+		Desc:     `Namespace of the object`,
 		Default: `default`,
 	}
 }

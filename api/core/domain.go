@@ -1,6 +1,6 @@
 package core
 
 type DomainDoc struct {
-	Doc       string
+	Desc      string
 	Resources []ResourceDoc
 }

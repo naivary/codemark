@@ -79,7 +79,7 @@ func opts() []*core.Option {
 		maker.MustMakeOptWithDoc(
 			"codemark:registry:doc",
 			reflect.TypeFor[string](),
-			core.OptionDoc{Doc: "some doc"},
+			core.OptionDoc{Desc: "some doc"},
 			core.TargetAny,
 		),
 	}

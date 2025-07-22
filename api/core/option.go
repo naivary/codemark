@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/internal/console"
 	"github.com/naivary/codemark/syntax"
 )
 
@@ -56,6 +57,6 @@ func (o *Option) String() string {
 	var b bytes.Buffer
 	fmt.Fprintf(&b, "Ident: %s\n", o.Ident)
 	fmt.Fprintf(&b, "Default: %s\n", o.Doc.Default)
-	fmt.Fprintf(&b, "%s", trunc(o.Doc.Doc, 80))
+	fmt.Fprintf(&b, "%s", console.Trunc(o.Doc.Desc, 80))
 	return b.String()
 }

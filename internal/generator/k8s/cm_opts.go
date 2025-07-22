@@ -19,7 +19,7 @@ func (d Default) apply(field *ast.Ident, cm *corev1.ConfigMap) error {
 
 func (d Default) Doc() core.OptionDoc {
 	return core.OptionDoc{
-		Doc:     `Default defines the default value of the config parameter`,
+		Desc:    `Default defines the default value of the config parameter`,
 		Default: "REQUIRED",
 	}
 }
@@ -34,7 +34,7 @@ func (i Immutable) apply(cm *corev1.ConfigMap) error {
 
 func (i Immutable) Doc() core.OptionDoc {
 	return core.OptionDoc{
-		Doc:     `Defines if the ConfigMap is immutable or not`,
+		Desc:    `Defines if the ConfigMap is immutable or not`,
 		Default: "false",
 	}
 }
