@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	"github.com/naivary/codemark/internal/console"
-	"github.com/naivary/codemark/syntax"
 )
 
 type Option struct {
@@ -38,19 +37,6 @@ func (o *Option) IsDeprecated() (string, bool) {
 
 func (o *Option) HasDoc() bool {
 	return o.Doc != nil
-}
-
-func (o *Option) IsValid() error {
-	if err := syntax.Ident(o.Ident); err != nil {
-		return err
-	}
-	if o.Output == nil {
-		return fmt.Errorf("output type cannot be nil: %s", o.Ident)
-	}
-	if len(o.Targets) == 0 {
-		return fmt.Errorf("definition has not target defined: %s", o.Ident)
-	}
-	return nil
 }
 
 func (o *Option) String() string {

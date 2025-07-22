@@ -4,7 +4,7 @@ import (
 	"unicode"
 
 	"github.com/naivary/codemark/internal/lexer/token"
-	"github.com/naivary/codemark/syntax"
+	"github.com/naivary/codemark/validate"
 )
 
 // TODO: better naming of functions
@@ -57,7 +57,7 @@ func lexIdent(l *Lexer) stateFunc {
 	}
 	l.acceptFunc(valid)
 	ident := l.currentValue()
-	if err := syntax.Ident(ident); err != nil {
+	if err := validate.Ident(ident); err != nil {
 		return l.errorf("err: %s", err.Error())
 	}
 	l.emit(token.IDENT)

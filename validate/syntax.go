@@ -1,7 +1,4 @@
-// syntax defines functions for shared rules between multiple types. For example
-// the ident of a marker and definition must follow the same syntax otherwise
-// the mapping is not possible.
-package syntax
+package validate
 
 import (
 	"fmt"

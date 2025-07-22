@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/naivary/codemark/internal/equal"
-	"github.com/naivary/codemark/syntax"
+	"github.com/naivary/codemark/validate"
 )
 
 // Fake returns a regular marker with the identifier prefix of
@@ -56,10 +56,9 @@ func (m *Marker) String() string {
 	return fmt.Sprintf("%s=%v", m.Ident, m.Value)
 }
 
-// IsValid validates the marker. The marker is valid if the returned error is
-// nil.
+// IsValid validates the marker. The marker is valid if the returned error is nil.
 func (m *Marker) IsValid() error {
-	if err := syntax.Ident(m.Ident); err != nil {
+	if err := validate.Ident(m.Ident); err != nil {
 		return fmt.Errorf("marker identifier is invalid: %s", m.Ident)
 	}
 	if !m.Value.IsValid() {

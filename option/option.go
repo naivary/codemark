@@ -1,10 +1,25 @@
 package option
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/naivary/codemark/api/core"
+	"github.com/naivary/codemark/validate"
 )
+
+func IsValid(opt *core.Option) error {
+	if err := validate.Ident(opt.Ident); err != nil {
+		return err
+	}
+	if opt.Output == nil {
+		return fmt.Errorf("output type cannot be nil: %s", opt.Ident)
+	}
+	if len(opt.Targets) == 0 {
+		return fmt.Errorf("definition has not target defined: %s", opt.Ident)
+	}
+	return nil
+}
 
 func Make(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
 	opt := &core.Option{
@@ -12,7 +27,7 @@ func Make(idn string, output reflect.Type, targets ...core.Target) (*core.Option
 		Targets: targets,
 		Output:  output,
 	}
-	return opt, opt.IsValid()
+	return opt, IsValid(opt)
 }
 
 func MustMake(idn string, output reflect.Type, targets ...core.Target) *core.Option {
@@ -21,7 +36,7 @@ func MustMake(idn string, output reflect.Type, targets ...core.Target) *core.Opt
 		Targets: targets,
 		Output:  output,
 	}
-	if err := opt.IsValid(); err != nil {
+	if err := IsValid(opt); err != nil {
 		panic(err)
 	}
 	return opt
@@ -38,7 +53,7 @@ func MakeWithDoc(
 		return nil, err
 	}
 	opt.Doc = &doc
-	return opt, opt.IsValid()
+	return opt, IsValid(opt)
 }
 
 func MustMakeWithDoc(
