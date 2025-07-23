@@ -3,6 +3,7 @@ package option
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/validate"
@@ -68,4 +69,12 @@ func MustMakeWithDoc(
 	}
 	opt.Doc = &doc
 	return opt
+}
+
+func DomainOf(ident string) string {
+	s := strings.Split(ident, ":")
+	if len(s) != 3 {
+		return ""
+	}
+	return s[0]
 }

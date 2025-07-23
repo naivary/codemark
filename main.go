@@ -1,7 +1,7 @@
+//go:generator codemark gen --domains=k8s ./...
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/naivary/codemark/cmd"
@@ -10,7 +10,6 @@ import (
 func main() {
 	code, err := cmd.Exec(nil, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(code)
 	}
 }

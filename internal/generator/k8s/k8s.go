@@ -42,7 +42,11 @@ func (g k8sGenerator) Domain() string {
 }
 
 func (g k8sGenerator) Explain(ident string) string {
-	return ""
+	option, err := g.reg.Get(ident)
+	if err != nil {
+		return ""
+	}
+	return option.String()
 }
 
 func (g k8sGenerator) OptionsOf(resource string) []core.Option {
