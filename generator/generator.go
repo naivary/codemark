@@ -11,13 +11,14 @@ type Generator interface {
 	// Domain for which the generator is responsible
 	Domain() string
 
-	// Explain returns the documentation for a complete identifier e.g.
-	// codemark:resource:option. This is used for self-explanatory usage.
+	// Explain returns the documentation for an identifier. The identifier can
+	// be fully qualified e.g. domain:resource:option or it may be given
+	// partially e.g. domain:resource or domain.
 	Explain(ident string) string
 
-	// Generate the artificats based on the given information
+	// Generate the artificats based on the given information.
 	Generate(infos map[*packages.Package]*loaderapi.Information) error
 
-	// Registry containing all the definitions
+	// Registry containing all the options.
 	Registry() registry.Registry
 }
