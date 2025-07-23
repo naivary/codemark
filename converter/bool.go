@@ -4,20 +4,19 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ converter.Converter = (*boolConverter)(nil)
+var _ Converter = (*boolConverter)(nil)
 
 type boolConverter struct{}
 
-func Bool() converter.Converter {
+func Bool() Converter {
 	return &boolConverter{}
 }
 
 func (b *boolConverter) Name() string {
-	return converter.NewName(_codemark, "bool")
+	return NewName(_codemark, "bool")
 }
 
 func (b *boolConverter) SupportedTypes() []reflect.Type {
@@ -46,5 +45,5 @@ func (b *boolConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 }
 
 func (b *boolConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
-	return converter.ConvertTo(m.Value, to)
+	return ConvertTo(m.Value, to)
 }

@@ -6,7 +6,6 @@ import (
 	"reflect"
 
 	coreapi "github.com/naivary/codemark/api/core"
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/internal/parser"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry"
@@ -25,26 +24,26 @@ func (o options) Add(idn string, value any) {
 
 type Manager struct {
 	reg   registry.Registry
-	convs map[reflect.Type]converter.Converter
+	convs map[reflect.Type]Converter
 }
 
-func NewManager(reg registry.Registry, convs ...converter.Converter) (*Manager, error) {
+func NewManager(reg registry.Registry, convs ...Converter) (*Manager, error) {
 	if len(reg.All()) == 0 {
 		return nil, registry.ErrRegistryEmpty
 	}
 	mngr := &Manager{
 		reg:   reg,
-		convs: make(map[reflect.Type]converter.Converter),
+		convs: make(map[reflect.Type]Converter),
 	}
 	for _, conv := range convs {
-		if err := mngr.addConverter(conv); err != nil {
+		if err := mngr.Add(conv); err != nil {
 			return nil, err
 		}
 	}
 	return mngr, nil
 }
 
-func (m *Manager) GetConverter(rtype reflect.Type) (converter.Converter, error) {
+func (m *Manager) Get(rtype reflect.Type) (Converter, error) {
 	conv := m.builtin(rtype)
 	if conv != nil {
 		return conv, nil
@@ -58,7 +57,7 @@ func (m *Manager) GetConverter(rtype reflect.Type) (converter.Converter, error) 
 
 // addConverter is exactly the same as AddConverter but does not include any
 // assertions to be able to use it for internal usage.
-func (m *Manager) addConverter(conv converter.Converter) error {
+func (m *Manager) add(conv Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		_, found := m.convs[rtype]
 		if found {
@@ -69,11 +68,11 @@ func (m *Manager) addConverter(conv converter.Converter) error {
 	return nil
 }
 
-func (m *Manager) AddConverter(conv converter.Converter) error {
+func (m *Manager) Add(conv Converter) error {
 	if err := isValidName(conv.Name()); err != nil {
 		return fmt.Errorf("converter is not following naming conventions: %s", err.Error())
 	}
-	return m.addConverter(conv)
+	return m.add(conv)
 }
 
 // Convert converts the marker to a defined option with respect to the target `t`
@@ -95,7 +94,7 @@ func (m *Manager) Convert(mrk marker.Marker, t coreapi.Target) (any, error) {
 			t,
 		)
 	}
-	conv, err := m.GetConverter(opt.Output)
+	conv, err := m.Get(opt.Output)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +127,7 @@ func (m *Manager) ParseDefs(doc string, t coreapi.Target) (map[string][]any, err
 // builtin returns a bultin converter if the given rtype can be converterted by
 // one of the builtin converters. If no converter is found then nil will be
 // returned.
-func (m *Manager) builtin(rtype reflect.Type) converter.Converter {
+func (m *Manager) builtin(rtype reflect.Type) Converter {
 	if !typeutil.IsSupported(rtype) {
 		return nil
 	}

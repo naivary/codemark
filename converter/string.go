@@ -5,35 +5,32 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ converter.Converter = (*stringConverter)(nil)
+var _ Converter = (*stringConverter)(nil)
 
 type stringConverter struct {
 	name string
 }
 
-func String() converter.Converter {
+func String() Converter {
 	return &stringConverter{
 		name: "string",
 	}
 }
 
 func (s *stringConverter) Name() string {
-	return converter.NewName(_codemark, s.name)
+	return NewName(_codemark, s.name)
 }
 
 func (s *stringConverter) SupportedTypes() []reflect.Type {
 	types := []any{
 		string(""),
 		time.Time{},
-		time.Duration(0),
 		// pointer
 		new(string),
 		new(time.Time),
-		new(time.Duration),
 	}
 	supported := make([]reflect.Type, 0, len(types))
 	for _, typ := range types {
@@ -58,10 +55,7 @@ func (s *stringConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Val
 	if isTypeT[time.Time](to) {
 		return s.time(m, to)
 	}
-	if isTypeT[time.Duration](to) {
-		return s.duration(m, to)
-	}
-	return converter.ConvertTo(m.Value, to)
+	return ConvertTo(m.Value, to)
 }
 
 func (s *stringConverter) time(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -70,14 +64,5 @@ func (s *stringConverter) time(m marker.Marker, to reflect.Type) (reflect.Value,
 		return _rvzero, err
 	}
 	v := reflect.ValueOf(t)
-	return converter.ConvertTo(v, to)
-}
-
-func (s *stringConverter) duration(m marker.Marker, to reflect.Type) (reflect.Value, error) {
-	duration, err := time.ParseDuration(m.Value.String())
-	if err != nil {
-		return _rvzero, err
-	}
-	v := reflect.ValueOf(duration)
-	return converter.ConvertTo(v, to)
+	return ConvertTo(v, to)
 }

@@ -6,25 +6,24 @@ import (
 	"slices"
 	"time"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/typeutil"
 )
 
-var _ converter.Converter = (*intConverter)(nil)
+var _ Converter = (*intConverter)(nil)
 
 type intConverter struct {
 	name string
 }
 
-func Integer() converter.Converter {
+func Integer() Converter {
 	return &intConverter{
 		name: "integer",
 	}
 }
 
 func (i *intConverter) Name() string {
-	return converter.NewName(_codemark, i.name)
+	return NewName(_codemark, i.name)
 }
 
 func (i *intConverter) SupportedTypes() []reflect.Type {
@@ -110,7 +109,7 @@ func (i *intConverter) integer(m marker.Marker, to reflect.Type) (reflect.Value,
 	if i.isOverflowingInt(to, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
-	return converter.ConvertTo(m.Value, to)
+	return ConvertTo(m.Value, to)
 }
 
 func (i *intConverter) uinteger(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -118,7 +117,7 @@ func (i *intConverter) uinteger(m marker.Marker, to reflect.Type) (reflect.Value
 	if i.isOverflowingUint(to, uint64(n)) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
-	return converter.ConvertTo(m.Value, to)
+	return ConvertTo(m.Value, to)
 }
 
 func (i *intConverter) runee(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -130,7 +129,7 @@ func (i *intConverter) runee(m marker.Marker, to reflect.Type) (reflect.Value, e
 		)
 	}
 	rvalue := reflect.ValueOf(rune(v[0]))
-	return converter.ConvertTo(rvalue, to)
+	return ConvertTo(rvalue, to)
 }
 
 func (i *intConverter) bytee(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -140,7 +139,7 @@ func (i *intConverter) bytee(m marker.Marker, to reflect.Type) (reflect.Value, e
 		return _rvzero, fmt.Errorf("value of marker is bigger than 2: %s", v)
 	}
 	bvalue := reflect.ValueOf(byte(v[0]))
-	return converter.ConvertTo(bvalue, to)
+	return ConvertTo(bvalue, to)
 }
 
 func (i *intConverter) duration(m marker.Marker, to reflect.Type) (reflect.Value, error) {
@@ -149,7 +148,7 @@ func (i *intConverter) duration(m marker.Marker, to reflect.Type) (reflect.Value
 		return _rvzero, err
 	}
 	v := reflect.ValueOf(duration)
-	return converter.ConvertTo(v, to)
+	return ConvertTo(v, to)
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {

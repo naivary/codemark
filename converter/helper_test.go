@@ -4,14 +4,13 @@ import (
 	"reflect"
 	"slices"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/converter/convertertest"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/marker/markertest"
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
-func customTypesFor(conv converter.Converter) []any {
+func customTypesFor(conv Converter) []any {
 	if _, isList := conv.(*listConverter); isList {
 		return registrytest.ListTypes()
 	}
@@ -33,7 +32,7 @@ func customTypesFor(conv converter.Converter) []any {
 	return nil
 }
 
-func validCasesFor(conv converter.Converter) ([]convertertest.Case, error) {
+func validCasesFor(conv Converter) ([]convertertest.Case, error) {
 	types := customTypesFor(conv)
 	cases := make([]convertertest.Case, 0, len(types))
 	for _, typ := range types {

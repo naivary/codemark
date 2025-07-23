@@ -4,24 +4,23 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ converter.Converter = (*listConverter)(nil)
+var _ Converter = (*listConverter)(nil)
 
 type listConverter struct {
 	name string
 }
 
-func List() converter.Converter {
+func List() Converter {
 	return &listConverter{
 		name: "list",
 	}
 }
 
 func (l *listConverter) Name() string {
-	return converter.NewName(_codemark, l.name)
+	return NewName(_codemark, l.name)
 }
 
 func (l *listConverter) SupportedTypes() []reflect.Type {

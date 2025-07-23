@@ -3,24 +3,23 @@ package converter
 import (
 	"reflect"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ converter.Converter = (*anyConverter)(nil)
+var _ Converter = (*anyConverter)(nil)
 
 type anyConverter struct {
 	name string
 }
 
-func Any() converter.Converter {
+func Any() Converter {
 	return &anyConverter{
 		name: "any",
 	}
 }
 
 func (a *anyConverter) Name() string {
-	return converter.NewName(_codemark, a.name)
+	return NewName(_codemark, a.name)
 }
 
 func (a *anyConverter) SupportedTypes() []reflect.Type {
@@ -36,5 +35,5 @@ func (a *anyConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 }
 
 func (a *anyConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
-	return converter.ConvertTo(m.Value, to)
+	return ConvertTo(m.Value, to)
 }

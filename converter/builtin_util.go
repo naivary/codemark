@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	coreapi "github.com/naivary/codemark/api/core"
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/typeutil"
 )
 
@@ -22,7 +21,7 @@ const _codemark = "codemark"
 // _rvzero is the zero value for a reflect.Value used for convenience
 var _rvzero = reflect.Value{}
 
-func Get(rtype reflect.Type) converter.Converter {
+func Get(rtype reflect.Type) Converter {
 	if typeutil.IsBool(rtype) {
 		return Bool()
 	}

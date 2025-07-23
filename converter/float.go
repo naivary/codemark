@@ -4,25 +4,24 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/typeutil"
 )
 
-var _ converter.Converter = (*floatConverter)(nil)
+var _ Converter = (*floatConverter)(nil)
 
 type floatConverter struct {
 	name string
 }
 
-func Float() converter.Converter {
+func Float() Converter {
 	return &floatConverter{
 		name: "float",
 	}
 }
 
 func (f *floatConverter) Name() string {
-	return converter.NewName(_codemark, f.name)
+	return NewName(_codemark, f.name)
 }
 
 func (f *floatConverter) SupportedTypes() []reflect.Type {
@@ -57,7 +56,7 @@ func (f *floatConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Valu
 	if f.isOverflowing(to, n) {
 		return _rvzero, fmt.Errorf("overflow converting `%s` to `%v`", m.String(), to)
 	}
-	return converter.ConvertTo(m.Value, to)
+	return ConvertTo(m.Value, to)
 }
 
 func (f *floatConverter) isOverflowing(out reflect.Type, n float64) bool {
