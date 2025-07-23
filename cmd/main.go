@@ -13,6 +13,10 @@ func main() {
 }
 
 func run() (int, error) {
+	rootCmd := makeRootCmd()
+	rootCmd.AddCommand(
+		makeGenCmd(),
+	)
 	err := rootCmd.Execute()
 	if err != nil {
 		return 1, err

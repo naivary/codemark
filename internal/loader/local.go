@@ -16,6 +16,11 @@ import (
 	"github.com/naivary/codemark/internal/converter"
 )
 
+type methodObject struct {
+	obj  types.Object
+	info loaderapi.FuncInfo
+}
+
 var _ Loader = (*localLoader)(nil)
 
 type localLoader struct {
@@ -26,6 +31,8 @@ type localLoader struct {
 	info *loaderapi.Information
 	// pkg is the current package used to extract information from
 	pkg *packages.Package
+
+	methods map[types.Object]methodObject
 }
 
 // New Returns a new loader which can be used to read in go-packages.
@@ -34,20 +41,19 @@ func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 		mngr: mngr,
 		info: newInformation(),
 		cfg:  &packages.Config{},
+		methods: make(map[types.Object]methodObject),
 	}
 	if cfg != nil {
 		l.cfg = cfg
 	}
-	l.cfg.Mode = packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes
+	l.cfg.Mode = packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes | packages.NeedImports
 	l.cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
 		return parser.ParseFile(fset, filename, src, parser.ParseComments)
 	}
 	return l
 }
 
-func (l *localLoader) Load(
-	patterns ...string,
-) (map[*packages.Package]*loaderapi.Information, error) {
+func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderapi.Information, error) {
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -64,15 +70,32 @@ func (l *localLoader) Load(
 		if err := l.exctractInfosFromPkg(); err != nil {
 			return nil, err
 		}
+		if len(l.methods) != 0 {
+			if err := l.addMethods(); err != nil {
+				return nil, err
+			}
+		}
 		projs[pkg] = l.info
 		l.reset()
 	}
 	return projs, nil
 }
 
+func (l *localLoader) addMethods() error {
+	for n, meth := range l.methods {
+		namedInfo, found := l.info.Named[n]
+		if !found {
+			return fmt.Errorf("named type not found in post: %v", n)
+		}
+		namedInfo.Methods[meth.obj] = meth.info
+	}
+	return nil
+}
+
 func (l *localLoader) reset() {
 	l.info = newInformation()
 	l.pkg = nil
+	l.methods = make(map[types.Object]methodObject)
 }
 
 func (l *localLoader) objectOf(ident *ast.Ident) (types.Object, error) {
@@ -172,8 +195,8 @@ func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 		Opts: opts,
 	}
 	rec := decl.Recv.List[0].Type
-	recIdent, isIdent := rec.(*ast.Ident)
-	if !isIdent {
+	recIdent := ident(rec)
+	if recIdent == nil {
 		return fmt.Errorf("is not *ast.Ident: %v", rec)
 	}
 	recObj, err := l.objectOf(recIdent)
@@ -189,7 +212,15 @@ func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 		struc.Methods[methObj] = info
 		return nil
 	}
-	l.info.Named[recObj].Methods[methObj] = info
+	// check if the type of the method is already extracted because for methods
+	// order is important
+	named, found := l.info.Named[recObj]
+	if !found {
+		// store the method for the post addition
+		l.methods[recObj] = methodObject{info: info, obj: methObj}
+		return nil
+	}
+	named.Methods[methObj] = info
 	return nil
 }
 
@@ -199,6 +230,7 @@ func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
+
 	obj, err := l.objectOf(decl.Name)
 	if err != nil {
 		return err
@@ -242,7 +274,10 @@ func (l *localLoader) extractImportInfo(decl *ast.GenDecl) error {
 		}
 		obj, err := l.objectOf(spec.Name)
 		if err != nil {
-			return err
+			obj = l.pkg.TypesInfo.Implicits[spec]
+		}
+		if obj == nil {
+			return fmt.Errorf("no types.Object found: %v", spec.Path.Value)
 		}
 		l.info.Imports[obj] = info
 	}
@@ -414,9 +449,7 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(
-	spec *ast.StructType,
-) (map[types.Object]loaderapi.FieldInfo, error) {
+func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]loaderapi.FieldInfo, error) {
 	infos := make(map[types.Object]loaderapi.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped

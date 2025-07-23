@@ -1,4 +1,4 @@
-package laoder
+package loader
 
 import (
 	"go/ast"

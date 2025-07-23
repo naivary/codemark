@@ -25,3 +25,16 @@ func isEmbedded(field *ast.Field) bool {
 func isMethod(fn *ast.FuncDecl) bool {
 	return fn.Recv != nil
 }
+
+func ident(expr ast.Expr) *ast.Ident {
+	switch x := expr.(type) {
+	case *ast.Ident:
+		return x
+	case *ast.StarExpr:
+		return ident(x.X)
+	case *ast.SelectorExpr:
+		return ident(x.X)
+	default:
+		return nil
+	}
+}

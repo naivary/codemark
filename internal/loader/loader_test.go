@@ -13,6 +13,8 @@ import (
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
+// TODO: add unamed and named imports in thge generated files
+
 func TestLoaderLocal(t *testing.T) {
 	tc, err := randLoaderTestCase()
 	if err != nil {
