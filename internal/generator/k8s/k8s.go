@@ -58,6 +58,11 @@ func (g k8sGenerator) Registry() registry.Registry {
 }
 
 func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Information) error {
+	file, err := os.Create("generate_manifests.yaml")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
 	for _, proj := range infos {
 		for _, strc := range proj.Structs {
 			if shouldGenerateConfigMap(strc) {
@@ -65,7 +70,7 @@ func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Informatio
 				if err != nil {
 					return err
 				}
-				err = json.NewEncoder(os.Stdout).Encode(cm)
+				err = json.NewEncoder(file).Encode(cm)
 				if err != nil {
 					return err
 				}
@@ -77,7 +82,7 @@ func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Informatio
 				if err != nil {
 					return err
 				}
-				err = json.NewEncoder(os.Stdout).Encode(pod)
+				err = json.NewEncoder(file).Encode(pod)
 				if err != nil {
 					return err
 				}

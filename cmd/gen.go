@@ -26,6 +26,7 @@ func makeGenCmd(mngr *generator.Manager) *cobra.Command {
 		Use:     "generate",
 		Short:   "",
 		Long:    "",
+		Args:    cobra.ExactArgs(1),
 		Aliases: []string{"gen"},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			return g.isValid()
