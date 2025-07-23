@@ -6,7 +6,6 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	"github.com/naivary/codemark/generator"
 	"github.com/naivary/codemark/registry"
@@ -29,14 +28,6 @@ func NewGenerator() (generator.Generator, error) {
 	return gen, nil
 }
 
-func (g k8sGenerator) Ressources() []string {
-	return []string{
-		"configmap",
-		"pod",
-		"meta",
-	}
-}
-
 func (g k8sGenerator) Domain() string {
 	return "k8s"
 }
@@ -47,10 +38,6 @@ func (g k8sGenerator) Explain(ident string) string {
 		return ""
 	}
 	return option.String()
-}
-
-func (g k8sGenerator) OptionsOf(resource string) []core.Option {
-	return nil
 }
 
 func (g k8sGenerator) Registry() registry.Registry {

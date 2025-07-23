@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"slices"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -19,20 +16,12 @@ func makeExplainCmd(mngr *generator.Manager) *cobra.Command {
 		Short: "",
 		Long:  "",
 		Args:  cobra.ExactArgs(1),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			ident := args[len(args)-1]
-			identParts := strings.Split(ident, ":")
-			if len(identParts) != 3 {
-				return fmt.Errorf("full qualified identifier needed: %s", ident)
-			}
-			if slices.Contains(identParts, "") {
-				return errors.New("all parts of the identifier have to have at least one letter")
-			}
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ident := args[len(args)-1]
 			domain := option.DomainOf(ident)
+			if domain == "" {
+				domain = ident
+			}
 			gen, err := mngr.Get(domain)
 			if err != nil {
 				return err
