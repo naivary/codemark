@@ -1,19 +1,21 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"os"
 )
 
 func main() {
-	ctx := context.Background()
-	if code, err := run(ctx); err != nil {
+	if code, err := run(); err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(code)
 	}
 }
 
-func run(_ context.Context) (int, error) {
+func run() (int, error) {
+	err := rootCmd.Execute()
+	if err != nil {
+		return 1, err
+	}
 	return 0, nil
 }
