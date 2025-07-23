@@ -6,3 +6,5 @@
 - variables for marker over sdk (prio: 1)
 - Itereator for *Info types of loader to itereator over the defs without nesting
 - extending by using codemark as a library
+- manager und builtin müssen in selben package sein. wahrscheinlich alles als
+  public ist das beste
