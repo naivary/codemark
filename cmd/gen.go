@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/naivary/codemark/generator"
+	internalgen "github.com/naivary/codemark/internal/generator"
 )
 
 func mustInit(fn func() (generator.Generator, error)) generator.Generator {
@@ -20,7 +21,7 @@ type genCmd struct {
 	domains []string
 }
 
-func makeGenCmd(mngr *generator.Manager) *cobra.Command {
+func makeGenCmd(mngr *internalgen.Manager) *cobra.Command {
 	g := &genCmd{}
 	cmd := &cobra.Command{
 		Use:     "generate",

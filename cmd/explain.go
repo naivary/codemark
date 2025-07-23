@@ -6,11 +6,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/naivary/codemark/generator"
+	internalgen "github.com/naivary/codemark/internal/generator"
 	"github.com/naivary/codemark/option"
 )
 
-func makeExplainCmd(mngr *generator.Manager) *cobra.Command {
+func makeExplainCmd(mngr *internalgen.Manager) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "explain [ident]",
 		Short: "",

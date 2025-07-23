@@ -7,6 +7,7 @@ import (
 
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/generator"
+	internalgen "github.com/naivary/codemark/internal/generator"
 	"github.com/naivary/codemark/internal/generator/k8s"
 )
 
@@ -44,8 +45,8 @@ func makeRootCmd() *cobra.Command {
 	return cmd
 }
 
-func newGenManager(gens []generator.Generator) (*generator.Manager, error) {
-	mngr, err := generator.NewManager()
+func newGenManager(gens []generator.Generator) (*internalgen.Manager, error) {
+	mngr, err := internalgen.NewManager()
 	if err != nil {
 		return nil, err
 	}
