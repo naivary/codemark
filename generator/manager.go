@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/naivary/codemark/loader"
+	"github.com/naivary/codemark/registry"
 )
 
 type domain = string
@@ -25,7 +28,30 @@ func NewManager() (*Manager, error) {
 	return mngr, nil
 }
 
-func (m *Manager) Generate(domains ...string) error {
+func (m *Manager) Generate(pattern string, domains ...string) error {
+	gens := make([]Generator, 0, len(domains))
+	for _, domain := range domains {
+		gen, err := m.Get(domain)
+		if err != nil {
+			return err
+		}
+		gens = append(gens, gen)
+	}
+	reg := registry.InMemory()
+	for _, gen := range gens {
+		if err := reg.Merge(gen.Registry()); err != nil {
+			return err
+		}
+	}
+	info, err := loader.Load(reg, pattern)
+	if err != nil {
+		return err
+	}
+	for _, gen := range gens {
+		if err := gen.Generate(info); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

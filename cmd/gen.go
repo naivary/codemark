@@ -1,61 +1,76 @@
-package main
+package cmd
 
 import (
+	"errors"
+	"slices"
+
 	"github.com/spf13/cobra"
 
 	"github.com/naivary/codemark/generator"
 	"github.com/naivary/codemark/internal/generator/k8s"
-	"github.com/naivary/codemark/loader"
-	"github.com/naivary/codemark/registry"
 )
+
+func mustInit(fn func() (generator.Generator, error)) generator.Generator {
+	gen, err := fn()
+	if err != nil {
+		panic(err)
+	}
+	return gen
+}
 
 type genCmd struct {
 	domains []string
 }
 
-func makeGenCmd() *cobra.Command {
+func makeGenCmd(gens ...generator.Generator) *cobra.Command {
 	g := &genCmd{}
 	cmd := &cobra.Command{
 		Use:     "generate",
 		Short:   "",
 		Long:    "",
 		Aliases: []string{"gen"},
-		RunE:    g.generate,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := g.isValid(); err != nil {
+				return err
+			}
+			gen := g.generate(gens...)
+			return gen(cmd, args)
+		},
 	}
-	cmd.Flags().StringSliceVar(&g.domains, "domain", nil, "domains to generate artifacts for")
+	cmd.Flags().StringSliceVar(&g.domains, "domains", nil, "domains to generate artifacts for")
 	return cmd
 }
 
-func (g *genCmd) generate(cmd *cobra.Command, args []string) error {
-	mngr, err := generator.NewManager()
-	if err != nil {
-		return err
-	}
-	gens := []generator.Generator{}
-	k8sGen, err := k8s.NewGenerator()
-	if err != nil {
-		return err
-	}
-	gens = append(gens, k8sGen)
-	if err := mngr.Add(k8sGen); err != nil {
-		return err
-	}
-	reg, err := registry.Merge(k8sGen.Registry())
-	if err != nil {
-		return err
-	}
-	pattern := args[len(args)-1]
-	info, err := loader.Load(reg, pattern)
-	if err != nil {
-		return err
-	}
-	// merge registries
-	// load infos
-	// call generate for every generator
-	for _, gen := range gens {
-		if err := gen.Generate(info); err != nil {
-			return err
-		}
+func (g *genCmd) isValid() error {
+	if len(g.domains) == 0 {
+		return errors.New("domains cannot be empty")
 	}
 	return nil
+}
+
+func (g *genCmd) generate(gens ...generator.Generator) func(cmd *cobra.Command, args []string) error {
+	return func(cmd *cobra.Command, args []string) error {
+		mngr, err := g.newManager(gens...)
+		if err != nil {
+			return err
+		}
+		pattern := args[len(args)-1]
+		return mngr.Generate(pattern, g.domains...)
+	}
+}
+
+func (g *genCmd) newManager(gens ...generator.Generator) (*generator.Manager, error) {
+	mngr, err := generator.NewManager()
+	if err != nil {
+		return nil, err
+	}
+	builtinGens := []generator.Generator{
+		mustInit(k8s.NewGenerator),
+	}
+	for _, gen := range slices.Concat(builtinGens, gens) {
+		if err := mngr.Add(gen); err != nil {
+			return nil, err
+		}
+	}
+	return mngr, nil
 }

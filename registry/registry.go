@@ -22,4 +22,6 @@ type Registry interface {
 
 	// All returns all Definitions stored in the registry.
 	All() map[string]*core.Option
+
+	Merge(reg Registry) error
 }
