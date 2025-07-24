@@ -5,8 +5,6 @@ import (
 	"strconv"
 )
 
-// TODO: scanString sollte nur eine Funktino sein am besten
-
 func scanMultiLineString(l *Lexer) error {
 	v := func(r rune) bool {
 		return r != _tick && r != _eof

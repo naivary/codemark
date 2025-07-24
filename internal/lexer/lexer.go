@@ -8,9 +8,6 @@ import (
 	"github.com/naivary/codemark/internal/lexer/token"
 )
 
-// TODO: add a good error message that multi line strings are not supported in
-// lists
-
 const (
 	_eof        = -1
 	_plus       = '+'

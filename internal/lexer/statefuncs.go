@@ -8,6 +8,8 @@ import (
 )
 
 // TODO: better naming of functions
+// TODO: can we use the same statefuncs for the elements of the list as for the
+// normal values?
 
 type stateFunc func(*Lexer) stateFunc
 
