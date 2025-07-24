@@ -139,9 +139,14 @@ func lexBool(l *Lexer) stateFunc {
 }
 
 func lexNumber(l *Lexer) stateFunc {
-	kind, err := scanNumber(l)
+	l.acceptFunc(func(r rune) bool {
+		// _comma is needed for list purposes
+		return !isNewline(r) && r != _comma && r != _eof
+	})
+	number := l.currentValue()
+	kind, err := kindOfNumber(number)
 	if err != nil {
-		return l.errorf("error: %s", err.Error())
+		return l.errorf("%s", err.Error())
 	}
 	l.emit(kind)
 	return lexEndOfExpr
@@ -199,9 +204,13 @@ func lexBoolListValue(l *Lexer) stateFunc {
 }
 
 func lexNumberListValue(l *Lexer) stateFunc {
-	kind, err := scanNumber(l)
+	l.acceptFunc(func(r rune) bool {
+		return !isNewline(r) && r != _comma && r != _eof
+	})
+	number := l.currentValue()
+	kind, err := kindOfNumber(number)
 	if err != nil {
-		return l.errorf("error: %s", err.Error())
+		return l.errorf("%s", err.Error())
 	}
 	l.emit(kind)
 	return lexListSequence

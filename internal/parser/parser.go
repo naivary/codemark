@@ -7,6 +7,7 @@ import (
 
 	"github.com/naivary/codemark/internal/lexer"
 	"github.com/naivary/codemark/internal/lexer/token"
+	"github.com/naivary/codemark/internal/utils"
 	"github.com/naivary/codemark/marker"
 )
 
@@ -24,14 +25,7 @@ func parseInt64(val string) (int64, error) {
 }
 
 func parseComplex128(v string) (complex128, error) {
-	var err error
-	img, re := complexOrder(v)
-	reInt, err := strconv.ParseInt(re, 0, 64)
-	if err != nil {
-		return 0, err
-	}
-	val := fmt.Sprintf("%d+%s", reInt, img)
-	c, err := strconv.ParseComplex(val, 128)
+	c, err := strconv.ParseComplex(utils.ComplexOrder(v), 128)
 	if err != nil {
 		return 0, err
 	}
