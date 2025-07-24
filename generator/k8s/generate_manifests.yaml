@@ -1,2 +1,0 @@
-{"kind":"ConfigMap","apiVersion":"v1","metadata":{"name":"my-name","namespace":"default","creationTimestamp":null},"immutable":true,"data":{"cpu":"4","memory":"1024","nodefault":"","tlspath":"/etc/app/ca.crt"}}
-{"kind":"Pod","apiVersion":"v1","metadata":{"creationTimestamp":null},"spec":{"containers":[{"name":"","image":"docker.io/naivary/filevault:latest","resources":{},"imagePullPolicy":"Always"}]},"status":{}}
