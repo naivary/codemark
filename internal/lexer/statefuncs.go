@@ -7,10 +7,6 @@ import (
 	"github.com/naivary/codemark/validate"
 )
 
-// TODO: better naming of functions
-// TODO: can we use the same statefuncs for the elements of the list as for the
-// normal values?
-
 var isListSeq = false
 
 type stateFunc func(*Lexer) stateFunc
