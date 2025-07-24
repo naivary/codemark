@@ -23,6 +23,6 @@ func shouldGenerateConfigMap(strc *loaderapi.StructInfo) bool {
 	return false
 }
 
-func shouldGeneratePod(fn loaderapi.FuncInfo) bool {
+func isMainFunc(fn loaderapi.FuncInfo) bool {
 	return fn.Decl.Name.Name == "main"
 }

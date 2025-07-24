@@ -32,7 +32,12 @@ func newOption(typ any, isUnique bool, targets ...optionapi.Target) optionMakePa
 
 func newRegistry() (registry.Registry, error) {
 	reg := registry.InMemory()
-	opts := slices.Concat(configMapOpts(), objectMetaOpts(), podOpts())
+	opts := slices.Concat(
+		configMapOpts(),
+		objectMetaOpts(),
+		podOpts(),
+		rbacOpts(),
+	)
 	for _, opt := range opts {
 		if err := reg.Define(opt); err != nil {
 			return nil, err

@@ -4,7 +4,17 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/naivary/codemark/api/doc"
+	optionapi "github.com/naivary/codemark/api/option"
 )
+
+func rbacOpts() []*optionapi.Option {
+	const resource = "rbac"
+	return makeDefs(resource,
+		newOption(APIGroups(nil), true, optionapi.TargetFunc),
+		newOption(Resources(nil), true, optionapi.TargetFunc),
+		newOption(Verbs(nil), true, optionapi.TargetFunc),
+	)
+}
 
 type APIGroups []string
 
@@ -22,4 +32,28 @@ func (a APIGroups) Doc() doc.Option {
 
 type Resources []string
 
+func (r Resources) apply(ru *rbacv1.PolicyRule) error {
+	ru.Resources = r
+	return nil
+}
+
+func (r Resources) Doc() doc.Option {
+	return doc.Option{
+		Desc:    `Resources`,
+		Default: "REQUIRED",
+	}
+}
+
 type Verbs []string
+
+func (v Verbs) apply(ru *rbacv1.PolicyRule) error {
+	ru.Verbs = v
+	return nil
+}
+
+func (v Verbs) Doc() doc.Option {
+	return doc.Option{
+		Desc:    `Verbs`,
+		Default: "REQUIRED",
+	}
+}

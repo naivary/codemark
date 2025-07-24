@@ -59,15 +59,17 @@ func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Informatio
 			}
 		}
 		for _, fn := range proj.Funcs {
-			if shouldGeneratePod(fn) {
+			if isMainFunc(fn) {
 				pod, err := createPod(fn)
 				if err != nil {
 					return err
 				}
-				err = json.NewEncoder(os.Stdout).Encode(pod)
+				role, err := createRBACRole(fn)
 				if err != nil {
 					return err
 				}
+				err = json.NewEncoder(os.Stdout).Encode(pod)
+				err = json.NewEncoder(os.Stdout).Encode(role)
 			}
 		}
 	}

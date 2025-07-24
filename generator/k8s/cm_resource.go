@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"slices"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,12 +21,12 @@ func newConfigMap() *corev1.ConfigMap {
 
 // TODO: configMap key format should be customizable
 
-func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
-	lower := strings.ToLower(key)
-	cm.Data[lower] = value
+func setDataInConfigMap(key, value string, cm *corev1.ConfigMap, format KeyFormat) {
+	cm.Data[format.Format(key)] = value
 }
 
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
+	var format KeyFormat
 	cm := newConfigMap()
 	objectMeta, err := createObjectMeta(strc)
 	if err != nil {
@@ -40,6 +39,8 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 			switch o := opt.(type) {
 			case Immutable:
 				err = o.apply(cm)
+			case KeyFormat:
+				format = o
 			}
 			if err != nil {
 				return nil, err
@@ -48,8 +49,12 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 	}
 	for _, field := range strc.Fields {
 		idents := keys(field.Opts)
-		if !slices.Contains(idents, "k8s:configmap:default") && field.Ident.IsExported() {
-			setDataInConfigMap(field.Ident.Name, "", cm)
+		if !field.Ident.IsExported() {
+			// unexported fields will be ignored
+			continue
+		}
+		if !slices.Contains(idents, "k8s:configmap:default") {
+			setDataInConfigMap(field.Ident.Name, "", cm, format)
 			continue
 		}
 		for _, opts := range field.Opts {
@@ -57,7 +62,7 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 				var err error
 				switch o := opt.(type) {
 				case Default:
-					err = o.apply(field.Ident, cm)
+					err = o.apply(field.Ident, cm, format)
 				}
 				if err != nil {
 					return nil, err
