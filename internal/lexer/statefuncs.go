@@ -11,6 +11,8 @@ import (
 // TODO: can we use the same statefuncs for the elements of the list as for the
 // normal values?
 
+var isListSeq = false
+
 type stateFunc func(*Lexer) stateFunc
 
 func lexText(l *Lexer) stateFunc {
@@ -65,7 +67,7 @@ func lexIdent(l *Lexer) stateFunc {
 	l.emit(token.IDENT)
 	switch l.peek() {
 	case _assign:
-		return lexAssignment
+		return lexAssign
 	case _eof, _newline:
 		return lexBoolWithoutAssignment
 	default:
@@ -73,16 +75,16 @@ func lexIdent(l *Lexer) stateFunc {
 	}
 }
 
-func lexAssignment(l *Lexer) stateFunc {
+func lexAssign(l *Lexer) stateFunc {
 	l.next()
 	l.emit(token.ASSIGN)
 	switch r := l.peek(); {
 	case r == _lbrack:
-		return lexOpenSquareBracket
+		return lexLBRACK
 	case isDigit(r):
 		return lexNumber
 	case r == _dquot:
-		return lexStartDoubleQuotationMarkString
+		return lexStartDQUOT
 	case r == _tick:
 		return lexStartTick
 	case isBool(r):
@@ -137,13 +139,16 @@ func lexBool(l *Lexer) stateFunc {
 		return l.errorf("`%s` is not spelled correctly", spelling)
 	}
 	l.emit(token.BOOL)
+	if isListSeq {
+		return lexListSeq
+	}
 	return lexEndOfExpr
 }
 
 func lexNumber(l *Lexer) stateFunc {
 	l.acceptFunc(func(r rune) bool {
 		// _comma is needed for list purposes
-		return !isNewline(r) && r != _eof
+		return !isNewline(r) && r != _eof && r != _comma && r != _rbrack
 	})
 	number := l.currentValue()
 	kind, err := kindOfNumber(number)
@@ -151,21 +156,25 @@ func lexNumber(l *Lexer) stateFunc {
 		return l.errorf("%s", err.Error())
 	}
 	l.emit(kind)
+	if isListSeq {
+		return lexListSeq
+	}
 	return lexEndOfExpr
 }
 
-func lexOpenSquareBracket(l *Lexer) stateFunc {
+func lexLBRACK(l *Lexer) stateFunc {
 	l.next()
 	l.emit(token.LBRACK)
+	isListSeq = true
 	switch r := l.peek(); {
 	case r == _rbrack:
-		return lexCloseSquareBracket
+		return lexRBRACK
 	case isDigit(r):
-		return lexNumberListValue
+		return lexNumber
 	case r == _dquot:
-		return lexStartDoubleQuotationMarkStringList
+		return lexStartDQUOT
 	case isBool(r):
-		return lexBoolListValue
+		return lexBool
 	case isSpace(r):
 		return l.errorf("no space allowed after the opening bracket of a list")
 	case r == _comma:
@@ -179,60 +188,30 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 	}
 }
 
-func lexListSequence(l *Lexer) stateFunc {
+func lexListSeq(l *Lexer) stateFunc {
 	switch l.peek() {
 	case _comma:
-		return lexListComma
+		return lexComma
 	case _rbrack:
-		return lexCloseSquareBracket
+		return lexRBRACK
 	default:
 		return l.errorf("expected next array value or closing bracket")
 	}
 }
 
-func lexBoolListValue(l *Lexer) stateFunc {
-	spelling := "true"
-	if r := l.peek(); r == 'f' {
-		spelling = "false"
-	}
-	for i := range len(spelling) {
-		r := l.peek()
-		if r == rune(spelling[i]) {
-			l.next()
-			continue
-		}
-		return l.errorf("`%s` is not spelled correctly", spelling)
-	}
-	l.emit(token.BOOL)
-	return lexListSequence
-}
-
-func lexNumberListValue(l *Lexer) stateFunc {
-	l.acceptFunc(func(r rune) bool {
-		return !isNewline(r) && r != _comma && r != _eof && r != _rbrack
-	})
-	number := l.currentValue()
-	kind, err := kindOfNumber(number)
-	if err != nil {
-		return l.errorf("%s", err.Error())
-	}
-	l.emit(kind)
-	return lexListSequence
-}
-
-func lexListComma(l *Lexer) stateFunc {
+func lexComma(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {
 	case isDigit(r):
-		return lexNumberListValue
+		return lexNumber
 	case r == _dquot:
-		return lexStartDoubleQuotationMarkStringList
+		return lexStartDQUOT
 	case r == _rbrack:
 		return l.errorf("remove the comma before the closing bracket of the list")
 	case isBool(r):
-		return lexBoolListValue
+		return lexBool
 	case r == _tick:
 		return l.errorf("multiline strings are not supported in list")
 	default:
@@ -240,7 +219,7 @@ func lexListComma(l *Lexer) stateFunc {
 	}
 }
 
-func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
+func lexStartDQUOT(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
 	if err := scanString(l); err != nil {
@@ -249,42 +228,25 @@ func lexStartDoubleQuotationMarkString(l *Lexer) stateFunc {
 	l.emit(token.STRING)
 	switch l.peek() {
 	case _dquot:
-		return lexEndDoubleQuotationMarkString
+		return lexEndDQUOT
 	default:
 		return l.errorf("expected `\"` got `%s`", string(l.peek()))
 	}
 }
 
-func lexEndDoubleQuotationMarkString(l *Lexer) stateFunc {
+func lexEndDQUOT(l *Lexer) stateFunc {
 	l.next()
 	l.ignore()
+	if isListSeq {
+		return lexListSeq
+	}
 	return lexEndOfExpr
 }
 
-func lexStartDoubleQuotationMarkStringList(l *Lexer) stateFunc {
-	l.next()
-	l.ignore()
-	if err := scanString(l); err != nil {
-		return l.errorf("error: %s", err.Error())
-	}
-	l.emit(token.STRING)
-	switch l.peek() {
-	case _dquot:
-		return lexEndDoubleQuotationMarkStringList
-	default:
-		return l.errorf("expected `\"` got `%s`", string(l.peek()))
-	}
-}
-
-func lexEndDoubleQuotationMarkStringList(l *Lexer) stateFunc {
-	l.next()
-	l.ignore()
-	return lexListSequence
-}
-
-func lexCloseSquareBracket(l *Lexer) stateFunc {
+func lexRBRACK(l *Lexer) stateFunc {
 	l.next()
 	l.emit(token.RBRACK)
+	isListSeq = false
 	return lexEndOfExpr
 }
 
