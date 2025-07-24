@@ -83,8 +83,8 @@ func (m *Manager) Convert(mrk marker.Marker, t optionapi.Target) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	if inFavorOf, isDepcrecated := opt.IsDeprecated(); isDepcrecated {
-		msg := fmt.Sprintf("%s IS DEPRECATED IN FAVOR OF `%s`\n", idn, inFavorOf)
+	if opt.IsDeprecated() {
+		msg := fmt.Sprintf("%s IS DEPRECATED IN FAVOR OF `%s`\n", idn, opt.DeprecatedInFavorOf)
 		slog.Warn(msg)
 	}
 	if isCorrectTarget(*opt, t) {

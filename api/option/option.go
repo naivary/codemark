@@ -31,8 +31,8 @@ func (o *Option) DeprecateInFavorOf(ident string) {
 	o.DeprecatedInFavorOf = ident
 }
 
-func (o *Option) IsDeprecated() (string, bool) {
-	return o.DeprecatedInFavorOf, o.DeprecatedInFavorOf != ""
+func (o *Option) IsDeprecated() bool {
+	return o.DeprecatedInFavorOf != ""
 }
 
 func (o *Option) HasDoc() bool {
