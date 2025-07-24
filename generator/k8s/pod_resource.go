@@ -22,10 +22,10 @@ func newPod() *corev1.Pod {
 
 func podOpts() []*optionapi.Option {
 	const resource = "pod"
-	return makeDefs(resource, map[any][]optionapi.Target{
-		Image(""):           {optionapi.TargetFunc},
-		ImagePullPolicy(""): {optionapi.TargetFunc},
-	})
+	return makeDefs(resource,
+		newOption(Image(""), true, optionapi.TargetFunc),
+		newOption(ImagePullPolicy(""), true, optionapi.TargetFunc),
+	)
 }
 
 func createPod(fn loaderapi.FuncInfo) (*corev1.Pod, error) {

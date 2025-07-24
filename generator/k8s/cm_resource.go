@@ -28,10 +28,10 @@ func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
 
 func configMapOpts() []*optionapi.Option {
 	const resource = "configmap"
-	return makeDefs(resource, map[any][]optionapi.Target{
-		Immutable(false): {optionapi.TargetStruct},
-		Default(""):      {optionapi.TargetField},
-	})
+	return makeDefs(resource,
+		newOption(Immutable(false), true, optionapi.TargetStruct),
+		newOption(Default(""), true, optionapi.TargetField),
+	)
 }
 
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {

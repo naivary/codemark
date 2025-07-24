@@ -9,10 +9,10 @@ import (
 
 func objectMetaOpts() []*optionapi.Option {
 	const resource = "meta"
-	return makeDefs(resource, map[any][]optionapi.Target{
-		Name(""):      {optionapi.TargetAny},
-		Namespace(""): {optionapi.TargetAny},
-	})
+	return makeDefs(resource,
+		newOption(Name(""), true, optionapi.TargetAny),
+		newOption(Namespace(""), true, optionapi.TargetAny),
+	)
 }
 
 func createObjectMeta(optioner loaderapi.Optioner) (*metav1.ObjectMeta, error) {
