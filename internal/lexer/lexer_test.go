@@ -7,38 +7,144 @@ import (
 )
 
 // TODO: better testing with expected token order
+// TODO: remove comma its unneccary
 func TestLexer_Lex(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   string
-		isValid bool
+		name       string
+		input      string
+		isValid    bool
+		tokenOrder []Token
 	}{
+		{
+			name:    "string",
+			input:   `+codemark:lexer:string="string"`,
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:string"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.STRING, "string"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "bool without assignment",
+			input:   `+codemark:lexer:bool`,
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:bool"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.BOOL, "true"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "bool with assignment false",
+			input:   `+codemark:lexer:bool=false`,
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:bool"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.BOOL, "false"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "bool with assignment true",
+			input:   `+codemark:lexer:bool=true`,
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:bool"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.BOOL, "true"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "int",
+			input:   "+codemark:lexer:int=99",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:int"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.INT, "99"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "float",
+			input:   "+codemark:lexer:float=99.99",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:float"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.FLOAT, "99.99"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "complex",
+			input:   "+codemark:lexer:complex=9i+9",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:complex"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.COMPLEX, "9i+9"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "list with all element types",
+			input:   `+codemark:lexer:list=[99, 99.99, 9i+9, true, false, "string"]`,
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:list"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.LBRACK, "["),
+				NewToken(token.INT, "99"),
+				NewToken(token.COMMA, ","),
+				NewToken(token.FLOAT, "99.99"),
+				NewToken(token.COMMA, ","),
+				NewToken(token.COMPLEX, "9i+9"),
+				NewToken(token.COMMA, ","),
+				NewToken(token.BOOL, "true"),
+				NewToken(token.COMMA, ","),
+				NewToken(token.BOOL, "false"),
+				NewToken(token.COMMA, ","),
+				NewToken(token.STRING, "string"),
+				NewToken(token.RBRACK, "]"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		// TODO: remove duplicated test and take over good casses
 		{
 			name:    "random input before",
 			input:   `dasdasd asd asdsadasd as +jsonschema:validation:maximum=3`,
 			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.EOF, ""),
+			},
 		},
 		{
-			name:    "number input",
-			input:   "+jsonschema:validation:maximum=3",
-			isValid: true,
-		},
-		{
-			name:    "boolean input",
-			input:   "+jsonschema:validation:required",
-			isValid: true,
-		},
-		{
-			name:    "string input",
-			input:   `+jsonschema:validation:format="email"`,
-			isValid: true,
-		},
-		{
-			name: "string with plus",
+			name: "string before with newline",
 			input: `asdhajsdhjds+dhsajdhasjhdashdjad 
 
-+jsonschema:validation:maximum=3`,
++codemark:lexer:int=3`,
 			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:string"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.STRING, "string"),
+				NewToken(token.EOF, ""),
+			},
 		},
 		{
 			name: "multi line string",
@@ -286,11 +392,10 @@ which is multi` + "`" + `line` + "`",
 		t.Run(tc.name, func(t *testing.T) {
 			l := Lex(tc.input)
 			for tk := range l.tokens {
-				t.Log(tk)
+				t.Log(tk.Value)
 				if tk.Kind == token.ERROR && tc.isValid {
 					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, tk.Value)
 				}
-
 				if tk.Kind == token.EOF && !tc.isValid {
 					t.Fatalf("expected an error and didn't get one for `%s`", tc.input)
 				}
