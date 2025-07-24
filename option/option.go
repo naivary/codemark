@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/naivary/codemark/api/doc"
 	optionapi "github.com/naivary/codemark/api/option"
 	"github.com/naivary/codemark/validate"
 )
@@ -46,7 +47,7 @@ func MustMake(idn string, output reflect.Type, targets ...optionapi.Target) *opt
 func MakeWithDoc(
 	name string,
 	output reflect.Type,
-	doc optionapi.OptionDoc,
+	doc doc.Option,
 	targets ...optionapi.Target,
 ) (*optionapi.Option, error) {
 	opt, err := Make(name, output, targets...)
@@ -60,7 +61,7 @@ func MakeWithDoc(
 func MustMakeWithDoc(
 	name string,
 	output reflect.Type,
-	doc optionapi.OptionDoc,
+	doc doc.Option,
 	targets ...optionapi.Target,
 ) *optionapi.Option {
 	opt, err := Make(name, output, targets...)

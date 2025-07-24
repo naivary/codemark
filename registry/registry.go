@@ -3,6 +3,7 @@ package registry
 import (
 	"errors"
 
+	"github.com/naivary/codemark/api/doc"
 	optionapi "github.com/naivary/codemark/api/option"
 )
 
@@ -18,7 +19,7 @@ type Registry interface {
 	Get(ident string) (*optionapi.Option, error)
 
 	// DofOf returns the documentation of the definition
-	DocOf(ident string) (*optionapi.OptionDoc, error)
+	DocOf(ident string) (*doc.Option, error)
 
 	// All returns all Definitions stored in the registry.
 	All() map[string]*optionapi.Option

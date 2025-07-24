@@ -6,7 +6,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	optionapi "github.com/naivary/codemark/api/option"
+	"github.com/naivary/codemark/api/doc"
 )
 
 type Image string
@@ -16,8 +16,8 @@ func (i Image) apply(c *corev1.Container) error {
 	return nil
 }
 
-func (i Image) Doc() optionapi.OptionDoc {
-	return optionapi.OptionDoc{
+func (i Image) Doc() doc.Option {
+	return doc.Option{
 		Desc:    `Image to use as the container`,
 		Default: "",
 	}
@@ -38,8 +38,8 @@ func (i ImagePullPolicy) apply(c *corev1.Container) error {
 	return nil
 }
 
-func (i ImagePullPolicy) Doc() optionapi.OptionDoc {
-	return optionapi.OptionDoc{
+func (i ImagePullPolicy) Doc() doc.Option {
+	return doc.Option{
 		Desc:    `Image Pull Policy of the container`,
 		Default: "Always",
 	}

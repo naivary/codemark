@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/naivary/codemark/api/doc"
 	loaderapi "github.com/naivary/codemark/api/loader"
 	optionapi "github.com/naivary/codemark/api/option"
 	"github.com/naivary/codemark/option"
@@ -33,7 +34,7 @@ func makeDefs(resource string, optionTypes map[any][]optionapi.Target) []*option
 		to := reflect.TypeOf(opt)
 		name := strings.ToLower(to.Name())
 		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
-		doc := opt.(Docer[optionapi.OptionDoc]).Doc()
+		doc := opt.(Docer[doc.Option]).Doc()
 		opt := option.MustMakeWithDoc(ident, to, doc, targets...)
 		opts = append(opts, opt)
 	}

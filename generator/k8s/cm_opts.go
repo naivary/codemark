@@ -6,7 +6,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	optionapi "github.com/naivary/codemark/api/option"
+	"github.com/naivary/codemark/api/doc"
 )
 
 type Default string
@@ -17,8 +17,8 @@ func (d Default) apply(field *ast.Ident, cm *corev1.ConfigMap) error {
 	return nil
 }
 
-func (d Default) Doc() optionapi.OptionDoc {
-	return optionapi.OptionDoc{
+func (d Default) Doc() doc.Option {
+	return doc.Option{
 		Desc:    `Default defines the default value of the config parameter`,
 		Default: "REQUIRED",
 	}
@@ -32,8 +32,8 @@ func (i Immutable) apply(cm *corev1.ConfigMap) error {
 	return nil
 }
 
-func (i Immutable) Doc() optionapi.OptionDoc {
-	return optionapi.OptionDoc{
+func (i Immutable) Doc() doc.Option {
+	return doc.Option{
 		Desc:    `Defines if the ConfigMap is immutable or not`,
 		Default: "false",
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/naivary/codemark/api/doc"
 	"github.com/naivary/codemark/internal/console"
 )
 
@@ -17,7 +18,7 @@ type Option struct {
 
 	// Doc provides documentation for the user to inform about the usage and
 	// intention of the option.
-	Doc *OptionDoc
+	Doc *doc.Option
 
 	// DeprecatedInFavorOf points to the marker identifier which should
 	// be used instead.

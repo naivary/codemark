@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/naivary/codemark/api/doc"
 	optionapi "github.com/naivary/codemark/api/option"
 
 	"github.com/naivary/codemark/option"
@@ -79,7 +80,7 @@ func opts() []*optionapi.Option {
 		option.MustMakeWithDoc(
 			"codemark:registry:doc",
 			reflect.TypeFor[string](),
-			optionapi.OptionDoc{Desc: "some doc"},
+			doc.Option{Desc: "some doc"},
 			optionapi.TargetAny,
 		),
 	}

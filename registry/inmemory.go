@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/naivary/codemark/api/doc"
 	optionapi "github.com/naivary/codemark/api/option"
 )
 
@@ -41,7 +42,7 @@ func (mem *inmem) Get(idn string) (*optionapi.Option, error) {
 	return nil, fmt.Errorf("option not found: `%s`", idn)
 }
 
-func (mem *inmem) DocOf(ident string) (*optionapi.OptionDoc, error) {
+func (mem *inmem) DocOf(ident string) (*doc.Option, error) {
 	opt, err := mem.Get(ident)
 	if err != nil {
 		return nil, err
