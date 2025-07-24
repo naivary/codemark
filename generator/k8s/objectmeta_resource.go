@@ -3,15 +3,15 @@ package k8s
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
+	optionapi "github.com/naivary/codemark/api/option"
 )
 
-func objectMetaOpts() []*core.Option {
+func objectMetaOpts() []*optionapi.Option {
 	const resource = "meta"
-	return makeDefs(resource, map[any][]core.Target{
-		Name(""):      {core.TargetAny},
-		Namespace(""): {core.TargetAny},
+	return makeDefs(resource, map[any][]optionapi.Target{
+		Name(""):      {optionapi.TargetAny},
+		Namespace(""): {optionapi.TargetAny},
 	})
 }
 

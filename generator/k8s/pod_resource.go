@@ -4,8 +4,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
+	optionapi "github.com/naivary/codemark/api/option"
 )
 
 func newPod() *corev1.Pod {
@@ -20,11 +20,11 @@ func newPod() *corev1.Pod {
 	}
 }
 
-func podOpts() []*core.Option {
+func podOpts() []*optionapi.Option {
 	const resource = "pod"
-	return makeDefs(resource, map[any][]core.Target{
-		Image(""):           {core.TargetFunc},
-		ImagePullPolicy(""): {core.TargetFunc},
+	return makeDefs(resource, map[any][]optionapi.Target{
+		Image(""):           {optionapi.TargetFunc},
+		ImagePullPolicy(""): {optionapi.TargetFunc},
 	})
 }
 

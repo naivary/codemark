@@ -5,11 +5,11 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/naivary/codemark/api/core"
+	optionapi "github.com/naivary/codemark/api/option"
 	"github.com/naivary/codemark/validate"
 )
 
-func IsValid(opt *core.Option) error {
+func IsValid(opt *optionapi.Option) error {
 	if err := validate.Ident(opt.Ident); err != nil {
 		return err
 	}
@@ -22,8 +22,8 @@ func IsValid(opt *core.Option) error {
 	return nil
 }
 
-func Make(idn string, output reflect.Type, targets ...core.Target) (*core.Option, error) {
-	opt := &core.Option{
+func Make(idn string, output reflect.Type, targets ...optionapi.Target) (*optionapi.Option, error) {
+	opt := &optionapi.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -31,8 +31,8 @@ func Make(idn string, output reflect.Type, targets ...core.Target) (*core.Option
 	return opt, IsValid(opt)
 }
 
-func MustMake(idn string, output reflect.Type, targets ...core.Target) *core.Option {
-	opt := &core.Option{
+func MustMake(idn string, output reflect.Type, targets ...optionapi.Target) *optionapi.Option {
+	opt := &optionapi.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -46,9 +46,9 @@ func MustMake(idn string, output reflect.Type, targets ...core.Target) *core.Opt
 func MakeWithDoc(
 	name string,
 	output reflect.Type,
-	doc core.OptionDoc,
-	targets ...core.Target,
-) (*core.Option, error) {
+	doc optionapi.OptionDoc,
+	targets ...optionapi.Target,
+) (*optionapi.Option, error) {
 	opt, err := Make(name, output, targets...)
 	if err != nil {
 		return nil, err
@@ -60,9 +60,9 @@ func MakeWithDoc(
 func MustMakeWithDoc(
 	name string,
 	output reflect.Type,
-	doc core.OptionDoc,
-	targets ...core.Target,
-) *core.Option {
+	doc optionapi.OptionDoc,
+	targets ...optionapi.Target,
+) *optionapi.Option {
 	opt, err := Make(name, output, targets...)
 	if err != nil {
 		panic(err)

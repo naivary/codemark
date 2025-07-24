@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
-	coreapi "github.com/naivary/codemark/api/core"
+	optionapi "github.com/naivary/codemark/api/option"
 	"github.com/naivary/codemark/internal/parser"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry"
@@ -77,7 +77,7 @@ func (m *Manager) Add(conv convv1.Converter) error {
 }
 
 // Convert converts the marker to a defined option with respect to the target `t`
-func (m *Manager) Convert(mrk marker.Marker, t coreapi.Target) (any, error) {
+func (m *Manager) Convert(mrk marker.Marker, t optionapi.Target) (any, error) {
 	idn := mrk.Ident
 	opt, err := m.reg.Get(idn)
 	if err != nil {
@@ -109,7 +109,7 @@ func (m *Manager) Convert(mrk marker.Marker, t coreapi.Target) (any, error) {
 	return out.Interface(), nil
 }
 
-func (m *Manager) ParseDefs(doc string, t coreapi.Target) (map[string][]any, error) {
+func (m *Manager) ParseDefs(doc string, t optionapi.Target) (map[string][]any, error) {
 	markers, err := parser.Parse(doc)
 	if err != nil {
 		return nil, err

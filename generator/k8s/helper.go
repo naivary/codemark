@@ -6,11 +6,15 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
+	optionapi "github.com/naivary/codemark/api/option"
 	"github.com/naivary/codemark/option"
 	"github.com/naivary/codemark/registry"
 )
+
+type Docer[T any] interface {
+	Doc() T
+}
 
 func newRegistry() (registry.Registry, error) {
 	reg := registry.InMemory()
@@ -23,13 +27,13 @@ func newRegistry() (registry.Registry, error) {
 	return reg, nil
 }
 
-func makeDefs(resource string, optionTypes map[any][]core.Target) []*core.Option {
-	opts := make([]*core.Option, 0, len(optionTypes))
+func makeDefs(resource string, optionTypes map[any][]optionapi.Target) []*optionapi.Option {
+	opts := make([]*optionapi.Option, 0, len(optionTypes))
 	for opt, targets := range optionTypes {
 		to := reflect.TypeOf(opt)
 		name := strings.ToLower(to.Name())
 		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
-		doc := opt.(core.Docer[core.OptionDoc]).Doc()
+		doc := opt.(Docer[optionapi.OptionDoc]).Doc()
 		opt := option.MustMakeWithDoc(ident, to, doc, targets...)
 		opts = append(opts, opt)
 	}

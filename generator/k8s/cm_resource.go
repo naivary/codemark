@@ -7,8 +7,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	coreapi "github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
+	optionapi "github.com/naivary/codemark/api/option"
 )
 
 func newConfigMap() *corev1.ConfigMap {
@@ -26,11 +26,11 @@ func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
 	cm.Data[lower] = value
 }
 
-func configMapOpts() []*coreapi.Option {
+func configMapOpts() []*optionapi.Option {
 	const resource = "configmap"
-	return makeDefs(resource, map[any][]coreapi.Target{
-		Immutable(false): {coreapi.TargetStruct},
-		Default(""):      {coreapi.TargetField},
+	return makeDefs(resource, map[any][]optionapi.Target{
+		Immutable(false): {optionapi.TargetStruct},
+		Default(""):      {optionapi.TargetField},
 	})
 }
 

@@ -5,7 +5,7 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/naivary/codemark/api/core"
+	optionapi "github.com/naivary/codemark/api/option"
 )
 
 type Name string
@@ -19,8 +19,8 @@ func (n Name) apply(m *metav1.ObjectMeta) error {
 	return nil
 }
 
-func (n Name) Doc() core.OptionDoc {
-	return core.OptionDoc{
+func (n Name) Doc() optionapi.OptionDoc {
+	return optionapi.OptionDoc{
 		Desc:    `Name defines the name in the metadata field of the object`,
 		Default: "Identifier name of the expression the Option is used on",
 	}
@@ -37,8 +37,8 @@ func (n Namespace) apply(m *metav1.ObjectMeta) error {
 	return nil
 }
 
-func (n Namespace) Doc() core.OptionDoc {
-	return core.OptionDoc{
+func (n Namespace) Doc() optionapi.OptionDoc {
+	return optionapi.OptionDoc{
 		Desc:    `Namespace of the object`,
 		Default: `default`,
 	}

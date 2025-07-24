@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/api/core"
+	optionapi "github.com/naivary/codemark/api/option"
 
 	"github.com/naivary/codemark/option"
 )
@@ -14,7 +14,7 @@ type registryTestCase struct {
 	// Name of the test case
 	Name string
 	// The definition being tested
-	Opt *core.Option
+	Opt *optionapi.Option
 	// Whether the test case is checking correctness or not.
 	IsValid bool
 }
@@ -29,7 +29,7 @@ func newRegTester(reg Registry) *registryTester {
 	}
 }
 
-func (r *registryTester) newTest(opt *core.Option, isValid bool) registryTestCase {
+func (r *registryTester) newTest(opt *optionapi.Option, isValid bool) registryTestCase {
 	return registryTestCase{
 		Name:    fmt.Sprintf("%s[%s]", opt.Ident, opt.Output),
 		IsValid: isValid,
@@ -59,7 +59,7 @@ func (r *registryTester) run(t *testing.T, tc registryTestCase) {
 	t.Logf("test case sucessfull: %s\n", tc.Name)
 }
 
-func (r *registryTester) validateDoc(t *testing.T, got, want *core.Option) {
+func (r *registryTester) validateDoc(t *testing.T, got, want *optionapi.Option) {
 	if got.Doc == nil {
 		t.Logf("no assertions will be done for the documentation because `%s` has no doc", got.Ident)
 		return
@@ -73,14 +73,14 @@ func (r *registryTester) validateDoc(t *testing.T, got, want *core.Option) {
 	}
 }
 
-func opts() []*core.Option {
-	return []*core.Option{
-		option.MustMake("codemark:registry:plain", reflect.TypeFor[string](), core.TargetAny),
+func opts() []*optionapi.Option {
+	return []*optionapi.Option{
+		option.MustMake("codemark:registry:plain", reflect.TypeFor[string](), optionapi.TargetAny),
 		option.MustMakeWithDoc(
 			"codemark:registry:doc",
 			reflect.TypeFor[string](),
-			core.OptionDoc{Desc: "some doc"},
-			core.TargetAny,
+			optionapi.OptionDoc{Desc: "some doc"},
+			optionapi.TargetAny,
 		),
 	}
 }
