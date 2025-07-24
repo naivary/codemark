@@ -8,7 +8,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
-	optionapi "github.com/naivary/codemark/api/option"
 )
 
 func newConfigMap() *corev1.ConfigMap {
@@ -21,17 +20,11 @@ func newConfigMap() *corev1.ConfigMap {
 	}
 }
 
+// TODO: configMap key format should be customizable
+
 func setDataInConfigMap(key, value string, cm *corev1.ConfigMap) {
 	lower := strings.ToLower(key)
 	cm.Data[lower] = value
-}
-
-func configMapOpts() []*optionapi.Option {
-	const resource = "configmap"
-	return makeDefs(resource,
-		newOption(Immutable(false), true, optionapi.TargetStruct),
-		newOption(Default(""), true, optionapi.TargetField),
-	)
 }
 
 func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
@@ -55,7 +48,7 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 	}
 	for _, field := range strc.Fields {
 		idents := keys(field.Opts)
-		if !slices.Contains(idents, "k8s:configmap:default") {
+		if !slices.Contains(idents, "k8s:configmap:default") && field.Ident.IsExported() {
 			setDataInConfigMap(field.Ident.Name, "", cm)
 			continue
 		}

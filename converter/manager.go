@@ -15,12 +15,17 @@ import (
 
 type options map[string][]any
 
-func (o options) Add(idn string, value any) {
+func (o options) add(idn string, value any, isUnique bool) error {
 	opts, ok := o[idn]
 	if !ok {
 		o[idn] = []any{value}
+		return nil
+	}
+	if isUnique {
+		return fmt.Errorf("option is unique but was used more than once: %s", idn)
 	}
 	o[idn] = append(opts, value)
+	return nil
 }
 
 type Manager struct {
@@ -120,7 +125,14 @@ func (m *Manager) ParseDefs(doc string, t optionapi.Target) (map[string][]any, e
 		if err != nil {
 			return nil, err
 		}
-		opts.Add(marker.Ident, value)
+		opt, err := m.reg.Get(marker.Ident)
+		if err != nil {
+			return nil, err
+		}
+		err = opts.add(marker.Ident, value, opt.IsUnique)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return opts, nil
 }

@@ -11,4 +11,6 @@ type ConfigMap struct {
 	// +k8s:configmap:default="/etc/app/ca.crt"
 	TLSPath   string
 	NoDefault string
+
+	notIncluded string
 }

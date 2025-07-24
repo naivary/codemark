@@ -7,7 +7,16 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/naivary/codemark/api/doc"
+	optionapi "github.com/naivary/codemark/api/option"
 )
+
+func configMapOpts() []*optionapi.Option {
+	const resource = "configmap"
+	return makeDefs(resource,
+		newOption(Immutable(false), true, optionapi.TargetStruct),
+		newOption(Default(""), true, optionapi.TargetField),
+	)
+}
 
 type Default string
 

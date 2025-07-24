@@ -26,6 +26,9 @@ type Option struct {
 
 	// Output type to convert the marker to.
 	Output reflect.Type
+
+	// Whether this option is unique
+	IsUnique bool
 }
 
 func (o *Option) DeprecateInFavorOf(ident string) {

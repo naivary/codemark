@@ -49,6 +49,7 @@ func makeDefs(resource string, optionTypes ...optionMakeParams) []*optionapi.Opt
 		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
 		doc := p.typ.(Docer[doc.Option]).Doc()
 		opt := option.MustMakeWithDoc(ident, to, doc, p.targets...)
+		opt.IsUnique = p.isUnique
 		opts = append(opts, opt)
 	}
 	return opts
