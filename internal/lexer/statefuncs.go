@@ -168,6 +168,8 @@ func lexOpenSquareBracket(l *Lexer) stateFunc {
 		return l.errorf("no space allowed after the opening bracket of a list")
 	case r == _comma:
 		return l.errorf("expected value in array not seperator")
+	case r == _tick:
+		return l.errorf("multiline strings are not supported in list")
 	default:
 		return l.errorf(
 			"expected closing bracket. Be sure that there is no whitespace between the last element and `]`",
@@ -229,6 +231,8 @@ func lexListComma(l *Lexer) stateFunc {
 		return l.errorf("remove the comma before the closing bracket of the list")
 	case isBool(r):
 		return lexBoolListValue
+	case r == _tick:
+		return l.errorf("multiline strings are not supported in list")
 	default:
 		return l.errorf("expected next value in list after comma")
 	}

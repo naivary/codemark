@@ -6,7 +6,6 @@ import (
 	"github.com/naivary/codemark/internal/lexer/token"
 )
 
-// TODO: remove comma its unneccary
 func TestLexer_Lex(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -421,6 +420,17 @@ multi line not allowed
 				NewToken(token.EOF, ""),
 			},
 		},
+		{
+			name:  "multiline string in list",
+			input: "+codemark:lexer:list=[`multilinestring`]",
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:list"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.LBRACK, "["),
+				NewToken(token.ERROR, ""),
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -434,7 +444,7 @@ multi line not allowed
 					t.Fatalf("kind's do not match. got: %s; want: %s", tk.Kind, wantKind)
 				}
 				if tk.Kind == token.ERROR || tk.Kind == token.EOF {
-					t.Skipf("validation of ERROR or EOF tokens will be skipped")
+					t.Skipf("validation of ERROR or EOF tokens will be skipped: %s", tk.Value)
 					continue
 				}
 				wantValue := tc.tokenOrder[i].Value

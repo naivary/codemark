@@ -84,7 +84,6 @@ func (i *intConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	)
 }
 
-// TODO: decision making is wrong. if its a byte rn it will rand in duration
 func (i *intConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value, error) {
 	mkind := m.Kind
 	if i.isInteger(to, mkind) {

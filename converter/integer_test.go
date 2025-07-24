@@ -15,7 +15,6 @@ type (
 	PtrDuration *time.Duration
 )
 
-// TODO: target cann raus beim convertertest.Tester
 func TestIntConverter(t *testing.T) {
 	conv := NewInteger()
 	tester, err := convertertest.NewTester(conv)
