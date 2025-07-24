@@ -35,19 +35,24 @@ func createRBACRole(fn loaderapi.FuncInfo) (*rbacv1.Role, error) {
 		if !isRBACResource(ident) {
 			continue
 		}
-		for _, opt := range opts {
+		for i, opt := range opts {
+			if len(role.Rules) <= i {
+				role.Rules = append(role.Rules, rbacv1.PolicyRule{})
+			}
+			rule := role.Rules[i]
 			var err error
 			switch o := opt.(type) {
 			case APIGroups:
-				err = o.apply(&role.Rules[0])
+				err = o.apply(&rule)
 			case Resources:
-				err = o.apply(&role.Rules[0])
+				err = o.apply(&rule)
 			case Verbs:
-				err = o.apply(&role.Rules[0])
+				err = o.apply(&rule)
 			}
 			if err != nil {
 				return nil, err
 			}
+			role.Rules[i] = rule
 		}
 	}
 	return role, nil

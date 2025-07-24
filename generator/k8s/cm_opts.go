@@ -55,7 +55,7 @@ const (
 	SnakeCase  KeyFormat = "snake_case"
 	CamelCase  KeyFormat = "camelCalse"
 	PascalCase KeyFormat = "pascalCase"
-	KebabCase  KeyFormat = "kebabCase"
+	KebabCase  KeyFormat = "kebab-case"
 	Env        KeyFormat = "env"
 )
 

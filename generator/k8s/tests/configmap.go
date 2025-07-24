@@ -3,7 +3,7 @@ package main
 // +k8s:meta:name="my-name"
 // +k8s:meta:namespace="default"
 // +k8s:configmap:immutable=true
-// +k8s:configmap:keyformat="PascalCase"
+// +k8s:configmap:keyformat="kebab-case"
 type ConfigMap struct {
 	// +k8s:configmap:default="4"
 	CPU int
