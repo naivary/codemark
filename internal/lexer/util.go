@@ -43,7 +43,7 @@ func kindOfNumber(number string) (token.Kind, error) {
 	kind := token.INT
 	_, errInt := strconv.ParseInt(number, 0, 64)
 	_, errFloat := strconv.ParseFloat(number, 64)
-	c, errComplex := strconv.ParseComplex(utils.ComplexOrder(number), 128)
+	_, errComplex := strconv.ParseComplex(utils.ComplexOrder(number), 128)
 
 	if errInt != nil && errFloat != nil && errComplex != nil {
 		return token.ERROR, fmt.Errorf("cannot lex number: %s", number)
@@ -51,7 +51,7 @@ func kindOfNumber(number string) (token.Kind, error) {
 	if errInt != nil && errFloat == nil {
 		kind = token.FLOAT
 	}
-	if errComplex == nil && imag(c) != 0 {
+	if errComplex == nil {
 		kind = token.COMPLEX
 	}
 	return kind, nil

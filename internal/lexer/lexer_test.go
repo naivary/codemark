@@ -124,6 +124,18 @@ func TestLexer_Lex(t *testing.T) {
 			},
 		},
 		{
+			name:  "complex wiht 0 imaginary",
+			input: "+codemark:lexer:complex=0i+9",
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:complex"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.COMPLEX, "0i+9"),
+				NewToken(token.EOF, ""),
+			},
+		},
+
+		{
 			name:  "complex negative sign",
 			input: "+codemark:lexer:complex=-9i-9",
 			tokenOrder: []Token{

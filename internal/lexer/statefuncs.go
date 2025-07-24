@@ -141,7 +141,7 @@ func lexBool(l *Lexer) stateFunc {
 func lexNumber(l *Lexer) stateFunc {
 	l.acceptFunc(func(r rune) bool {
 		// _comma is needed for list purposes
-		return !isNewline(r) && r != _comma && r != _eof
+		return !isNewline(r) && r != _eof
 	})
 	number := l.currentValue()
 	kind, err := kindOfNumber(number)
@@ -205,7 +205,7 @@ func lexBoolListValue(l *Lexer) stateFunc {
 
 func lexNumberListValue(l *Lexer) stateFunc {
 	l.acceptFunc(func(r rune) bool {
-		return !isNewline(r) && r != _comma && r != _eof
+		return !isNewline(r) && r != _comma && r != _eof && r != _rbrack
 	})
 	number := l.currentValue()
 	kind, err := kindOfNumber(number)
