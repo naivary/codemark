@@ -11,6 +11,7 @@ import (
 // figure out if it is a FLOAT or INT. It is only a helper function used by the
 // parent function `scanNumber`.
 func scanRealNumber(l *Lexer) (token.Kind, error) {
+	isDecimal := true
 	kind := token.INT
 	l.accept("+-")
 	digits := "0123456789_"
@@ -18,14 +19,21 @@ func scanRealNumber(l *Lexer) (token.Kind, error) {
 	if l.accept("0") {
 		// NOTE: Leading 0 does not mean octal in floats.
 		if l.accept("xX") {
+			isDecimal = false
 			digits = "0123456789abcdefABCDEF_"
 		} else if l.accept("oO") {
+			isDecimal = false
 			digits = "01234567_"
 		} else if l.accept("bB") {
+			isDecimal = false
 			digits = "01_"
 		}
 	}
 	l.acceptRun(digits)
+	r := l.peek()
+	if r == _dot && !isDecimal {
+		return token.ERROR, fmt.Errorf("float numbers can only be defined in decimal form")
+	}
 	if l.accept(".") {
 		kind = token.FLOAT
 		l.acceptRun(digits)

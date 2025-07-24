@@ -64,8 +64,32 @@ func TestLexer_Lex(t *testing.T) {
 			},
 		},
 		{
-			name:    "int",
+			name:    "decimal",
 			input:   "+codemark:lexer:int=99",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:int"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.INT, "99"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "decimal negative sign",
+			input:   `+codemark:lexer:int=-99`,
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:int"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.INT, "-99"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "decimal positve sign",
+			input:   `+codemark:lexer:int=+99`,
 			isValid: true,
 			tokenOrder: []Token{
 				NewToken(token.PLUS, "+"),
@@ -88,6 +112,18 @@ func TestLexer_Lex(t *testing.T) {
 			},
 		},
 		{
+			name:    "float negative sign",
+			input:   "+codemark:lexer:float=-99.99",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:float"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.FLOAT, "-99.99"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
 			name:    "complex",
 			input:   "+codemark:lexer:complex=9i+9",
 			isValid: true,
@@ -96,6 +132,30 @@ func TestLexer_Lex(t *testing.T) {
 				NewToken(token.IDENT, "codemark:lexer:complex"),
 				NewToken(token.ASSIGN, "="),
 				NewToken(token.COMPLEX, "9i+9"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "complex negative sign",
+			input:   "+codemark:lexer:complex=-9i-9",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:complex"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.COMPLEX, "-9i-9"),
+				NewToken(token.EOF, ""),
+			},
+		},
+		{
+			name:    "complex positive sign",
+			input:   "+codemark:lexer:complex=+9i+9",
+			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:complex"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.COMPLEX, "+9i+9"),
 				NewToken(token.EOF, ""),
 			},
 		},
@@ -126,7 +186,7 @@ func TestLexer_Lex(t *testing.T) {
 		// TODO: remove duplicated test and take over good casses
 		{
 			name:    "random input before",
-			input:   `dasdasd asd asdsadasd as +jsonschema:validation:maximum=3`,
+			input:   `Lorem ipsum dolor sit amet +jsonschema:validation:maximum=3`,
 			isValid: true,
 			tokenOrder: []Token{
 				NewToken(token.EOF, ""),
@@ -134,9 +194,8 @@ func TestLexer_Lex(t *testing.T) {
 		},
 		{
 			name: "string before with newline",
-			input: `asdhajsdhjds+dhsajdhasjhdashdjad 
-
-+codemark:lexer:int=3`,
+			input: `Lorem ipsum dolor sit amet 
+					+codemark:lexer:string="string"`,
 			isValid: true,
 			tokenOrder: []Token{
 				NewToken(token.PLUS, "+"),
@@ -147,218 +206,134 @@ func TestLexer_Lex(t *testing.T) {
 			},
 		},
 		{
-			name: "multi line string",
-			input: `dashjdhsajdh jasdhjasdh jasdhjashdasjdhasjdhj
-
-+jsonschema:validation:maximum=3`,
-			isValid: true,
-		},
-		{
 			name: "multi marker without doc",
-			input: `+jsonschema:validation:maximum=3
-+jsonschema:validation:format="email"`,
+			input: `+codemark:lexer:string="string"
+					+codemark:lexer:int=99
+			`,
 			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:int"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.INT, "99"),
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:string"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.STRING, "string"),
+				NewToken(token.EOF, ""),
+			},
 		},
 		{
-			name: "multi marker without doc reversed",
-			input: `
-+jsonschema:validation:maximum=3
-+jsonschema:validatiom:format="email"
-this is a normal docs string`,
+			name: "multi marker with doc",
+			input: `Lorem ipsum documentation
+					+codemark:lexer:string="string"
+					+codemark:lexer:int=99
+					Lorem ipsum more documentation
+			`,
 			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:int"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.INT, "99"),
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:string"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.STRING, "string"),
+				NewToken(token.EOF, ""),
+			},
 		},
-		{
-			name: "string one newline",
-			input: `asdhajsdhjdsdhsajdhasjhdashdjad 
-+jsonschema:validation:maximum=3`,
-			isValid: true,
-		},
-		{
-			name: "string multiple new lines",
-			input: `asdhajsdhjdsdhsajdhasjhdashdjad 
 
-
-
-
-
-+jsonschema:validation:maximum=3`,
-			isValid: true,
-		},
 		{
 			name:    "no identifier",
 			input:   `+=3`,
 			isValid: false,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.ERROR, ""),
+			},
 		},
 		{
-			name:    "spaces before line",
-			input:   `       +jsonschema:validation:maximum=3`,
+			name:    "spaces before marker",
+			input:   `       +codemark:lexer:int=99`,
 			isValid: true,
 		},
 		{
-			name: "multi marker without doc",
-			input: `+jsonschema:validation:maximum=3 dashdasjdhasjdhasd
-+jsonschema:validatiom:format="email"`,
+			name:    "multi marker without doc",
+			input:   `+codemark:lexer:bool=true Lorem`,
 			isValid: false,
-		},
-		{
-			name:    "array with single integer",
-			input:   `+jsonschema:validation:items=[21323]`,
-			isValid: true,
-		},
-		{
-			name:    "array multi integer",
-			input:   `+jsonschema:validation:items=[12345, 1234, 12]`,
-			isValid: true,
-		},
-		{
-			name:    "array string",
-			input:   `+jsonschema:validation:items=["somet3s"]`,
-			isValid: true,
-		},
-		{
-			name:    "space between end bracket",
-			input:   `+jsonschema:validation:items=[somet3s   ]`,
-			isValid: false,
-		},
-		{
-			name:    "escaped",
-			input:   `+jsonschema:validation:items=["something\""]`,
-			isValid: true,
-		},
-		{
-			name:    "escaped with letter in between",
-			input:   `+jsonschema:validation:items=["something\"s"]`,
-			isValid: true,
-		},
-		{
-			name:    "invalid ending because its followed by space",
-			input:   `+jsonschema:validation:items=["something\"s" ]`,
-			isValid: false,
-		},
-		{
-			name:    "complex number",
-			input:   `+jsonschema:validation:max=2i+3`,
-			isValid: true,
-		},
-		{
-			name:    "complex number valid",
-			input:   `+jsonschema:validation:max=3+2i`,
-			isValid: true,
+			tokenOrder: []Token{
+				NewToken(token.PLUS, "+"),
+				NewToken(token.IDENT, "codemark:lexer:bool"),
+				NewToken(token.ASSIGN, "="),
+				NewToken(token.STRING, "true"),
+				NewToken(token.ERROR, ""),
+			},
 		},
 		{
 			name:    "unfinished assignment",
-			input:   `+jsonschema:validation:max=`,
+			input:   `+codemark:lexer:assign.unfinished=`,
 			isValid: false,
-		},
-		{
-			name:    "float",
-			input:   `+jsonschema:validation:max=3.5`,
-			isValid: true,
-		},
-		{
-			name:    "bool with assignment",
-			input:   `+jsonschema:validation:max=true`,
-			isValid: true,
-		},
-		{
-			name:    "bool with assignment false",
-			input:   `+jsonschema:validation:max=false`,
-			isValid: true,
-		},
-		{
-			name:    "bool with assignment false with spaces and number after",
-			input:   `+jsonschema:validation:max=false      3`,
-			isValid: false,
-		},
-		{
-			name:    "negative integer",
-			input:   `+jsonschema:validation:max=-3`,
-			isValid: true,
-		},
-		{
-			name:    "array with boolean",
-			input:   `+jsonschema:validation:max=["name", true]`,
-			isValid: true,
-		},
-		{
-			name:    "array start with bool",
-			input:   `+jsonschema:validation:max=[true, true]`,
-			isValid: true,
-		},
-		{
-			name:    "array with all possible types",
-			input:   `+jsonschema:validation:max=[true, false, "some-string", 2, 0x24, 3.21, 3+2i, -2]`,
-			isValid: true,
 		},
 		{
 			name:    "invalid string value",
-			input:   `+jsonschema:validation:name="name\"`,
+			input:   `+codemar:lexer:string="string\"`,
 			isValid: false,
 		},
 		{
-			name:    "invalid identifier",
-			input:   `+jsonschema:validation="name"`,
+			name:    "identifier only domain",
+			input:   `+codemark="string"`,
 			isValid: false,
 		},
+
 		{
-			name: "boolean without assignment wiht doc",
-			input: `+jsonschema:validation:required
-this is the doc`,
-			isValid: true,
+			name:    "identifier only domain and resource",
+			input:   `+codemark:lexer="string"`,
+			isValid: false,
 		},
 		{
 			name:    "identifier is not allowed to start with a number",
-			input:   `+3idn:validation:required`,
+			input:   `+3codemark:lexer:bool`,
 			isValid: false,
 		},
 		{
 			name:    "identifier is allowed to include numbers",
-			input:   `+idn3:validation:required`,
+			input:   `+codemark_v1.1:lexer_v1.1:bool._required`,
 			isValid: true,
 		},
 		{
-			name:    "identifier is allowed to include underscore",
-			input:   `+idn_v3:validation:required`,
-			isValid: true,
-		},
-		{
-			name:    "identifier is allowed to include dots",
-			input:   `+idn_v3.1:validation:required`,
-			isValid: true,
-		},
-		{
-			name:    "identifier is not allowed to end with underscore (end segment)",
-			input:   `+idn_v3.1:validation:required_`,
+			name:    "identifier is not allowed to end with underscore (first segment)",
+			input:   `+codemark_v1.1_:lexer:bool`,
 			isValid: false,
 		},
 		{
 			name:    "identifier is not allowed to end with underscore (middle segment)",
-			input:   `+idn_v3.1:validation_:required`,
+			input:   `+codemark:lexer_:bool`,
 			isValid: false,
 		},
 		{
-			name:    "identifier is not allowed to end with underscore (first segment)",
-			input:   `+idn_v3.1_:validation:required`,
-			isValid: false,
-		},
-		{
-			name:    "identifier is not allowed to end with dot (end segment)",
-			input:   `+idn_v3.1:validation:required.`,
-			isValid: false,
-		},
-		{
-			name:    "identifier is not allowed to end with dot (middle segment)",
-			input:   `+idn_v3.1:validation.:required`,
+			name:    "identifier is not allowed to end with underscore (end segment)",
+			input:   `+codemark:lexer:bool_`,
 			isValid: false,
 		},
 		{
 			name:    "identifier is not allowed to end with dot (first segment)",
-			input:   `+idn_v3.1.:validation:required`,
+			input:   `+codemark.:lexer:bool`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with dot (middle segment)",
+			input:   `+codemark:lexer.:bool`,
+			isValid: false,
+		},
+		{
+			name:    "identifier is not allowed to end with dot (end segment)",
+			input:   `+codemark:lexer:bool.`,
 			isValid: false,
 		},
 		{
 			name: "newline followed by EOF",
-			input: `+idn_v3.1:validation:required
+			input: `+codemark:lexer:int=0x23f
 `,
 			isValid: true,
 		},
@@ -392,7 +367,7 @@ which is multi` + "`" + `line` + "`",
 		t.Run(tc.name, func(t *testing.T) {
 			l := Lex(tc.input)
 			for tk := range l.tokens {
-				t.Log(tk.Value)
+				t.Log(tk)
 				if tk.Kind == token.ERROR && tc.isValid {
 					t.Fatalf("expected to lex correctly: `%s`. Error is: %s", tc.input, tk.Value)
 				}

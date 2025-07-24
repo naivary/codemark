@@ -110,6 +110,18 @@ func TestScanNumber(t *testing.T) {
 			isValid: true,
 			kind:    token.FLOAT,
 		},
+		{
+			name:    "float hex (before dot)",
+			input:   "0x3f.33",
+			isValid: false,
+			kind:    token.ERROR,
+		},
+		{
+			name:    "float hex (after dot)",
+			input:   "0.0x3f",
+			isValid: false,
+			kind:    token.ERROR,
+		},
 	}
 
 	for _, tc := range tests {
