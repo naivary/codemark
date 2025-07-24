@@ -187,9 +187,6 @@ func parseListStart(p *parser, t lexer.Token) (parseFunc, bool) {
 
 func parseListElem(p *parser, t lexer.Token) (parseFunc, bool) {
 	switch t.Kind {
-	case token.COMMA:
-		// just skip the comma and go for the next element
-		return parseListElem, _next
 	case token.STRING:
 		return parseListStringElem, _keep
 	case token.INT:

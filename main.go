@@ -1,4 +1,3 @@
-//go:generate codemark gen --domains=k8s ./...
 package main
 
 import (

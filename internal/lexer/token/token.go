@@ -17,5 +17,4 @@ const (
 	INT     // 1237123, 0x283f etc.
 	FLOAT   // 1.2
 	COMPLEX // 3 + 2i
-	COMMA   // ,
 )

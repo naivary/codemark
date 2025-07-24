@@ -218,7 +218,6 @@ func lexNumberListValue(l *Lexer) stateFunc {
 
 func lexListComma(l *Lexer) stateFunc {
 	l.next()
-	l.emit(token.COMMA)
 	l.ignore()
 	ignoreSpace(l)
 	switch r := l.peek(); {

@@ -20,12 +20,11 @@ func _() {
 	_ = x[INT-10]
 	_ = x[FLOAT-11]
 	_ = x[COMPLEX-12]
-	_ = x[COMMA-13]
 }
 
-const _Kind_name = "EOFERRORSTRINGBOOLIDENTASSIGNPLUSLBRACKRBRACKINTFLOATCOMPLEXCOMMA"
+const _Kind_name = "EOFERRORSTRINGBOOLIDENTASSIGNPLUSLBRACKRBRACKINTFLOATCOMPLEX"
 
-var _Kind_index = [...]uint8{0, 3, 8, 14, 18, 23, 29, 33, 39, 45, 48, 53, 60, 65}
+var _Kind_index = [...]uint8{0, 3, 8, 14, 18, 23, 29, 33, 39, 45, 48, 53, 60}
 
 func (i Kind) String() string {
 	i -= 1
