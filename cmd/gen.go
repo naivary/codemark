@@ -5,17 +5,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
 )
-
-func mustInit(fn func() (genv1.Generator, error)) genv1.Generator {
-	gen, err := fn()
-	if err != nil {
-		panic(err)
-	}
-	return gen
-}
 
 type genCmd struct {
 	domains []string
@@ -25,7 +16,7 @@ func makeGenCmd(mngr *generator.Manager) *cobra.Command {
 	g := &genCmd{}
 	cmd := &cobra.Command{
 		Use:     "generate",
-		Short:   "",
+		Short:   "generate the artifacts for the given domains",
 		Long:    "",
 		Args:    cobra.ExactArgs(1),
 		Aliases: []string{"gen"},

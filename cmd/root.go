@@ -7,8 +7,8 @@ import (
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
-	k8sgen "github.com/naivary/codemark/generator/k8s"
 	"github.com/naivary/codemark/generator"
+	k8sgen "github.com/naivary/codemark/generator/k8s"
 )
 
 // TODO: make the functions of the commands use codes
@@ -33,6 +33,14 @@ func Exec(convs []convv1.Converter, gens []genv1.Generator) (int, error) {
 		return 1, err
 	}
 	return Success, nil
+}
+
+func mustInit(fn func() (genv1.Generator, error)) genv1.Generator {
+	gen, err := fn()
+	if err != nil {
+		panic(err)
+	}
+	return gen
 }
 
 func makeRootCmd() *cobra.Command {
