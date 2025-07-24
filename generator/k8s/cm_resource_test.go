@@ -7,7 +7,7 @@ import (
 )
 
 func TestConfigMapResource(t *testing.T) {
-	gen, err := NewGenerator()
+	gen, err := New()
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}

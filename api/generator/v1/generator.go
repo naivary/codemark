@@ -1,4 +1,4 @@
-package generator
+package v1
 
 import (
 	"golang.org/x/tools/go/packages"

@@ -6,19 +6,19 @@ import (
 	"github.com/spf13/cobra"
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
+	genv1 "github.com/naivary/codemark/api/generator/v1"
+	k8sgen "github.com/naivary/codemark/generator/k8s"
 	"github.com/naivary/codemark/generator"
-	internalgen "github.com/naivary/codemark/internal/generator"
-	"github.com/naivary/codemark/internal/generator/k8s"
 )
 
-// TODO: make the fu nctinos of the commands use codes
+// TODO: make the functions of the commands use codes
 const (
 	Success = iota
 	InternalErr
 	BadRequest
 )
 
-func Exec(convs []convv1.Converter, gens []generator.Generator) (int, error) {
+func Exec(convs []convv1.Converter, gens []genv1.Generator) (int, error) {
 	mngr, err := newGenManager(gens)
 	if err != nil {
 		return InternalErr, err
@@ -45,13 +45,13 @@ func makeRootCmd() *cobra.Command {
 	return cmd
 }
 
-func newGenManager(gens []generator.Generator) (*internalgen.Manager, error) {
-	mngr, err := internalgen.NewManager()
+func newGenManager(gens []genv1.Generator) (*generator.Manager, error) {
+	mngr, err := generator.NewManager()
 	if err != nil {
 		return nil, err
 	}
-	builtinGens := []generator.Generator{
-		mustInit(k8s.NewGenerator),
+	builtinGens := []genv1.Generator{
+		mustInit(k8sgen.New),
 	}
 	for _, gen := range slices.Concat(builtinGens, gens) {
 		if err := mngr.Add(gen); err != nil {

@@ -6,18 +6,18 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
+	genv1 "github.com/naivary/codemark/api/generator/v1"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/generator"
 	"github.com/naivary/codemark/registry"
 )
 
-var _ generator.Generator = (*k8sGenerator)(nil)
+var _ genv1.Generator = (*k8sGenerator)(nil)
 
 type k8sGenerator struct {
 	reg registry.Registry
 }
 
-func NewGenerator() (generator.Generator, error) {
+func New() (genv1.Generator, error) {
 	reg, err := newRegistry()
 	if err != nil {
 		return nil, err

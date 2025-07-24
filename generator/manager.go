@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/naivary/codemark/generator"
+	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/loader"
 	"github.com/naivary/codemark/registry"
 )
@@ -14,7 +14,7 @@ type domain = string
 
 type Manager struct {
 	dir  string
-	gens map[domain]generator.Generator
+	gens map[domain]genv1.Generator
 }
 
 func NewManager() (*Manager, error) {
@@ -24,13 +24,13 @@ func NewManager() (*Manager, error) {
 	}
 	mngr := &Manager{
 		dir:  filepath.Join(home, ".codemark", "gens"),
-		gens: make(map[domain]generator.Generator),
+		gens: make(map[domain]genv1.Generator),
 	}
 	return mngr, nil
 }
 
 func (m *Manager) Generate(pattern string, domains ...string) error {
-	gens := make([]generator.Generator, 0, len(domains))
+	gens := make([]genv1.Generator, 0, len(domains))
 	for _, domain := range domains {
 		gen, err := m.Get(domain)
 		if err != nil {
@@ -56,18 +56,18 @@ func (m *Manager) Generate(pattern string, domains ...string) error {
 	return nil
 }
 
-func (m *Manager) Get(domain string) (generator.Generator, error) {
+func (m *Manager) Get(domain string) (genv1.Generator, error) {
 	gen, found := m.gens[domain]
 	if !found {
-		return nil, fmt.Errorf("generator not found for domain: %s", domain)
+		return nil, fmt.Errorf("genv1.not found for domain: %s", domain)
 	}
 	return gen, nil
 }
 
-func (m *Manager) Add(gen generator.Generator) error {
+func (m *Manager) Add(gen genv1.Generator) error {
 	domain := gen.Domain()
 	if _, found := m.gens[domain]; found {
-		return fmt.Errorf("generator for domain already exists: %s", domain)
+		return fmt.Errorf("genv1.for domain already exists: %s", domain)
 	}
 	m.gens[domain] = gen
 	return nil
