@@ -1,4 +1,4 @@
-package core
+package option
 
 type DomainDoc struct {
 	Desc      string

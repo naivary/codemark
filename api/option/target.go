@@ -1,6 +1,6 @@
 //go:generate stringer -type=Target
 
-package core
+package option
 
 // Target defines to which type of
 // expression an option can be applied

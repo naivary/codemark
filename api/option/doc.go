@@ -1,4 +1,4 @@
-package core
+package option
 
 type Docer[T any] interface {
 	Doc() T

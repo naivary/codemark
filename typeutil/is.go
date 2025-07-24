@@ -5,6 +5,18 @@ import (
 	"slices"
 )
 
+func IsPointer(typ reflect.Type) bool {
+	return typ.Kind() == reflect.Pointer
+}
+
+func IsBool(rtype reflect.Type) bool {
+	return Deref(rtype).Kind() == reflect.Bool
+}
+
+func IsString(rtype reflect.Type) bool {
+	return Deref(rtype).Kind() == reflect.String
+}
+
 func IsInt(rtype reflect.Type) bool {
 	kind := Deref(rtype).Kind()
 	ints := []reflect.Kind{

@@ -19,18 +19,6 @@ func Deref(typ reflect.Type) reflect.Type {
 	return typ
 }
 
-func IsPointer(typ reflect.Type) bool {
-	return typ.Kind() == reflect.Pointer
-}
-
-func IsBool(rtype reflect.Type) bool {
-	return Deref(rtype).Kind() == reflect.Bool
-}
-
-func IsString(rtype reflect.Type) bool {
-	return Deref(rtype).Kind() == reflect.String
-}
-
 // NameFor returns a string representation of a given reflect.Type. It is NOT
 // unique. The returned string is like reading the type from left to right. Some
 // examples are:
