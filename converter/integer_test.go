@@ -17,7 +17,7 @@ type (
 
 // TODO: target cann raus beim convertertest.Tester
 func TestIntConverter(t *testing.T) {
-	conv := Integer()
+	conv := NewInteger()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -34,7 +34,7 @@ func TestIntConverter(t *testing.T) {
 }
 
 func TestIntConverter_Duration(t *testing.T) {
-	conv := Integer()
+	conv := NewInteger()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -51,7 +51,7 @@ func TestIntConverter_Duration(t *testing.T) {
 }
 
 func TestIntConverter_Byte(t *testing.T) {
-	conv := Integer()
+	conv := NewInteger()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -72,7 +72,7 @@ func TestIntConverter_Byte(t *testing.T) {
 }
 
 func TestIntConverter_Rune(t *testing.T) {
-	conv := Integer()
+	conv := NewInteger()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

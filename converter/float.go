@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"reflect"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/typeutil"
 )
 
-var _ Converter = (*floatConverter)(nil)
+var _ convv1.Converter = (*floatConverter)(nil)
 
 type floatConverter struct {
 	name string
 }
 
-func Float() Converter {
+func NewFloat() convv1.Converter {
 	return &floatConverter{
 		name: "float",
 	}

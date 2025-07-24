@@ -7,7 +7,7 @@ import (
 )
 
 func TestComplexConverter(t *testing.T) {
-	conv := Complex()
+	conv := NewComplex()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

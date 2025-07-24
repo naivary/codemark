@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/naivary/codemark/converter"
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 )
 
@@ -37,7 +37,7 @@ type Tester interface {
 var _ Tester = (*tester)(nil)
 
 type tester struct {
-	conv       converter.Converter
+	conv       convv1.Converter
 	equalFuncs map[reflect.Type]func(got, want reflect.Value) bool
 }
 
@@ -45,7 +45,7 @@ type tester struct {
 // parameter `toTypes` is providing a map of a supported type to an example
 // custom type which is being used by the converter as a test. For example the
 // built in integer converter is converter an int to a type Int int.
-func NewTester(conv converter.Converter) (Tester, error) {
+func NewTester(conv convv1.Converter) (Tester, error) {
 	c := &tester{
 		conv:       conv,
 		equalFuncs: make(map[reflect.Type]func(got, want reflect.Value) bool),

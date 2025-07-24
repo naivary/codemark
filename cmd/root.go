@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/naivary/codemark/converter"
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/generator"
 	internalgen "github.com/naivary/codemark/internal/generator"
 	"github.com/naivary/codemark/internal/generator/k8s"
@@ -18,7 +18,7 @@ const (
 	BadRequest
 )
 
-func Exec(convs []converter.Converter, gens []generator.Generator) (int, error) {
+func Exec(convs []convv1.Converter, gens []generator.Generator) (int, error) {
 	mngr, err := newGenManager(gens)
 	if err != nil {
 		return InternalErr, err

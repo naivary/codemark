@@ -5,15 +5,15 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	api "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/internal/converter"
+	loaderapi "github.com/naivary/codemark/api/loader"
+	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/internal/loader"
 	"github.com/naivary/codemark/registry"
 )
 
 // Load is extracting all the type informations including, while parsing the
 // found markers.
-func Load(reg registry.Registry, patterns ...string) (map[*packages.Package]*api.Information, error) {
+func Load(reg registry.Registry, patterns ...string) (map[*packages.Package]*loaderapi.Information, error) {
 	mngr, err := converter.NewManager(reg)
 	if err != nil {
 		return nil, err

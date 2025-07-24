@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"reflect"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/typeutil"
 )
 
-var _ Converter = (*complexConverter)(nil)
+var _ convv1.Converter = (*complexConverter)(nil)
 
 type complexConverter struct {
 	name string
 }
 
-func Complex() Converter {
+func NewComplex() convv1.Converter {
 	return &complexConverter{
 		name: "complex",
 	}

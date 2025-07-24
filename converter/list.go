@@ -4,18 +4,21 @@ import (
 	"fmt"
 	"reflect"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ Converter = (*listConverter)(nil)
+var _ convv1.Converter = (*listConverter)(nil)
 
 type listConverter struct {
 	name string
+	mngr *Manager
 }
 
-func List() Converter {
+func NewList(mngr *Manager) convv1.Converter {
 	return &listConverter{
 		name: "list",
+		mngr: mngr,
 	}
 }
 
@@ -118,9 +121,9 @@ func (l *listConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Value
 
 func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	rvalue := reflect.ValueOf(v)
-	conv := Get(typ)
-	if conv == nil {
-		return _rvzero, fmt.Errorf("no converter found for: %s", typ)
+	conv, err := l.mngr.Get(typ)
+	if err != nil {
+		return _rvzero, err
 	}
 	mkind := marker.KindOf(rvalue.Type())
 	fakeMarker := marker.Fake(mkind, rvalue)

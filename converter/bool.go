@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"reflect"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ Converter = (*boolConverter)(nil)
+var _ convv1.Converter = (*boolConverter)(nil)
 
 type boolConverter struct{}
 
-func Bool() Converter {
+func NewBool() convv1.Converter {
 	return &boolConverter{}
 }
 

@@ -6,17 +6,18 @@ import (
 	"slices"
 	"time"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/typeutil"
 )
 
-var _ Converter = (*intConverter)(nil)
+var _ convv1.Converter = (*intConverter)(nil)
 
 type intConverter struct {
 	name string
 }
 
-func Integer() Converter {
+func NewInteger() convv1.Converter {
 	return &intConverter{
 		name: "integer",
 	}

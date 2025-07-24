@@ -5,16 +5,17 @@ import (
 	"reflect"
 	"time"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ Converter = (*stringConverter)(nil)
+var _ convv1.Converter = (*stringConverter)(nil)
 
 type stringConverter struct {
 	name string
 }
 
-func String() Converter {
+func NewString() convv1.Converter {
 	return &stringConverter{
 		name: "string",
 	}

@@ -3,16 +3,17 @@ package converter
 import (
 	"reflect"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
 )
 
-var _ Converter = (*anyConverter)(nil)
+var _ convv1.Converter = (*anyConverter)(nil)
 
 type anyConverter struct {
 	name string
 }
 
-func Any() Converter {
+func NewAny() convv1.Converter {
 	return &anyConverter{
 		name: "any",
 	}

@@ -13,7 +13,7 @@ import (
 
 	"github.com/naivary/codemark/api/core"
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/internal/converter"
+	"github.com/naivary/codemark/converter"
 )
 
 type methodObject struct {
@@ -38,9 +38,9 @@ type localLoader struct {
 // New Returns a new loader which can be used to read in go-packages.
 func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	l := &localLoader{
-		mngr: mngr,
-		info: newInformation(),
-		cfg:  &packages.Config{},
+		mngr:    mngr,
+		info:    newInformation(),
+		cfg:     &packages.Config{},
 		methods: make(map[types.Object]methodObject),
 	}
 	if cfg != nil {

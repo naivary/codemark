@@ -8,13 +8,12 @@ import (
 	"golang.org/x/tools/go/packages"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
-	"github.com/naivary/codemark/internal/converter"
+	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
 // TODO: add unamed and named imports in thge generated files
-
 func TestLoaderLocal(t *testing.T) {
 	tc, err := randLoaderTestCase()
 	if err != nil {

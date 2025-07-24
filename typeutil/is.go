@@ -50,7 +50,7 @@ func IsComplex(rtype reflect.Type) bool {
 // IsSupported is returning true iff the given rtype is supported by the default
 // converters.
 func IsSupported(rtype reflect.Type) bool {
-	return IsPrimitive(rtype) || rtype.Kind() == reflect.Slice
+	return IsPrimitive(rtype) || rtype.Kind() == reflect.Slice || IsAny(rtype)
 }
 
 func IsAny(rtype reflect.Type) bool {

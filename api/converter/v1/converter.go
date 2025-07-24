@@ -1,4 +1,4 @@
-package converter
+package v1
 
 import (
 	"reflect"

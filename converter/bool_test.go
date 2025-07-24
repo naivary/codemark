@@ -7,7 +7,7 @@ import (
 )
 
 func TestBoolConverter(t *testing.T) {
-	conv := Bool()
+	conv := NewBool()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

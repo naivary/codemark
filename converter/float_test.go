@@ -7,7 +7,7 @@ import (
 )
 
 func TestFloatConverter(t *testing.T) {
-	conv := Float()
+	conv := NewFloat()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

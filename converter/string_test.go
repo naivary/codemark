@@ -15,7 +15,7 @@ type (
 )
 
 func TestStringConverter(t *testing.T) {
-	conv := String()
+	conv := NewString()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
@@ -32,7 +32,7 @@ func TestStringConverter(t *testing.T) {
 }
 
 func TestStringConverter_Time(t *testing.T) {
-	conv := String()
+	conv := NewString()
 	tester, err := convertertest.NewTester(conv)
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)

@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"reflect"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	coreapi "github.com/naivary/codemark/api/core"
 	"github.com/naivary/codemark/internal/parser"
 	"github.com/naivary/codemark/marker"
@@ -24,16 +25,16 @@ func (o options) Add(idn string, value any) {
 
 type Manager struct {
 	reg   registry.Registry
-	convs map[reflect.Type]Converter
+	convs map[reflect.Type]convv1.Converter
 }
 
-func NewManager(reg registry.Registry, convs ...Converter) (*Manager, error) {
+func NewManager(reg registry.Registry, convs ...convv1.Converter) (*Manager, error) {
 	if len(reg.All()) == 0 {
 		return nil, registry.ErrRegistryEmpty
 	}
 	mngr := &Manager{
 		reg:   reg,
-		convs: make(map[reflect.Type]Converter),
+		convs: make(map[reflect.Type]convv1.Converter),
 	}
 	for _, conv := range convs {
 		if err := mngr.Add(conv); err != nil {
@@ -43,7 +44,7 @@ func NewManager(reg registry.Registry, convs ...Converter) (*Manager, error) {
 	return mngr, nil
 }
 
-func (m *Manager) Get(rtype reflect.Type) (Converter, error) {
+func (m *Manager) Get(rtype reflect.Type) (convv1.Converter, error) {
 	conv := m.builtin(rtype)
 	if conv != nil {
 		return conv, nil
@@ -55,9 +56,9 @@ func (m *Manager) Get(rtype reflect.Type) (Converter, error) {
 	return conv, nil
 }
 
-// addConverter is exactly the same as AddConverter but does not include any
+// addis exactly the same as AddConverter but does not include any
 // assertions to be able to use it for internal usage.
-func (m *Manager) add(conv Converter) error {
+func (m *Manager) add(conv convv1.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {
 		_, found := m.convs[rtype]
 		if found {
@@ -68,7 +69,7 @@ func (m *Manager) add(conv Converter) error {
 	return nil
 }
 
-func (m *Manager) Add(conv Converter) error {
+func (m *Manager) Add(conv convv1.Converter) error {
 	if err := isValidName(conv.Name()); err != nil {
 		return fmt.Errorf("converter is not following naming conventions: %s", err.Error())
 	}
@@ -127,18 +128,30 @@ func (m *Manager) ParseDefs(doc string, t coreapi.Target) (map[string][]any, err
 // builtin returns a bultin converter if the given rtype can be converterted by
 // one of the builtin converters. If no converter is found then nil will be
 // returned.
-func (m *Manager) builtin(rtype reflect.Type) Converter {
+func (m *Manager) builtin(rtype reflect.Type) convv1.Converter {
 	if !typeutil.IsSupported(rtype) {
 		return nil
 	}
-	// rtype can be a native type e.g. string and for that the converter can be
-	// retrieved without further validation.
-	conv, found := m.convs[rtype]
-	if found {
-		return conv
-	}
 	if typeutil.IsValidSlice(rtype) {
-		return List()
+		return NewList(m)
 	}
-	return Get(rtype)
+	if typeutil.IsBool(rtype) {
+		return NewBool()
+	}
+	if typeutil.IsString(rtype) {
+		return NewString()
+	}
+	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
+		return NewInteger()
+	}
+	if typeutil.IsFloat(rtype) {
+		return NewFloat()
+	}
+	if typeutil.IsComplex(rtype) {
+		return NewComplex()
+	}
+	if typeutil.IsAny(rtype) {
+		return NewAny()
+	}
+	return nil
 }
