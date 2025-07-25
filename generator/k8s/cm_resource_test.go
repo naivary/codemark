@@ -19,10 +19,6 @@ func load(path string) (genv1.Generator, loaderv1.Project) {
 	if err != nil {
 		panic(err)
 	}
-	artifacts, err := gen.Generate(infos)
-	if err != nil {
-		t.Errorf("err occured: %s\n", err)
-	}
 	return gen, proj
 }
 
@@ -47,4 +43,5 @@ func TestResource_ConfigMap(t *testing.T) {
 			}
 			t.Log(artifacts[0].Data)
 		})
+	}
 }
