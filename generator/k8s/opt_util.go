@@ -12,23 +12,10 @@ import (
 	"github.com/naivary/codemark/registry"
 )
 
+const _typeName = ""
+
 type Docer[T any] interface {
 	Doc() T
-}
-
-type optionMakeParams struct {
-	typ      any
-	targets  []optionapi.Target
-	isUnique bool
-	name     string
-}
-
-func newOption(typ any, isUnique bool, targets ...optionapi.Target) optionMakeParams {
-	return optionMakeParams{
-		typ:      typ,
-		isUnique: isUnique,
-		targets:  targets,
-	}
 }
 
 func newRegistry() (registry.Registry, error) {
@@ -38,6 +25,7 @@ func newRegistry() (registry.Registry, error) {
 		objectMetaOpts(),
 		podOpts(),
 		rbacOpts(),
+		serviceAccountOpts(),
 	)
 	for _, opt := range opts {
 		if err := reg.Define(opt); err != nil {
@@ -47,24 +35,29 @@ func newRegistry() (registry.Registry, error) {
 	return reg, nil
 }
 
-func makeOpts(resource string, optionTypes ...optionMakeParams) []*optionapi.Option {
-	opts := make([]*optionapi.Option, 0, len(optionTypes))
-	for _, p := range optionTypes {
-		to := reflect.TypeOf(p.typ)
-		name := strings.ToLower(to.Name())
-		ident := fmt.Sprintf("k8s:%s:%s", resource, name)
-		doc := p.typ.(Docer[doc.Option]).Doc()
-		opt := option.MustMakeWithDoc(ident, to, doc, p.targets...)
-		opt.IsUnique = p.isUnique
-		opts = append(opts, opt)
+func mustMakeOpt(name string, output any, isUnique bool, targets ...optionapi.Target) *optionapi.Option {
+	rtype := reflect.TypeOf(output)
+	doc := output.(Docer[doc.Option]).Doc()
+	// undefined ident is needed to pass the validation of the name for the
+	// MustMake function.
+	if name == "" {
+		name = strings.ToLower(rtype.Name())
+	}
+	ident := fmt.Sprintf("k8s:undefined:%s", name)
+	opt := option.MustMake(ident, rtype, &doc, isUnique, targets...)
+	return &opt
+}
+
+func makeOpts(resource string, opts ...*optionapi.Option) []*optionapi.Option {
+	for _, opt := range opts {
+		opt.Ident = fmt.Sprintf("k8s:%s:%s", resource, option.OptionOf(opt.Ident))
+		if isResource(opt.Ident, "undefined") {
+			opt.Ident = fmt.Sprintf("k8s:%s:%s", resource, opt.Output.Name())
+		}
 	}
 	return opts
 }
 
 func isResource(ident, resource string) bool {
-	s := strings.Split(ident, ":")
-	if len(s) != 3 {
-		return false
-	}
-	return s[1] == resource
+	return option.ResourceOf(ident) == resource
 }

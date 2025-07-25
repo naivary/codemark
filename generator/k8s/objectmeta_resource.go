@@ -7,11 +7,12 @@ import (
 	optionapi "github.com/naivary/codemark/api/option"
 )
 
+const _metaResource = "meta"
+
 func objectMetaOpts() []*optionapi.Option {
-	const resource = "meta"
-	return makeOpts(resource,
-		newOption(Name(""), true, optionapi.TargetAny),
-		newOption(Namespace(""), true, optionapi.TargetAny),
+	return makeOpts(_metaResource,
+		mustMakeOpt(_typeName, Name(""), true, optionapi.TargetAny),
+		mustMakeOpt(_typeName, Namespace(""), true, optionapi.TargetAny),
 	)
 }
 

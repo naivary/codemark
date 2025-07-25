@@ -14,8 +14,8 @@ const _podResource = "pod"
 
 func podOpts() []*optionapi.Option {
 	return makeOpts(_podResource,
-		newOption(Image(""), true, optionapi.TargetFunc),
-		newOption(ImagePullPolicy(""), true, optionapi.TargetFunc),
+		mustMakeOpt(_typeName, Image(""), true, optionapi.TargetFunc),
+		mustMakeOpt(_typeName, ImagePullPolicy(""), true, optionapi.TargetFunc),
 	)
 }
 

@@ -10,7 +10,7 @@ import (
 	"github.com/naivary/codemark/validate"
 )
 
-func IsValid(opt *optionapi.Option) error {
+func IsValid(opt optionapi.Option) error {
 	if err := validate.Ident(opt.Ident); err != nil {
 		return err
 	}
@@ -23,8 +23,8 @@ func IsValid(opt *optionapi.Option) error {
 	return nil
 }
 
-func Make(idn string, output reflect.Type, targets ...optionapi.Target) (*optionapi.Option, error) {
-	opt := &optionapi.Option{
+func Make(idn string, output reflect.Type, doc *doc.Option, isUnique bool, targets ...optionapi.Target) (optionapi.Option, error) {
+	opt := optionapi.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -32,8 +32,8 @@ func Make(idn string, output reflect.Type, targets ...optionapi.Target) (*option
 	return opt, IsValid(opt)
 }
 
-func MustMake(idn string, output reflect.Type, targets ...optionapi.Target) *optionapi.Option {
-	opt := &optionapi.Option{
+func MustMake(idn string, output reflect.Type, doc *doc.Option, isUnique bool, targets ...optionapi.Target) optionapi.Option {
+	opt := optionapi.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -44,38 +44,26 @@ func MustMake(idn string, output reflect.Type, targets ...optionapi.Target) *opt
 	return opt
 }
 
-func MakeWithDoc(
-	name string,
-	output reflect.Type,
-	doc doc.Option,
-	targets ...optionapi.Target,
-) (*optionapi.Option, error) {
-	opt, err := Make(name, output, targets...)
-	if err != nil {
-		return nil, err
-	}
-	opt.Doc = &doc
-	return opt, IsValid(opt)
-}
-
-func MustMakeWithDoc(
-	name string,
-	output reflect.Type,
-	doc doc.Option,
-	targets ...optionapi.Target,
-) *optionapi.Option {
-	opt, err := Make(name, output, targets...)
-	if err != nil {
-		panic(err)
-	}
-	opt.Doc = &doc
-	return opt
-}
-
 func DomainOf(ident string) string {
 	s := strings.Split(ident, ":")
 	if len(s) != 3 {
 		return ""
 	}
 	return s[0]
+}
+
+func ResourceOf(ident string) string {
+	s := strings.Split(ident, ":")
+	if len(s) != 3 {
+		return ""
+	}
+	return s[1]
+}
+
+func OptionOf(ident string) string {
+	s := strings.Split(ident, ":")
+	if len(s) != 3 {
+		return ""
+	}
+	return s[2]
 }

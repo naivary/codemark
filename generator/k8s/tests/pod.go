@@ -6,4 +6,5 @@ package main
 // +k8s:rbac:verbs=["get", "list"]
 // +k8s:rbac:resources=["pod"]
 // +k8s:meta:namespace="my-app"
+// +k8s:serviceaccount:name="my-app-svc-acc" 
 func main() {}

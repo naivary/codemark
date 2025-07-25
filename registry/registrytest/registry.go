@@ -161,38 +161,54 @@ func AllTypes() []any {
 // AliasOpts are go-native types which are supported by the default
 // converters but cannot be registered using the native types because they are
 // aliases of others e.g. byte=uint8 and rune=int32.
-func AliasOpts() []*optionapi.Option {
-	return []*optionapi.Option{
-		option.MustMake(markertest.NewIdent("byte"), reflect.TypeOf(Byte(0)), optionapi.TargetAny),
-		option.MustMake(markertest.NewIdent("rune"), reflect.TypeOf(Rune(0)), optionapi.TargetAny),
+func AliasOpts() []optionapi.Option {
+	return []optionapi.Option{
+		option.MustMake(
+			markertest.NewIdent("byte"),
+			reflect.TypeOf(Byte(0)),
+			nil, false,
+			optionapi.TargetAny,
+		),
+		option.MustMake(
+			markertest.NewIdent("rune"),
+			reflect.TypeOf(Rune(0)),
+			nil, false,
+			optionapi.TargetAny,
+		),
 		option.MustMake(
 			markertest.NewIdent("ptr.byte"),
 			reflect.TypeOf(PtrByte(nil)),
+			nil, false,
 			optionapi.TargetAny,
 		),
 		option.MustMake(
 			markertest.NewIdent("ptr.rune"),
 			reflect.TypeOf(PtrRune(nil)),
+			nil, false,
 			optionapi.TargetAny,
 		),
 		option.MustMake(
 			markertest.NewIdent("slice.byte"),
 			reflect.TypeOf(ByteList(nil)),
+			nil, false,
 			optionapi.TargetAny,
 		),
 		option.MustMake(
 			markertest.NewIdent("slice.rune"),
 			reflect.TypeOf(RuneList(nil)),
+			nil, false,
 			optionapi.TargetAny,
 		),
 		option.MustMake(
 			markertest.NewIdent("slice.ptr.byte"),
 			reflect.TypeOf(PtrByteList(nil)),
+			nil, false,
 			optionapi.TargetAny,
 		),
 		option.MustMake(
 			markertest.NewIdent("slice.ptr.rune"),
 			reflect.TypeOf(PtrRuneList(nil)),
+			nil, false,
 			optionapi.TargetAny,
 		),
 	}
@@ -200,24 +216,24 @@ func AliasOpts() []*optionapi.Option {
 
 // NewOptsSet returns all the options matching the default markers available with
 // the correct type
-func NewOptsSet() []*optionapi.Option {
+func NewOptsSet() []optionapi.Option {
 	types := AllTypes()
 	aliases := AliasOpts()
-	opts := make([]*optionapi.Option, 0, len(types)+len(aliases))
+	opts := make([]optionapi.Option, 0, len(types)+len(aliases))
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
 		name := typeutil.NameFor(rtype)
 		ident := markertest.NewIdent(name)
-		opt := option.MustMake(ident, rtype, optionapi.TargetAny)
+		opt := option.MustMake(ident, rtype, nil, false, optionapi.TargetAny)
 		opts = append(opts, opt)
 	}
 	return slices.Concat(opts, aliases)
 }
 
-func NewRegistry(opts []*optionapi.Option) (registry.Registry, error) {
+func NewRegistry(opts []optionapi.Option) (registry.Registry, error) {
 	reg := registry.InMemory()
 	for _, opt := range opts {
-		if err := reg.Define(opt); err != nil {
+		if err := reg.Define(&opt); err != nil {
 			return nil, err
 		}
 	}
