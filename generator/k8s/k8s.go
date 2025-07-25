@@ -1,8 +1,8 @@
 package k8s
 
 import (
+	"bytes"
 	"encoding/json"
-	"os"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	loaderv1 "github.com/naivary/codemark/api/loader/v1"
@@ -43,6 +43,7 @@ func (g generator) Registry() registry.Registry {
 }
 
 func (g generator) Generate(proj loaderv1.Project) ([]genv1.Artifact, error) {
+	artifacts := make([]genv1.Artifact, 0, len(proj))
 	for _, info := range proj {
 		for _, strc := range info.Structs {
 			if shouldGenerateConfigMap(strc) {
@@ -50,10 +51,7 @@ func (g generator) Generate(proj loaderv1.Project) ([]genv1.Artifact, error) {
 				if err != nil {
 					return nil, err
 				}
-				err = json.NewEncoder(os.Stdout).Encode(cm)
-				if err != nil {
-					return nil, err
-				}
+				artifacts = append(artifacts, newArtifact(cm.Name, cm))
 			}
 		}
 		for _, fn := range info.Funcs {
@@ -66,10 +64,23 @@ func (g generator) Generate(proj loaderv1.Project) ([]genv1.Artifact, error) {
 				if err != nil {
 					return nil, err
 				}
-				err = json.NewEncoder(os.Stdout).Encode(pod)
-				err = json.NewEncoder(os.Stdout).Encode(role)
+				artifacts = append(artifacts, newArtifact(pod.Name, pod))
+				artifacts = append(artifacts, newArtifact(role.Name, role))
 			}
 		}
 	}
-	return nil, nil
+	return artifacts, nil
+}
+
+func newArtifact(name string, data any) genv1.Artifact {
+	var b bytes.Buffer
+	err := json.NewEncoder(&b).Encode(data)
+	if err != nil {
+		panic(err)
+	}
+	return genv1.Artifact{
+		Name:        name,
+		ContentType: "application/json",
+		Data:        &b,
+	}
 }
