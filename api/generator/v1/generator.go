@@ -1,9 +1,9 @@
 package v1
 
 import (
-	"golang.org/x/tools/go/packages"
+	"io"
 
-	loaderapi "github.com/naivary/codemark/api/loader"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 	"github.com/naivary/codemark/registry"
 )
 
@@ -17,8 +17,16 @@ type Generator interface {
 	Explain(ident string) string
 
 	// Generate the artificats based on the given information.
-	Generate(infos map[*packages.Package]*loaderapi.Information) error
+	Generate(proj loaderv1.Project) ([]Artifact, error)
 
 	// Registry containing all the options.
 	Registry() registry.Registry
+}
+
+type Artifact struct {
+	Name string
+
+	ContentType string
+
+	Data io.Reader
 }

@@ -6,16 +6,16 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 
-	"github.com/naivary/codemark/api/doc"
-	optionapi "github.com/naivary/codemark/api/option"
+	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 const _podResource = "pod"
 
-func podOpts() []*optionapi.Option {
+func podOpts() []*optionv1.Option {
 	return makeOpts(_podResource,
-		mustMakeOpt(_typeName, Image(""), true, optionapi.TargetFunc),
-		mustMakeOpt(_typeName, ImagePullPolicy(""), true, optionapi.TargetFunc),
+		mustMakeOpt(_typeName, Image(""), true, optionv1.TargetFunc),
+		mustMakeOpt(_typeName, ImagePullPolicy(""), true, optionv1.TargetFunc),
 	)
 }
 
@@ -26,8 +26,8 @@ func (i Image) apply(c *corev1.Container) error {
 	return nil
 }
 
-func (i Image) Doc() doc.Option {
-	return doc.Option{
+func (i Image) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Image to use as the container`,
 		Default: "",
 	}
@@ -48,8 +48,8 @@ func (i ImagePullPolicy) apply(c *corev1.Container) error {
 	return nil
 }
 
-func (i ImagePullPolicy) Doc() doc.Option {
-	return doc.Option{
+func (i ImagePullPolicy) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Image Pull Policy of the container`,
 		Default: "Always",
 	}

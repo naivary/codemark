@@ -4,10 +4,10 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	loaderapi "github.com/naivary/codemark/api/loader"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 )
 
-func newRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
+func newRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
 	role := rbacv1.Role{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -34,7 +34,7 @@ func newRBACRoleBinding(objectMeta metav1.ObjectMeta) (rbacv1.RoleBinding, error
 	return roleBinding, nil
 }
 
-func createRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
+func createRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
 	role, err := newRBACRole(fn)
 	if err != nil {
 		return role, err

@@ -25,7 +25,12 @@ func makeGenCmd(mngr *generator.Manager) *cobra.Command {
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			pattern := args[len(args)-1]
-			return mngr.Generate(pattern, g.domains...)
+			artifacts, err := mngr.Generate(pattern, g.domains...)
+			if err != nil {
+				return err
+			}
+			_ = artifacts
+			return nil
 		},
 	}
 	cmd.Flags().StringSliceVar(&g.domains, "domains", nil, "domains to generate artifacts for")

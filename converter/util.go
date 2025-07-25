@@ -6,7 +6,7 @@ import (
 	"slices"
 	"strings"
 
-	optionapi "github.com/naivary/codemark/api/option"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/typeutil"
 )
 
@@ -46,8 +46,8 @@ func ConvertTo(v reflect.Value, to reflect.Type) (reflect.Value, error) {
 	return out.Elem(), nil
 }
 
-func isCorrectTarget(opt optionapi.Option, t optionapi.Target) bool {
-	return !slices.Contains(opt.Targets, t) && !slices.Contains(opt.Targets, optionapi.TargetAny)
+func isCorrectTarget(opt optionv1.Option, t optionv1.Target) bool {
+	return !slices.Contains(opt.Targets, t) && !slices.Contains(opt.Targets, optionv1.TargetAny)
 }
 
 // isValidName checks if the choosen name of a custom converter is following the

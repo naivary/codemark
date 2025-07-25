@@ -11,14 +11,14 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	loaderapi "github.com/naivary/codemark/api/loader"
-	optionapi "github.com/naivary/codemark/api/option"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/converter"
 )
 
 type methodObject struct {
 	obj  types.Object
-	info loaderapi.FuncInfo
+	info loaderv1.FuncInfo
 }
 
 var _ Loader = (*localLoader)(nil)
@@ -28,7 +28,7 @@ type localLoader struct {
 	cfg  *packages.Config
 
 	// info is the current information being built
-	info *loaderapi.Information
+	info *loaderv1.Information
 	// pkg is the current package used to extract information from
 	pkg *packages.Package
 
@@ -53,7 +53,7 @@ func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	return l
 }
 
-func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderapi.Information, error) {
+func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderv1.Information, error) {
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderapi
 	if len(pkgs) == 0 {
 		return nil, ErrPkgsEmpty
 	}
-	projs := make(map[*packages.Package]*loaderapi.Information, len(pkgs))
+	projs := make(map[*packages.Package]*loaderv1.Information, len(pkgs))
 	for _, pkg := range pkgs {
 		l.pkg = pkg
 		if err := l.exctractInfosFromPkg(); err != nil {
@@ -186,11 +186,11 @@ func (l *localLoader) typeDecl(decl *ast.GenDecl) error {
 
 func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 	doc := decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetMethod)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetMethod)
 	if err != nil {
 		return err
 	}
-	info := loaderapi.FuncInfo{
+	info := loaderv1.FuncInfo{
 		Decl: decl,
 		Opts: opts,
 	}
@@ -226,7 +226,7 @@ func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 
 func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 	doc := decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetFunc)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetFunc)
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := loaderapi.FuncInfo{
+	info := loaderv1.FuncInfo{
 		Decl: decl,
 		Opts: opts,
 	}
@@ -245,11 +245,11 @@ func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 
 func (l *localLoader) extractFileInfo(file *ast.File) error {
 	doc := file.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetPkg)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetPkg)
 	if err != nil {
 		return err
 	}
-	info := loaderapi.FileInfo{
+	info := loaderv1.FileInfo{
 		File: file,
 		Opts: opts,
 	}
@@ -263,11 +263,11 @@ func (l *localLoader) extractImportInfo(decl *ast.GenDecl) error {
 	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
-		opts, err := l.mngr.ParseDefs(doc, optionapi.TargetImport)
+		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetImport)
 		if err != nil {
 			return err
 		}
-		info := loaderapi.ImportInfo{
+		info := loaderv1.ImportInfo{
 			Spec: spec,
 			Decl: decl,
 			Opts: opts,
@@ -289,11 +289,11 @@ func (l *localLoader) extractVarInfo(decl *ast.GenDecl) error {
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		for _, name := range spec.Names {
-			opts, err := l.mngr.ParseDefs(doc, optionapi.TargetVar)
+			opts, err := l.mngr.ParseDefs(doc, optionv1.TargetVar)
 			if err != nil {
 				return err
 			}
-			info := loaderapi.VarInfo{
+			info := loaderv1.VarInfo{
 				Spec: spec,
 				Decl: decl,
 				Opts: opts,
@@ -313,11 +313,11 @@ func (l *localLoader) extractConstInfo(decl *ast.GenDecl) error {
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		for _, name := range spec.Names {
-			opts, err := l.mngr.ParseDefs(doc, optionapi.TargetConst)
+			opts, err := l.mngr.ParseDefs(doc, optionv1.TargetConst)
 			if err != nil {
 				return err
 			}
-			info := loaderapi.ConstInfo{
+			info := loaderv1.ConstInfo{
 				Spec: spec,
 				Decl: decl,
 				Opts: opts,
@@ -334,15 +334,15 @@ func (l *localLoader) extractConstInfo(decl *ast.GenDecl) error {
 
 func (l *localLoader) extractNamedTypeInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
 	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetNamed)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetNamed)
 	if err != nil {
 		return err
 	}
-	info := loaderapi.NamedInfo{
+	info := loaderv1.NamedInfo{
 		Spec:    spec,
 		Decl:    decl,
 		Opts:    opts,
-		Methods: make(map[types.Object]loaderapi.FuncInfo),
+		Methods: make(map[types.Object]loaderv1.FuncInfo),
 	}
 	obj, err := l.objectOf(spec.Name)
 	if err != nil {
@@ -354,7 +354,7 @@ func (l *localLoader) extractNamedTypeInfo(decl *ast.GenDecl, spec *ast.TypeSpec
 
 func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
 	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetIface)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetIface)
 	if err != nil {
 		return err
 	}
@@ -363,7 +363,7 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	if err != nil {
 		return err
 	}
-	info := loaderapi.IfaceInfo{
+	info := loaderv1.IfaceInfo{
 		Spec:       spec,
 		Decl:       decl,
 		Opts:       opts,
@@ -379,11 +379,11 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 
 func (l *localLoader) extractIfaceSignatureInfo(
 	spec *ast.InterfaceType,
-) (map[types.Object]loaderapi.SignatureInfo, error) {
-	infos := make(map[types.Object]loaderapi.SignatureInfo, spec.Methods.NumFields())
+) (map[types.Object]loaderv1.SignatureInfo, error) {
+	infos := make(map[types.Object]loaderv1.SignatureInfo, spec.Methods.NumFields())
 	for _, meth := range spec.Methods.List {
 		doc := meth.Doc.Text()
-		opts, err := l.mngr.ParseDefs(doc, optionapi.TargetIfaceSig)
+		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetIfaceSig)
 		if err != nil {
 			return nil, err
 		}
@@ -392,7 +392,7 @@ func (l *localLoader) extractIfaceSignatureInfo(
 			if err != nil {
 				return nil, err
 			}
-			info := loaderapi.SignatureInfo{
+			info := loaderv1.SignatureInfo{
 				Ident:  name,
 				Method: meth,
 				Opts:   opts,
@@ -405,11 +405,11 @@ func (l *localLoader) extractIfaceSignatureInfo(
 
 func (l *localLoader) extractAliasInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
 	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetAlias)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetAlias)
 	if err != nil {
 		return err
 	}
-	info := loaderapi.AliasInfo{
+	info := loaderv1.AliasInfo{
 		Decl: decl,
 		Spec: spec,
 		Opts: opts,
@@ -424,7 +424,7 @@ func (l *localLoader) extractAliasInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 
 func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
 	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionapi.TargetStruct)
+	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetStruct)
 	if err != nil {
 		return err
 	}
@@ -433,12 +433,12 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 		return err
 	}
 	structType := spec.Type.(*ast.StructType)
-	info := loaderapi.StructInfo{
+	info := loaderv1.StructInfo{
 		Opts:    opts,
 		Spec:    spec,
 		Decl:    decl,
-		Fields:  make(map[types.Object]loaderapi.FieldInfo, structType.Fields.NumFields()),
-		Methods: make(map[types.Object]loaderapi.FuncInfo, 0),
+		Fields:  make(map[types.Object]loaderv1.FieldInfo, structType.Fields.NumFields()),
+		Methods: make(map[types.Object]loaderv1.FuncInfo, 0),
 	}
 	fieldInfos, err := l.extractFieldInfo(structType)
 	if err != nil {
@@ -449,20 +449,20 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]loaderapi.FieldInfo, error) {
-	infos := make(map[types.Object]loaderapi.FieldInfo, 0)
+func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]loaderv1.FieldInfo, error) {
+	infos := make(map[types.Object]loaderv1.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
 		if isEmbedded(field) {
 			continue
 		}
 		doc := field.Doc.Text()
-		opts, err := l.mngr.ParseDefs(doc, optionapi.TargetField)
+		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetField)
 		if err != nil {
 			return nil, err
 		}
 		for _, name := range field.Names {
-			info := loaderapi.FieldInfo{
+			info := loaderv1.FieldInfo{
 				Ident: name,
 				Field: field,
 				Opts:  opts,

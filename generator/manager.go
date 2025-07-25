@@ -29,31 +29,34 @@ func NewManager() (*Manager, error) {
 	return mngr, nil
 }
 
-func (m *Manager) Generate(pattern string, domains ...string) error {
+func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]genv1.Artifact, error) {
 	gens := make([]genv1.Generator, 0, len(domains))
 	for _, domain := range domains {
 		gen, err := m.Get(domain)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		gens = append(gens, gen)
 	}
 	reg := registry.InMemory()
 	for _, gen := range gens {
 		if err := reg.Merge(gen.Registry()); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	info, err := loader.Load(reg, pattern)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	artifacts := make(map[domain][]genv1.Artifact, len(gens))
 	for _, gen := range gens {
-		if err := gen.Generate(info); err != nil {
-			return err
+		generatedArtifacts, err := gen.Generate(info)
+		if err != nil {
+			return nil, err
 		}
+		artifacts[gen.Domain()] = generatedArtifacts
 	}
-	return nil
+	return artifacts, nil
 }
 
 func (m *Manager) Get(domain string) (genv1.Generator, error) {

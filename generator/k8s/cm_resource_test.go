@@ -15,7 +15,9 @@ func TestConfigMapResource(t *testing.T) {
 	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
-	if err := gen.Generate(infos); err != nil {
+	artifacts, err := gen.Generate(infos)
+	if err != nil {
 		t.Errorf("err occured: %s\n", err)
 	}
+	_ = artifacts
 }
