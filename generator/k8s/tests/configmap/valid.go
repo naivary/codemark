@@ -1,17 +1,16 @@
-package main
+package configmap
 
-// +k8s:meta:name="my-name"
-// +k8s:meta:namespace="default"
+// +k8s:meta:name="codemark-test-configmap"
+// +k8s:meta:namespace="codemark"
 // +k8s:configmap:immutable=true
 // +k8s:configmap:keyformat="snake_case"
 type ConfigMap struct {
 	// +k8s:configmap:default="4"
-	CPU int
+	Int int
 	// +k8s:configmap:default="1024"
-	Memory int
-	// +k8s:configmap:default="/etc/app/ca.crt"
-	TLSPath   string
+	String string
+
 	NoDefault string
 
-	notIncluded string
+	unexported string
 }
