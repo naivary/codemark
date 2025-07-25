@@ -1,11 +1,30 @@
 package k8s
 
 import (
+	"errors"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
 )
+
+var errInvalidRole = errors.New(`
+one of the rules in the role is incomplete. This is usually a sign that you want to 
+define multiple rules for the rbac role but have missed one of the markers:
+// BAD 
+// +k8s:rbac:apigroups=[""]
+// +k8s:rbac:verbs=["get"]
+// +k8s:rbac:resources=["pod"]
+// +k8s:rbac:resources=["pod", "service"] <-- second rule in RBAC role partially defined
+----
+// +k8s:rbac:apigroups=[""]
+// +k8s:rbac:verbs=["get"]
+// +k8s:rbac:resources=["pod"]
+// +k8s:rbac:apigroups=[""] <-- added apigroups
+// +k8s:rbac:verbs=["get", "list"] <-- added verbs
+// +k8s:rbac:resources=["pod", "service"]
+`)
 
 func newRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
 	role := rbacv1.Role{
@@ -34,6 +53,15 @@ func newRBACRoleBinding(objectMeta metav1.ObjectMeta) (rbacv1.RoleBinding, error
 	return roleBinding, nil
 }
 
+func validateRole(role rbacv1.Role) error {
+	for _, rule := range role.Rules {
+		if rule.APIGroups == nil || rule.Resources == nil || rule.Verbs == nil {
+			return errInvalidRole
+		}
+	}
+	return nil
+}
+
 func createRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
 	role, err := newRBACRole(fn)
 	if err != nil {
@@ -55,7 +83,7 @@ func createRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
 			role.Rules[i] = rule
 		}
 	}
-	return role, nil
+	return role, validateRole(role)
 }
 
 func applyOptToRBACRule(opt any, rule *rbacv1.PolicyRule) error {
