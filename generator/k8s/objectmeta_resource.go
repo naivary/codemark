@@ -15,19 +15,19 @@ func objectMetaOpts() []*optionapi.Option {
 	)
 }
 
-func createObjectMeta(optioner loaderapi.Optioner) (*metav1.ObjectMeta, error) {
-	obj := &metav1.ObjectMeta{}
+func createObjectMeta(optioner loaderapi.Optioner) (metav1.ObjectMeta, error) {
+	obj := metav1.ObjectMeta{}
 	for _, opts := range optioner.Options() {
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {
 			case Name:
-				err = o.apply(obj)
+				err = o.apply(&obj)
 			case Namespace:
-				err = o.apply(obj)
+				err = o.apply(&obj)
 			}
 			if err != nil {
-				return nil, err
+				return obj, err
 			}
 		}
 	}

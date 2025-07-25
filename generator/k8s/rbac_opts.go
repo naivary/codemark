@@ -7,9 +7,10 @@ import (
 	optionapi "github.com/naivary/codemark/api/option"
 )
 
+const _rbacResource = "rbac"
+
 func rbacOpts() []*optionapi.Option {
-	const resource = "rbac"
-	return makeDefs(resource,
+	return makeDefs(_rbacResource,
 		newOption(APIGroups(nil), false, optionapi.TargetFunc),
 		newOption(Resources(nil), false, optionapi.TargetFunc),
 		newOption(Verbs(nil), false, optionapi.TargetFunc),

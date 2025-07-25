@@ -59,3 +59,11 @@ func makeDefs(resource string, optionTypes ...optionMakeParams) []*optionapi.Opt
 	}
 	return opts
 }
+
+func isResource(ident, resource string) bool {
+	s := strings.Split(ident, ":")
+	if len(s) != 3 {
+		return false
+	}
+	return s[1] == resource
+}

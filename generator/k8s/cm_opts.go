@@ -11,9 +11,10 @@ import (
 	optionapi "github.com/naivary/codemark/api/option"
 )
 
+const _configMapResource = "configmap"
+
 func configMapOpts() []*optionapi.Option {
-	const resource = "configmap"
-	return makeDefs(resource,
+	return makeDefs(_configMapResource,
 		newOption(Immutable(false), true, optionapi.TargetStruct),
 		newOption(Default(""), true, optionapi.TargetField),
 		newOption(KeyFormat(""), true, optionapi.TargetStruct),

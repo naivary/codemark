@@ -7,7 +7,17 @@ import (
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/naivary/codemark/api/doc"
+	optionapi "github.com/naivary/codemark/api/option"
 )
+
+const _podResource = "pod"
+
+func podOpts() []*optionapi.Option {
+	return makeDefs(_podResource,
+		newOption(Image(""), true, optionapi.TargetFunc),
+		newOption(ImagePullPolicy(""), true, optionapi.TargetFunc),
+	)
+}
 
 type Image string
 

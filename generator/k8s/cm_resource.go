@@ -1,38 +1,47 @@
 package k8s
 
 import (
-	"slices"
-
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	loaderapi "github.com/naivary/codemark/api/loader"
 )
 
-func newConfigMap() *corev1.ConfigMap {
-	return &corev1.ConfigMap{
+func newConfigMap(strc *loaderapi.StructInfo) (corev1.ConfigMap, error) {
+	cm := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "ConfigMap",
 		},
 		Data: make(map[string]string),
 	}
-}
-
-// TODO: configMap key format should be customizable
-
-func setDataInConfigMap(key, value string, cm *corev1.ConfigMap, format KeyFormat) {
-	cm.Data[format.Format(key)] = value
-}
-
-func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
-	var format KeyFormat
-	cm := newConfigMap()
 	objectMeta, err := createObjectMeta(strc)
 	if err != nil {
-		return nil, err
+		return cm, err
 	}
-	cm.ObjectMeta = *objectMeta
+	cm.ObjectMeta = objectMeta
+	return cm, nil
+}
+
+func createConfigMap(strc *loaderapi.StructInfo) (corev1.ConfigMap, error) {
+	cm, err := newConfigMap(strc)
+	if err != nil {
+		return cm, err
+	}
+	format, err := applyStructOptsToConfigMap(strc, &cm)
+	if err != nil {
+		return cm, err
+	}
+	for _, finfo := range strc.Fields {
+		if err := applyFieldOptToConfigMap(finfo, format, &cm); err != nil {
+			return cm, err
+		}
+	}
+	return cm, err
+}
+
+func applyStructOptsToConfigMap(strc *loaderapi.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
+	format := CamelCase
 	for _, opts := range strc.Opts {
 		for _, opt := range opts {
 			var err error
@@ -43,32 +52,34 @@ func createConfigMap(strc *loaderapi.StructInfo) (*corev1.ConfigMap, error) {
 				format = o
 			}
 			if err != nil {
-				return nil, err
+				return format, err
 			}
 		}
 	}
-	for _, field := range strc.Fields {
-		idents := keys(field.Opts)
-		if !field.Ident.IsExported() {
-			// unexported fields will be ignored
+	return format, nil
+}
+
+func applyFieldOptToConfigMap(field loaderapi.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
+	const defaultValue = ""
+	if !field.Ident.IsExported() {
+		// unexported fields will be ignored
+		return nil
+	}
+	for ident, opts := range field.Opts {
+		if !isResource(ident, _configMapResource) {
+			cm.Data[format.Format(field.Ident.Name)] = defaultValue
 			continue
 		}
-		if !slices.Contains(idents, "k8s:configmap:default") {
-			setDataInConfigMap(field.Ident.Name, "", cm, format)
-			continue
-		}
-		for _, opts := range field.Opts {
-			for _, opt := range opts {
-				var err error
-				switch o := opt.(type) {
-				case Default:
-					err = o.apply(field.Ident, cm, format)
-				}
-				if err != nil {
-					return nil, err
-				}
+		for _, opt := range opts {
+			var err error
+			switch o := opt.(type) {
+			case Default:
+				err = o.apply(field.Ident, cm, format)
+			}
+			if err != nil {
+				return err
 			}
 		}
 	}
-	return cm, nil
+	return nil
 }
