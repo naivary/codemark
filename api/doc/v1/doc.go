@@ -1,4 +1,4 @@
-package doc
+package v1
 
 type Domain struct {
 	Desc string

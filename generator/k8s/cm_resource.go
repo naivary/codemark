@@ -4,10 +4,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	loaderapi "github.com/naivary/codemark/api/loader"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 )
 
-func newConfigMap(strc *loaderapi.StructInfo) (corev1.ConfigMap, error) {
+func newConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
 	cm := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -23,7 +23,7 @@ func newConfigMap(strc *loaderapi.StructInfo) (corev1.ConfigMap, error) {
 	return cm, nil
 }
 
-func createConfigMap(strc *loaderapi.StructInfo) (corev1.ConfigMap, error) {
+func createConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
 	cm, err := newConfigMap(strc)
 	if err != nil {
 		return cm, err
@@ -40,7 +40,7 @@ func createConfigMap(strc *loaderapi.StructInfo) (corev1.ConfigMap, error) {
 	return cm, err
 }
 
-func applyStructOptsToConfigMap(strc *loaderapi.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
+func applyStructOptsToConfigMap(strc *loaderv1.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
 	format := CamelCase
 	for _, opts := range strc.Opts {
 		for _, opt := range opts {
@@ -59,7 +59,7 @@ func applyStructOptsToConfigMap(strc *loaderapi.StructInfo, cm *corev1.ConfigMap
 	return format, nil
 }
 
-func applyFieldOptToConfigMap(field loaderapi.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
+func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
 	const defaultValue = ""
 	if !field.Ident.IsExported() {
 		// unexported fields will be ignored

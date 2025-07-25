@@ -4,10 +4,10 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	loaderapi "github.com/naivary/codemark/api/loader"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 )
 
-func newPod(fn loaderapi.FuncInfo) (corev1.Pod, error) {
+func newPod(fn loaderv1.FuncInfo) (corev1.Pod, error) {
 	pod := corev1.Pod{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -25,7 +25,7 @@ func newPod(fn loaderapi.FuncInfo) (corev1.Pod, error) {
 	return pod, nil
 }
 
-func createPod(fn loaderapi.FuncInfo) (corev1.Pod, error) {
+func createPod(fn loaderv1.FuncInfo) (corev1.Pod, error) {
 	pod, err := newPod(fn)
 	if err != nil {
 		return pod, err

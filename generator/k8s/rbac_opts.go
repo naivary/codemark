@@ -3,17 +3,17 @@ package k8s
 import (
 	rbacv1 "k8s.io/api/rbac/v1"
 
-	"github.com/naivary/codemark/api/doc"
-	optionapi "github.com/naivary/codemark/api/option"
+	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 const _rbacResource = "rbac"
 
-func rbacOpts() []*optionapi.Option {
+func rbacOpts() []*optionv1.Option {
 	return makeOpts(_rbacResource,
-		mustMakeOpt(_typeName, APIGroups(nil), false, optionapi.TargetFunc),
-		mustMakeOpt(_typeName, Resources(nil), false, optionapi.TargetFunc),
-		mustMakeOpt(_typeName, Verbs(nil), false, optionapi.TargetFunc),
+		mustMakeOpt(_typeName, APIGroups(nil), false, optionv1.TargetFunc),
+		mustMakeOpt(_typeName, Resources(nil), false, optionv1.TargetFunc),
+		mustMakeOpt(_typeName, Verbs(nil), false, optionv1.TargetFunc),
 	)
 }
 
@@ -24,8 +24,8 @@ func (a APIGroups) apply(r *rbacv1.PolicyRule) error {
 	return nil
 }
 
-func (a APIGroups) Doc() doc.Option {
-	return doc.Option{
+func (a APIGroups) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `API Groups of the Role`,
 		Default: "REQUIRED",
 	}
@@ -38,8 +38,8 @@ func (r Resources) apply(ru *rbacv1.PolicyRule) error {
 	return nil
 }
 
-func (r Resources) Doc() doc.Option {
-	return doc.Option{
+func (r Resources) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Resources`,
 		Default: "REQUIRED",
 	}
@@ -52,8 +52,8 @@ func (v Verbs) apply(ru *rbacv1.PolicyRule) error {
 	return nil
 }
 
-func (v Verbs) Doc() doc.Option {
-	return doc.Option{
+func (v Verbs) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Verbs`,
 		Default: "REQUIRED",
 	}

@@ -6,7 +6,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	loaderapi "github.com/naivary/codemark/api/loader"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 )
 
 var errInvalidRole = errors.New(`
@@ -26,7 +26,7 @@ define multiple rules for the rbac role but have missed one of the markers:
 // +k8s:rbac:resources=["pod", "service"]
 `)
 
-func newRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
+func newRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
 	role := rbacv1.Role{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -62,7 +62,7 @@ func validateRole(role rbacv1.Role) error {
 	return nil
 }
 
-func createRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
+func createRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
 	role, err := newRBACRole(fn)
 	if err != nil {
 		return role, err

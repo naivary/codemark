@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/naivary/codemark/api/doc"
-	optionapi "github.com/naivary/codemark/api/option"
+	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 func InMemory() Registry {
 	return &inmem{
-		opts: make(map[string]*optionapi.Option),
+		opts: make(map[string]*optionv1.Option),
 	}
 }
 
@@ -19,10 +19,10 @@ var _ Registry = (*inmem)(nil)
 type inmem struct {
 	mu sync.Mutex
 
-	opts map[string]*optionapi.Option
+	opts map[string]*optionv1.Option
 }
 
-func (mem *inmem) Define(d *optionapi.Option) error {
+func (mem *inmem) Define(d *optionv1.Option) error {
 	mem.mu.Lock()
 	defer mem.mu.Unlock()
 
@@ -34,7 +34,7 @@ func (mem *inmem) Define(d *optionapi.Option) error {
 	return nil
 }
 
-func (mem *inmem) Get(idn string) (*optionapi.Option, error) {
+func (mem *inmem) Get(idn string) (*optionv1.Option, error) {
 	opt, exists := mem.opts[idn]
 	if exists {
 		return opt, nil
@@ -42,7 +42,7 @@ func (mem *inmem) Get(idn string) (*optionapi.Option, error) {
 	return nil, fmt.Errorf("option not found: `%s`", idn)
 }
 
-func (mem *inmem) DocOf(ident string) (*doc.Option, error) {
+func (mem *inmem) DocOf(ident string) (*docv1.Option, error) {
 	opt, err := mem.Get(ident)
 	if err != nil {
 		return nil, err
@@ -59,6 +59,6 @@ func (mem *inmem) Merge(reg Registry) error {
 	return nil
 }
 
-func (mem *inmem) All() map[string]*optionapi.Option {
+func (mem *inmem) All() map[string]*optionv1.Option {
 	return mem.opts
 }

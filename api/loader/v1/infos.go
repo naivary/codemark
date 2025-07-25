@@ -1,13 +1,17 @@
-package loader
+package v1
 
 import (
 	"go/ast"
 	"go/types"
+
+	"golang.org/x/tools/go/packages"
 )
 
-type Optioner interface {
+type Info interface {
 	Options() map[string][]any
 }
+
+type Project = map[*packages.Package]*Information
 
 type Filename = string
 

@@ -5,12 +5,12 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/naivary/codemark/api/doc"
-	optionapi "github.com/naivary/codemark/api/option"
+	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/validate"
 )
 
-func IsValid(opt optionapi.Option) error {
+func IsValid(opt optionv1.Option) error {
 	if err := validate.Ident(opt.Ident); err != nil {
 		return err
 	}
@@ -23,8 +23,8 @@ func IsValid(opt optionapi.Option) error {
 	return nil
 }
 
-func Make(idn string, output reflect.Type, doc *doc.Option, isUnique bool, targets ...optionapi.Target) (optionapi.Option, error) {
-	opt := optionapi.Option{
+func Make(idn string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) (optionv1.Option, error) {
+	opt := optionv1.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,
@@ -32,8 +32,8 @@ func Make(idn string, output reflect.Type, doc *doc.Option, isUnique bool, targe
 	return opt, IsValid(opt)
 }
 
-func MustMake(idn string, output reflect.Type, doc *doc.Option, isUnique bool, targets ...optionapi.Target) optionapi.Option {
-	opt := optionapi.Option{
+func MustMake(idn string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) optionv1.Option {
+	opt := optionv1.Option{
 		Ident:   idn,
 		Targets: targets,
 		Output:  output,

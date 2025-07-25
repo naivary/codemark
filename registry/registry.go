@@ -3,8 +3,8 @@ package registry
 import (
 	"errors"
 
-	"github.com/naivary/codemark/api/doc"
-	optionapi "github.com/naivary/codemark/api/option"
+	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 var ErrRegistryEmpty = errors.New(
@@ -13,16 +13,16 @@ var ErrRegistryEmpty = errors.New(
 
 type Registry interface {
 	// Define defines the option in the registry. Options must be unique.
-	Define(opt *optionapi.Option) error
+	Define(opt *optionv1.Option) error
 
 	// Get the definition by the unique identiffier
-	Get(ident string) (*optionapi.Option, error)
+	Get(ident string) (*optionv1.Option, error)
 
 	// DofOf returns the documentation of the definition
-	DocOf(ident string) (*doc.Option, error)
+	DocOf(ident string) (*docv1.Option, error)
 
 	// All returns all Definitions stored in the registry.
-	All() map[string]*optionapi.Option
+	All() map[string]*optionv1.Option
 
 	Merge(reg Registry) error
 }

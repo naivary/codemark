@@ -7,17 +7,17 @@ import (
 
 	"github.com/iancoleman/strcase"
 
-	"github.com/naivary/codemark/api/doc"
-	optionapi "github.com/naivary/codemark/api/option"
+	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 const _configMapResource = "configmap"
 
-func configMapOpts() []*optionapi.Option {
+func configMapOpts() []*optionv1.Option {
 	return makeOpts(_configMapResource,
-		mustMakeOpt(_typeName, Immutable(false), true, optionapi.TargetStruct),
-		mustMakeOpt(_typeName, Default(""), true, optionapi.TargetField),
-		mustMakeOpt(_typeName, KeyFormat(""), true, optionapi.TargetStruct),
+		mustMakeOpt(_typeName, Immutable(false), true, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, Default(""), true, optionv1.TargetField),
+		mustMakeOpt(_typeName, KeyFormat(""), true, optionv1.TargetStruct),
 	)
 }
 
@@ -28,8 +28,8 @@ func (d Default) apply(field *ast.Ident, cm *corev1.ConfigMap, format KeyFormat)
 	return nil
 }
 
-func (d Default) Doc() doc.Option {
-	return doc.Option{
+func (d Default) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Default defines the default value of the config parameter`,
 		Default: "REQUIRED",
 	}
@@ -43,8 +43,8 @@ func (i Immutable) apply(cm *corev1.ConfigMap) error {
 	return nil
 }
 
-func (i Immutable) Doc() doc.Option {
-	return doc.Option{
+func (i Immutable) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Defines if the ConfigMap is immutable or not`,
 		Default: "false",
 	}
@@ -77,8 +77,8 @@ func (k KeyFormat) Format(key string) string {
 	}
 }
 
-func (k KeyFormat) Doc() doc.Option {
-	return doc.Option{
+func (k KeyFormat) Doc() docv1.Option {
+	return docv1.Option{
 		Desc:    `Format of the key. It be used to manipulate based on the context of the configuration. For example if the configuration is ssettable via environment variable it is useful to choose the env formation.`,
 		Default: "lowercase",
 	}

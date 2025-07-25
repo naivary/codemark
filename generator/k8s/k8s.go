@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"os"
 
-	"golang.org/x/tools/go/packages"
-
 	genv1 "github.com/naivary/codemark/api/generator/v1"
-	loaderapi "github.com/naivary/codemark/api/loader"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 	"github.com/naivary/codemark/registry"
 )
 
@@ -44,34 +42,34 @@ func (g generator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g generator) Generate(infos map[*packages.Package]*loaderapi.Information) error {
-	for _, proj := range infos {
-		for _, strc := range proj.Structs {
+func (g generator) Generate(proj loaderv1.Project) ([]genv1.Artifact, error) {
+	for _, info := range proj {
+		for _, strc := range info.Structs {
 			if shouldGenerateConfigMap(strc) {
 				cm, err := createConfigMap(strc)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				err = json.NewEncoder(os.Stdout).Encode(cm)
 				if err != nil {
-					return err
+					return nil, err
 				}
 			}
 		}
-		for _, fn := range proj.Funcs {
+		for _, fn := range info.Funcs {
 			if isMainFunc(fn) {
 				pod, err := createPod(fn)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				role, err := createRBACRole(fn)
 				if err != nil {
-					return err
+					return nil, err
 				}
 				err = json.NewEncoder(os.Stdout).Encode(pod)
 				err = json.NewEncoder(os.Stdout).Encode(role)
 			}
 		}
 	}
-	return nil
+	return nil, nil
 }
