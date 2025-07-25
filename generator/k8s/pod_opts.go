@@ -13,7 +13,7 @@ import (
 const _podResource = "pod"
 
 func podOpts() []*optionapi.Option {
-	return makeDefs(_podResource,
+	return makeOpts(_podResource,
 		newOption(Image(""), true, optionapi.TargetFunc),
 		newOption(ImagePullPolicy(""), true, optionapi.TargetFunc),
 	)

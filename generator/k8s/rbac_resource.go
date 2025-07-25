@@ -23,6 +23,17 @@ func newRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
 	return role, nil
 }
 
+func newRBACRoleBinding(objectMeta metav1.ObjectMeta) (rbacv1.RoleBinding, error) {
+	roleBinding := rbacv1.RoleBinding{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "rbac.authorization.k8s.io/v1",
+			Kind:       "RoleBinding",
+		},
+		ObjectMeta: objectMeta,
+	}
+	return roleBinding, nil
+}
+
 func createRBACRole(fn loaderapi.FuncInfo) (rbacv1.Role, error) {
 	role, err := newRBACRole(fn)
 	if err != nil {

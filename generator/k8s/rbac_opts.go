@@ -10,7 +10,7 @@ import (
 const _rbacResource = "rbac"
 
 func rbacOpts() []*optionapi.Option {
-	return makeDefs(_rbacResource,
+	return makeOpts(_rbacResource,
 		newOption(APIGroups(nil), false, optionapi.TargetFunc),
 		newOption(Resources(nil), false, optionapi.TargetFunc),
 		newOption(Verbs(nil), false, optionapi.TargetFunc),

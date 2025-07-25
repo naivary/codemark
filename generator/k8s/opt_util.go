@@ -20,6 +20,7 @@ type optionMakeParams struct {
 	typ      any
 	targets  []optionapi.Target
 	isUnique bool
+	name     string
 }
 
 func newOption(typ any, isUnique bool, targets ...optionapi.Target) optionMakeParams {
@@ -46,7 +47,7 @@ func newRegistry() (registry.Registry, error) {
 	return reg, nil
 }
 
-func makeDefs(resource string, optionTypes ...optionMakeParams) []*optionapi.Option {
+func makeOpts(resource string, optionTypes ...optionMakeParams) []*optionapi.Option {
 	opts := make([]*optionapi.Option, 0, len(optionTypes))
 	for _, p := range optionTypes {
 		to := reflect.TypeOf(p.typ)

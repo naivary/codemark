@@ -14,7 +14,7 @@ import (
 const _configMapResource = "configmap"
 
 func configMapOpts() []*optionapi.Option {
-	return makeDefs(_configMapResource,
+	return makeOpts(_configMapResource,
 		newOption(Immutable(false), true, optionapi.TargetStruct),
 		newOption(Default(""), true, optionapi.TargetField),
 		newOption(KeyFormat(""), true, optionapi.TargetStruct),

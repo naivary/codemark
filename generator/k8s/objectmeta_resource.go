@@ -9,7 +9,7 @@ import (
 
 func objectMetaOpts() []*optionapi.Option {
 	const resource = "meta"
-	return makeDefs(resource,
+	return makeOpts(resource,
 		newOption(Name(""), true, optionapi.TargetAny),
 		newOption(Namespace(""), true, optionapi.TargetAny),
 	)
