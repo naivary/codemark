@@ -11,9 +11,9 @@ import (
 	"github.com/naivary/codemark/registry"
 )
 
-var _ genv1.Generator = (*k8sGenerator)(nil)
+var _ genv1.Generator = (*generator)(nil)
 
-type k8sGenerator struct {
+type generator struct {
 	reg registry.Registry
 }
 
@@ -22,17 +22,17 @@ func New() (genv1.Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	gen := &k8sGenerator{
+	gen := &generator{
 		reg: reg,
 	}
 	return gen, nil
 }
 
-func (g k8sGenerator) Domain() string {
+func (g generator) Domain() string {
 	return "k8s"
 }
 
-func (g k8sGenerator) Explain(ident string) string {
+func (g generator) Explain(ident string) string {
 	option, err := g.reg.Get(ident)
 	if err != nil {
 		return ""
@@ -40,11 +40,11 @@ func (g k8sGenerator) Explain(ident string) string {
 	return option.String()
 }
 
-func (g k8sGenerator) Registry() registry.Registry {
+func (g generator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g k8sGenerator) Generate(infos map[*packages.Package]*loaderapi.Information) error {
+func (g generator) Generate(infos map[*packages.Package]*loaderapi.Information) error {
 	for _, proj := range infos {
 		for _, strc := range proj.Structs {
 			if shouldGenerateConfigMap(strc) {
