@@ -1,4 +1,4 @@
-package option
+package optionutil
 
 import (
 	"fmt"
@@ -9,6 +9,27 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/validate"
 )
+
+func Make(ident string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) (optionv1.Option, error) {
+	opt := optionv1.Option{
+		Ident:   ident,
+		Targets: targets,
+		Output:  output,
+	}
+	return opt, IsValid(opt)
+}
+
+func MustMake(ident string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) optionv1.Option {
+	opt := optionv1.Option{
+		Ident:   ident,
+		Targets: targets,
+		Output:  output,
+	}
+	if err := IsValid(opt); err != nil {
+		panic(err)
+	}
+	return opt
+}
 
 func IsValid(opt optionv1.Option) error {
 	if err := validate.Ident(opt.Ident); err != nil {
@@ -21,27 +42,6 @@ func IsValid(opt optionv1.Option) error {
 		return fmt.Errorf("definition has not target defined: %s", opt.Ident)
 	}
 	return nil
-}
-
-func Make(idn string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) (optionv1.Option, error) {
-	opt := optionv1.Option{
-		Ident:   idn,
-		Targets: targets,
-		Output:  output,
-	}
-	return opt, IsValid(opt)
-}
-
-func MustMake(idn string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) optionv1.Option {
-	opt := optionv1.Option{
-		Ident:   idn,
-		Targets: targets,
-		Output:  output,
-	}
-	if err := IsValid(opt); err != nil {
-		panic(err)
-	}
-	return opt
 }
 
 func DomainOf(ident string) string {

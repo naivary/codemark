@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/naivary/codemark/generator"
-	"github.com/naivary/codemark/option"
+	"github.com/naivary/codemark/optionutil"
 )
 
 func makeExplainCmd(mngr *generator.Manager) *cobra.Command {
@@ -18,7 +18,7 @@ func makeExplainCmd(mngr *generator.Manager) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			ident := args[len(args)-1]
-			domain := option.DomainOf(ident)
+			domain := optionutil.DomainOf(ident)
 			if domain == "" {
 				domain = ident
 			}

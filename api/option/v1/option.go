@@ -1,12 +1,9 @@
 package v1
 
 import (
-	"bytes"
-	"fmt"
 	"reflect"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
-	"github.com/naivary/codemark/internal/console"
 )
 
 type Option struct {
@@ -41,12 +38,4 @@ func (o *Option) IsDeprecated() bool {
 
 func (o *Option) HasDoc() bool {
 	return o.Doc != nil
-}
-
-func (o *Option) String() string {
-	var b bytes.Buffer
-	fmt.Fprintf(&b, "Ident: %s\n", o.Ident)
-	fmt.Fprintf(&b, "Default: %s\n", o.Doc.Default)
-	fmt.Fprintf(&b, "%s", console.Trunc(o.Doc.Desc, 80))
-	return b.String()
 }

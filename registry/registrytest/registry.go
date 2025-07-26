@@ -6,7 +6,7 @@ import (
 
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/marker/markertest"
-	"github.com/naivary/codemark/option"
+	"github.com/naivary/codemark/optionutil"
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/typeutil"
 )
@@ -163,49 +163,49 @@ func AllTypes() []any {
 // aliases of others e.g. byte=uint8 and rune=int32.
 func AliasOpts() []optionv1.Option {
 	return []optionv1.Option{
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("byte"),
 			reflect.TypeOf(Byte(0)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("rune"),
 			reflect.TypeOf(Rune(0)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("ptr.byte"),
 			reflect.TypeOf(PtrByte(nil)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("ptr.rune"),
 			reflect.TypeOf(PtrRune(nil)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("slice.byte"),
 			reflect.TypeOf(ByteList(nil)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("slice.rune"),
 			reflect.TypeOf(RuneList(nil)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("slice.ptr.byte"),
 			reflect.TypeOf(PtrByteList(nil)),
 			nil, false,
 			optionv1.TargetAny,
 		),
-		option.MustMake(
+		optionutil.MustMake(
 			markertest.NewIdent("slice.ptr.rune"),
 			reflect.TypeOf(PtrRuneList(nil)),
 			nil, false,
@@ -224,7 +224,7 @@ func NewOptsSet() []optionv1.Option {
 		rtype := reflect.TypeOf(typ)
 		name := typeutil.NameFor(rtype)
 		ident := markertest.NewIdent(name)
-		opt := option.MustMake(ident, rtype, nil, false, optionv1.TargetAny)
+		opt := optionutil.MustMake(ident, rtype, nil, false, optionv1.TargetAny)
 		opts = append(opts, opt)
 	}
 	return slices.Concat(opts, aliases)

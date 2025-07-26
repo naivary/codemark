@@ -35,7 +35,8 @@ func (g generator) Explain(ident string) string {
 	if err != nil {
 		return ""
 	}
-	return option.String()
+	_ = option
+	return ""
 }
 
 func (g generator) Registry() registry.Registry {
