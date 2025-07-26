@@ -87,7 +87,7 @@ func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *co
 			var err error
 			switch o := opt.(type) {
 			case Default:
-				err = o.apply(field.Ident, cm, format)
+				err = o.apply(field, cm, format)
 			}
 			if err != nil {
 				return err

@@ -1,15 +1,22 @@
 package k8s
 
 import (
-	"go/ast"
+	"errors"
 
 	corev1 "k8s.io/api/core/v1"
 
 	"github.com/iancoleman/strcase"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
+	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
+
+var errImmutableConfigMapWithoutDefault = errors.New(`
+when you decide to have an immutable ConfigMap the default value of the marker cannot be empty. 
+If you would like to have the empty default value remove the marker completly and use the default 
+value of the struct field in go. Logically it does not make sense to have "nothing" be immutable.
+`)
 
 const _configMapResource = "configmap"
 
@@ -23,8 +30,16 @@ func configMapOpts() []*optionv1.Option {
 
 type Default string
 
-func (d Default) apply(field *ast.Ident, cm *corev1.ConfigMap, format KeyFormat) error {
-	cm.Data[format.Format(field.Name)] = string(d)
+func (d Default) apply(info loaderv1.FieldInfo, cm *corev1.ConfigMap, format KeyFormat) error {
+	isImmutable := *cm.Immutable
+	if !isImmutable {
+		// TODO: check if the type of the field matches the default value
+		cm.Data[format.Format(info.Ident.Name)] = string(d)
+	}
+	if len(string(d)) == 0 {
+		return errImmutableConfigMapWithoutDefault
+	}
+	cm.Data[format.Format(info.Ident.Name)] = string(d)
 	return nil
 }
 
