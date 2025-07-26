@@ -29,7 +29,7 @@ func NewManager() (*Manager, error) {
 	return mngr, nil
 }
 
-func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]genv1.Artifact, error) {
+func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*genv1.Artifact, error) {
 	gens := make([]genv1.Generator, 0, len(domains))
 	for _, domain := range domains {
 		gen, err := m.Get(domain)
@@ -48,7 +48,7 @@ func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]genv
 	if err != nil {
 		return nil, err
 	}
-	artifacts := make(map[domain][]genv1.Artifact, len(gens))
+	artifacts := make(map[domain][]*genv1.Artifact, len(gens))
 	for _, gen := range gens {
 		generatedArtifacts, err := gen.Generate(info)
 		if err != nil {
