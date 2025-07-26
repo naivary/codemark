@@ -31,8 +31,8 @@ func TestResource_ConfigMap(t *testing.T) {
 	tests := []struct {
 		name    string
 		path    string
-		want    corev1.ConfigMap
 		isValid bool
+		want    corev1.ConfigMap
 	}{
 		{
 			name:    "valid configmap",

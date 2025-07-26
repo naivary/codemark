@@ -74,14 +74,18 @@ func applyStructOptsToConfigMap(strc *loaderv1.StructInfo, cm *corev1.ConfigMap)
 
 func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
 	const defaultValue = ""
+	const defaultIdent = "k8s:configmap:default"
+
 	if !field.Ident.IsExported() {
 		// unexported fields will be ignored
 		return nil
 	}
-	// set the default for an exported field to an empty string
-	key := format.Format(field.Ident.Name)
-	cm.Data[key] = ""
-
+	_, found := field.Opts[defaultIdent]
+	if !found {
+		// if not default marker is set for an exported field it gets set to the
+		// empty string value
+		field.Opts[defaultIdent] = []any{Default("")}
+	}
 	for ident, opts := range field.Opts {
 		if !isResource(ident, _configMapResource) {
 			continue
@@ -96,9 +100,6 @@ func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *co
 				return err
 			}
 		}
-	}
-	if cm.Data[key] == "" && cm.Immutable != nil {
-		return errImmutableConfigMapWithoutDefault
 	}
 	return nil
 }
