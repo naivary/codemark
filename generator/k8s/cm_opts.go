@@ -15,7 +15,7 @@ import (
 var errImmutableConfigMapWithoutDefault = errors.New(`
 when you decide to have an immutable ConfigMap the default value of the marker cannot be empty. 
 If you would like to have the empty default value remove the marker completly and use the default 
-value of the struct field in go. Logically it does not make sense to have "nothing" be immutable.
+value of the struct field in go.
 `)
 
 const _configMapResource = "configmap"
@@ -31,8 +31,7 @@ func configMapOpts() []*optionv1.Option {
 type Default string
 
 func (d Default) apply(info loaderv1.FieldInfo, cm *corev1.ConfigMap, format KeyFormat) error {
-	isImmutable := *cm.Immutable
-	if !isImmutable {
+	if cm.Immutable == nil {
 		// TODO: check if the type of the field matches the default value
 		cm.Data[format.Format(info.Ident.Name)] = string(d)
 	}

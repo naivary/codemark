@@ -78,9 +78,12 @@ func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *co
 		// unexported fields will be ignored
 		return nil
 	}
+	// set the default for an exported field to an empty string
+	key := format.Format(field.Ident.Name)
+	cm.Data[key] = ""
+
 	for ident, opts := range field.Opts {
 		if !isResource(ident, _configMapResource) {
-			cm.Data[format.Format(field.Ident.Name)] = defaultValue
 			continue
 		}
 		for _, opt := range opts {
@@ -93,6 +96,9 @@ func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *co
 				return err
 			}
 		}
+	}
+	if cm.Data[key] == "" && cm.Immutable != nil {
+		return errImmutableConfigMapWithoutDefault
 	}
 	return nil
 }
