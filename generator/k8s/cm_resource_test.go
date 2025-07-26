@@ -41,7 +41,10 @@ func TestResource_ConfigMap(t *testing.T) {
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			t.Log(artifacts[0].Data)
+			if len(artifacts) == 0 {
+				t.Errorf("no artifacts generated")
+			}
+			t.Log(artifacts[0])
 		})
 	}
 }

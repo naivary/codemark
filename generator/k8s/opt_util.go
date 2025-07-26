@@ -3,36 +3,22 @@ package k8s
 import (
 	"fmt"
 	"reflect"
-	"slices"
 	"strings"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/optionutil"
-	"github.com/naivary/codemark/registry"
 )
 
 const _typeName = ""
 
+const (
+	_unique    = true
+	_repetable = false
+)
+
 type Docer[T any] interface {
 	Doc() T
-}
-
-func newRegistry() (registry.Registry, error) {
-	reg := registry.InMemory()
-	opts := slices.Concat(
-		configMapOpts(),
-		objectMetaOpts(),
-		podOpts(),
-		rbacOpts(),
-		serviceAccountOpts(),
-	)
-	for _, opt := range opts {
-		if err := reg.Define(opt); err != nil {
-			return nil, err
-		}
-	}
-	return reg, nil
 }
 
 func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {

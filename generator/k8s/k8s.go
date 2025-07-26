@@ -1,13 +1,29 @@
 package k8s
 
 import (
-	"bytes"
-	"encoding/json"
+	"slices"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 	"github.com/naivary/codemark/registry"
 )
+
+func newRegistry() (registry.Registry, error) {
+	reg := registry.InMemory()
+	opts := slices.Concat(
+		configMapOpts(),
+		objectMetaOpts(),
+		podOpts(),
+		rbacOpts(),
+		serviceAccountOpts(),
+	)
+	for _, opt := range opts {
+		if err := reg.Define(opt); err != nil {
+			return nil, err
+		}
+	}
+	return reg, nil
+}
 
 var _ genv1.Generator = (*generator)(nil)
 
@@ -43,8 +59,8 @@ func (g generator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g generator) Generate(proj loaderv1.Project) ([]genv1.Artifact, error) {
-	artifacts := make([]genv1.Artifact, 0, len(proj))
+func (g generator) Generate(proj loaderv1.Project) ([]*genv1.Artifact, error) {
+	artifacts := make([]*genv1.Artifact, 0, len(proj))
 	for _, info := range proj {
 		for _, strc := range info.Structs {
 			if shouldGenerateConfigMap(strc) {
@@ -52,36 +68,19 @@ func (g generator) Generate(proj loaderv1.Project) ([]genv1.Artifact, error) {
 				if err != nil {
 					return nil, err
 				}
-				artifacts = append(artifacts, newArtifact(cm.Name, cm))
+				artifacts = append(artifacts, cm)
 			}
 		}
 		for _, fn := range info.Funcs {
 			if isMainFunc(fn) {
-				pod, err := createPod(fn)
+				// createPod(fn)
+				rbacSet, err := createRBAC(fn)
 				if err != nil {
 					return nil, err
 				}
-				role, err := createRBACRole(fn)
-				if err != nil {
-					return nil, err
-				}
-				artifacts = append(artifacts, newArtifact(pod.Name, pod))
-				artifacts = append(artifacts, newArtifact(role.Name, role))
+				artifacts = append(artifacts, rbacSet)
 			}
 		}
 	}
 	return artifacts, nil
-}
-
-func newArtifact(name string, data any) genv1.Artifact {
-	var b bytes.Buffer
-	err := json.NewEncoder(&b).Encode(data)
-	if err != nil {
-		panic(err)
-	}
-	return genv1.Artifact{
-		Name:        name,
-		ContentType: "application/json",
-		Data:        &b,
-	}
 }

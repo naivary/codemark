@@ -1,11 +1,15 @@
 package k8s
 
 import (
+	"bytes"
 	"errors"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/goccy/go-yaml"
+
+	genv1 "github.com/naivary/codemark/api/generator/v1"
 	loaderv1 "github.com/naivary/codemark/api/loader/v1"
 )
 
@@ -18,6 +22,7 @@ define multiple rules for the rbac role but have missed one of the markers:
 // +k8s:rbac:resources=["pod"]
 // +k8s:rbac:resources=["pod", "service"] <-- second rule in RBAC role partially defined
 ----
+// GOOD
 // +k8s:rbac:apigroups=[""]
 // +k8s:rbac:verbs=["get"]
 // +k8s:rbac:resources=["pod"]
@@ -42,14 +47,18 @@ func newRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
 	return role, nil
 }
 
-func newRBACRoleBinding(objectMeta metav1.ObjectMeta) (rbacv1.RoleBinding, error) {
+func newRBACRoleBinding(fn loaderv1.FuncInfo) (rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
 			Kind:       "RoleBinding",
 		},
-		ObjectMeta: objectMeta,
 	}
+	objectMeta, err := createObjectMeta(fn)
+	if err != nil {
+		return roleBinding, err
+	}
+	roleBinding.ObjectMeta = objectMeta
 	return roleBinding, nil
 }
 
@@ -60,6 +69,38 @@ func validateRole(role rbacv1.Role) error {
 		}
 	}
 	return nil
+}
+
+func createRBAC(fn loaderv1.FuncInfo) (*genv1.Artifact, error) {
+	role, err := createRBACRole(fn)
+	if err != nil {
+		return nil, err
+	}
+	binding, err := createRBACRoleBinding(fn)
+	if err != nil {
+		return nil, err
+	}
+	manifests := []any{role, binding}
+	var file bytes.Buffer
+	for _, manifest := range manifests {
+		err := yaml.NewEncoder(&file).Encode(&manifest)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &genv1.Artifact{
+		Name:        "codemark_k8s_rbac",
+		ContentType: "application/json",
+		Data:        &file,
+	}, err
+}
+
+func createRBACRoleBinding(fn loaderv1.FuncInfo) (rbacv1.RoleBinding, error) {
+	binding, err := newRBACRoleBinding(fn)
+	if err != nil {
+		return binding, err
+	}
+	return binding, nil
 }
 
 func createRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {

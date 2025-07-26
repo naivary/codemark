@@ -15,9 +15,9 @@ const _configMapResource = "configmap"
 
 func configMapOpts() []*optionv1.Option {
 	return makeOpts(_configMapResource,
-		mustMakeOpt(_typeName, Immutable(false), true, optionv1.TargetStruct),
-		mustMakeOpt(_typeName, Default(""), true, optionv1.TargetField),
-		mustMakeOpt(_typeName, KeyFormat(""), true, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, Immutable(false), _unique, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, Default(""), _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, KeyFormat(""), _unique, optionv1.TargetStruct),
 	)
 }
 
