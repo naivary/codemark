@@ -9,7 +9,7 @@ const _serviceAccountResource = "serviceaccount"
 
 func serviceAccountOpts() []*optionv1.Option {
 	return makeOpts(_serviceAccountResource,
-		mustMakeOpt("name", ServiceAccountName(""), true, optionv1.TargetFunc),
+		mustMakeOpt("name", ServiceAccountName(""), _required, true, optionv1.TargetFunc),
 	)
 }
 

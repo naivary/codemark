@@ -17,11 +17,16 @@ const (
 	_repetable = false
 )
 
+var (
+	_required any = nil
+	_optional any = new(any)
+)
+
 type Docer[T any] interface {
 	Doc() T
 }
 
-func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
+func mustMakeOpt(name string, output, defult any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
 	rtype := reflect.TypeOf(output)
 	doc := output.(Docer[docv1.Option]).Doc()
 	// undefined ident is needed to pass the validation of the name for the
@@ -29,8 +34,11 @@ func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Tar
 	if name == "" {
 		name = strings.ToLower(rtype.Name())
 	}
+	if defult != nil {
+		defult = output
+	}
 	ident := fmt.Sprintf("k8s:undefined:%s", name)
-	opt := optionutil.MustMake(ident, rtype, &doc, isUnique, targets...)
+	opt := optionutil.MustMake(ident, rtype, defult, &doc, isUnique, targets...)
 	return &opt
 }
 

@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"bytes"
+	"slices"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -10,6 +11,7 @@ import (
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 func newConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
@@ -28,7 +30,30 @@ func newConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
 	return cm, nil
 }
 
+// TODO: write test for this function
+func setOptsDefaults(opts []*optionv1.Option, infoOpts map[string][]any, targets ...optionv1.Target) {
+	for _, opt := range opts {
+		if !slices.Equal(opt.Targets, targets) && !slices.Contains(targets, optionv1.TargetAny) && !opt.IsRequired() {
+			continue
+		}
+		v := infoOpts[opt.Ident]
+		if len(v) > 0 {
+			continue
+		}
+		infoOpts[opt.Ident] = append(v, opt.Default)
+	}
+}
+
+func configMapDefaults(strc *loaderv1.StructInfo) {
+	opts := configMapOpts()
+	setOptsDefaults(opts, strc.Opts, optionv1.TargetStruct)
+	for _, finfo := range strc.Fields {
+		setOptsDefaults(opts, finfo.Opts, optionv1.TargetField)
+	}
+}
+
 func createConfigMap(strc *loaderv1.StructInfo) (*genv1.Artifact, error) {
+	configMapDefaults(strc)
 	cm, err := newConfigMap(strc)
 	if err != nil {
 		return nil, err
@@ -73,18 +98,9 @@ func applyStructOptsToConfigMap(strc *loaderv1.StructInfo, cm *corev1.ConfigMap)
 }
 
 func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
-	const defaultValue = ""
-	const defaultIdent = "k8s:configmap:default"
-
 	if !field.Ident.IsExported() {
 		// unexported fields will be ignored
 		return nil
-	}
-	_, found := field.Opts[defaultIdent]
-	if !found {
-		// if not default marker is set for an exported field it gets set to the
-		// empty string value
-		field.Opts[defaultIdent] = []any{Default("")}
 	}
 	for ident, opts := range field.Opts {
 		if !isResource(ident, _configMapResource) {

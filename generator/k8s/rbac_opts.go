@@ -11,9 +11,9 @@ const _rbacResource = "rbac"
 
 func rbacOpts() []*optionv1.Option {
 	return makeOpts(_rbacResource,
-		mustMakeOpt(_typeName, APIGroups(nil), _repetable, optionv1.TargetFunc),
-		mustMakeOpt(_typeName, Resources(nil), _repetable, optionv1.TargetFunc),
-		mustMakeOpt(_typeName, Verbs(nil), _repetable, optionv1.TargetFunc),
+		mustMakeOpt(_typeName, APIGroups(nil), _required, _repetable, optionv1.TargetFunc),
+		mustMakeOpt(_typeName, Resources(nil), _required, _repetable, optionv1.TargetFunc),
+		mustMakeOpt(_typeName, Verbs(nil), _required, _repetable, optionv1.TargetFunc),
 	)
 }
 

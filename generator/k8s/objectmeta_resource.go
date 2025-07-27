@@ -11,8 +11,8 @@ const _metaResource = "meta"
 
 func objectMetaOpts() []*optionv1.Option {
 	return makeOpts(_metaResource,
-		mustMakeOpt(_typeName, Name(""), true, optionv1.TargetAny),
-		mustMakeOpt(_typeName, Namespace(""), true, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Name(""), _optional, _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Namespace(""), _optional, _unique, optionv1.TargetAny),
 	)
 }
 

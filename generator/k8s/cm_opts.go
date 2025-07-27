@@ -22,18 +22,20 @@ const _configMapResource = "configmap"
 
 func configMapOpts() []*optionv1.Option {
 	return makeOpts(_configMapResource,
-		mustMakeOpt(_typeName, Immutable(false), _unique, optionv1.TargetStruct),
-		mustMakeOpt(_typeName, Default(""), _unique, optionv1.TargetField),
-		mustMakeOpt(_typeName, KeyFormat(""), _unique, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, Default(""), _optional, _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, KeyFormat("camelCase"), _optional, _unique, optionv1.TargetStruct),
 	)
 }
 
 type Default string
 
 func (d Default) apply(info loaderv1.FieldInfo, cm *corev1.ConfigMap, format KeyFormat) error {
-	if cm.Immutable == nil {
+	isImmutable := *cm.Immutable
+	if !isImmutable {
 		// TODO: check if the type of the field matches the default value
 		cm.Data[format.Format(info.Ident.Name)] = string(d)
+		return nil
 	}
 	if len(string(d)) == 0 {
 		return errImmutableConfigMapWithoutDefault

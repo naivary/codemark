@@ -27,6 +27,7 @@ func load(path string) (genv1.Generator, loaderv1.Project) {
 
 func TestResource_ConfigMap(t *testing.T) {
 	immutable := true
+	mutable := false
 	_ = immutable
 	tests := []struct {
 		name    string
@@ -47,6 +48,7 @@ func TestResource_ConfigMap(t *testing.T) {
 					Name:      "codemark-test-configmap",
 					Namespace: "codemark",
 				},
+				Immutable: &mutable,
 				Data: map[string]string{
 					"int":        "4",
 					"string":     "1024",
