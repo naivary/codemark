@@ -38,7 +38,7 @@ func makeOpts(resource string, opts ...*optionv1.Option) []*optionv1.Option {
 	for _, opt := range opts {
 		opt.Ident = fmt.Sprintf("k8s:%s:%s", resource, optionutil.OptionOf(opt.Ident))
 		if isResource(opt.Ident, "undefined") {
-			opt.Ident = fmt.Sprintf("k8s:%s:%s", resource, opt.Output.Name())
+			opt.Ident = fmt.Sprintf("k8s:%s:%s", resource, opt.Type.Name())
 		}
 	}
 	return opts

@@ -14,7 +14,7 @@ func Make(ident string, output reflect.Type, doc *docv1.Option, isUnique bool, t
 	opt := optionv1.Option{
 		Ident:   ident,
 		Targets: targets,
-		Output:  output,
+		Type:  output,
 	}
 	return opt, IsValid(opt)
 }
@@ -23,7 +23,7 @@ func MustMake(ident string, output reflect.Type, doc *docv1.Option, isUnique boo
 	opt := optionv1.Option{
 		Ident:   ident,
 		Targets: targets,
-		Output:  output,
+		Type:  output,
 	}
 	if err := IsValid(opt); err != nil {
 		panic(err)
@@ -35,7 +35,7 @@ func IsValid(opt optionv1.Option) error {
 	if err := validate.Ident(opt.Ident); err != nil {
 		return err
 	}
-	if opt.Output == nil {
+	if opt.Type == nil {
 		return fmt.Errorf("output type cannot be nil: %s", opt.Ident)
 	}
 	if len(opt.Targets) == 0 {

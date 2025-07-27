@@ -100,14 +100,14 @@ func (m *Manager) Convert(mrk marker.Marker, t optionv1.Target) (any, error) {
 			t,
 		)
 	}
-	conv, err := m.Get(opt.Output)
+	conv, err := m.Get(opt.Type)
 	if err != nil {
 		return nil, err
 	}
-	if err := conv.CanConvert(mrk, opt.Output); err != nil {
+	if err := conv.CanConvert(mrk, opt.Type); err != nil {
 		return nil, err
 	}
-	out, err := conv.Convert(mrk, opt.Output)
+	out, err := conv.Convert(mrk, opt.Type)
 	if err != nil {
 		return nil, err
 	}

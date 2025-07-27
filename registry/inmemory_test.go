@@ -31,7 +31,7 @@ func newRegTester(reg Registry) *registryTester {
 
 func (r *registryTester) newTest(opt optionv1.Option, isValid bool) registryTestCase {
 	return registryTestCase{
-		Name:    fmt.Sprintf("%s[%s]", opt.Ident, opt.Output),
+		Name:    fmt.Sprintf("%s[%s]", opt.Ident, opt.Type),
 		IsValid: isValid,
 		Opt:     opt,
 	}
