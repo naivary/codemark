@@ -81,7 +81,6 @@ func TestResource_ConfigMap(t *testing.T) {
 			if err != nil {
 				t.Errorf("err occured: %s\n", err)
 			}
-			t.Log(got.Data)
 			if got.Name != tc.want.Name {
 				t.Errorf("name not equal. got: %s; want: %s\n", got.Name, tc.want.Name)
 			}
