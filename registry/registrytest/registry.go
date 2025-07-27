@@ -166,49 +166,49 @@ func AliasOpts() []optionv1.Option {
 		optionutil.MustMake(
 			markertest.NewIdent("byte"),
 			reflect.TypeOf(Byte(0)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("rune"),
 			reflect.TypeOf(Rune(0)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("ptr.byte"),
 			reflect.TypeOf(PtrByte(nil)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("ptr.rune"),
 			reflect.TypeOf(PtrRune(nil)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("slice.byte"),
 			reflect.TypeOf(ByteList(nil)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("slice.rune"),
 			reflect.TypeOf(RuneList(nil)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("slice.ptr.byte"),
 			reflect.TypeOf(PtrByteList(nil)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 		optionutil.MustMake(
 			markertest.NewIdent("slice.ptr.rune"),
 			reflect.TypeOf(PtrRuneList(nil)),
-			nil, false,
+			nil, nil, false,
 			optionv1.TargetAny,
 		),
 	}
@@ -224,7 +224,7 @@ func NewOptsSet() []optionv1.Option {
 		rtype := reflect.TypeOf(typ)
 		name := typeutil.NameFor(rtype)
 		ident := markertest.NewIdent(name)
-		opt := optionutil.MustMake(ident, rtype, nil, false, optionv1.TargetAny)
+		opt := optionutil.MustMake(ident, rtype, nil, nil, false, optionv1.TargetAny)
 		opts = append(opts, opt)
 	}
 	return slices.Concat(opts, aliases)

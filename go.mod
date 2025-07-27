@@ -3,6 +3,7 @@ module github.com/naivary/codemark
 go 1.24.4
 
 require (
+	github.com/goccy/go-yaml v1.18.0
 	github.com/iancoleman/strcase v0.3.0
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
@@ -14,7 +15,6 @@ require (
 require (
 	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
-	github.com/goccy/go-yaml v1.18.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect

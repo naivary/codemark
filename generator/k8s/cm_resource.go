@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"bytes"
-	"slices"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,20 +27,6 @@ func newConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
 	}
 	cm.ObjectMeta = objectMeta
 	return cm, nil
-}
-
-// TODO: write test for this function
-func setOptsDefaults(opts []*optionv1.Option, infoOpts map[string][]any, targets ...optionv1.Target) {
-	for _, opt := range opts {
-		if !slices.Equal(opt.Targets, targets) && !slices.Contains(targets, optionv1.TargetAny) && !opt.IsRequired() {
-			continue
-		}
-		v := infoOpts[opt.Ident]
-		if len(v) > 0 {
-			continue
-		}
-		infoOpts[opt.Ident] = append(v, opt.Default)
-	}
 }
 
 func configMapDefaults(strc *loaderv1.StructInfo) {
@@ -79,7 +64,7 @@ func createConfigMap(strc *loaderv1.StructInfo) (*genv1.Artifact, error) {
 }
 
 func applyStructOptsToConfigMap(strc *loaderv1.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
-	format := CamelCase
+	var format KeyFormat
 	for _, opts := range strc.Opts {
 		for _, opt := range opts {
 			var err error

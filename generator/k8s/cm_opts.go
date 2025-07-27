@@ -24,7 +24,7 @@ func configMapOpts() []*optionv1.Option {
 	return makeOpts(_configMapResource,
 		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
 		mustMakeOpt(_typeName, Default(""), _optional, _unique, optionv1.TargetField),
-		mustMakeOpt(_typeName, KeyFormat("camelCase"), _optional, _unique, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, KeyFormat(CamelCase), _optional, _unique, optionv1.TargetStruct),
 	)
 }
 
@@ -70,7 +70,7 @@ type KeyFormat string
 
 const (
 	SnakeCase  KeyFormat = "snake_case"
-	CamelCase  KeyFormat = "camelCalse"
+	CamelCase  KeyFormat = "camelCase"
 	PascalCase KeyFormat = "pascalCase"
 	KebabCase  KeyFormat = "kebab-case"
 	Env        KeyFormat = "env"

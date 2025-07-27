@@ -3,6 +3,7 @@ package k8s
 import (
 	"fmt"
 	"reflect"
+	"slices"
 	"strings"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
@@ -19,11 +20,27 @@ const (
 
 var (
 	_required any = nil
+	// optional is something non nil signaling the underlying function used to
+	// use the default of the type
 	_optional any = new(any)
 )
 
 type Docer[T any] interface {
 	Doc() T
+}
+
+// TODO: write test for this function
+func setOptsDefaults(opts []*optionv1.Option, infoOpts map[string][]any, targets ...optionv1.Target) {
+	for _, opt := range opts {
+		if !slices.Equal(opt.Targets, targets) && !slices.Contains(targets, optionv1.TargetAny) && !opt.IsRequired() {
+			continue
+		}
+		v := infoOpts[opt.Ident]
+		if len(v) > 0 {
+			continue
+		}
+		infoOpts[opt.Ident] = append(v, opt.Default)
+	}
 }
 
 func mustMakeOpt(name string, output, defult any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
