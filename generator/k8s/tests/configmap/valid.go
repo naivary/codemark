@@ -2,7 +2,6 @@ package configmap
 
 // +k8s:meta:name="codemark-test-configmap"
 // +k8s:meta:namespace="codemark"
-// +k8s:configmap:keyformat="snake_case"
 type Valid struct {
 	// +k8s:configmap:default="4"
 	Int int
