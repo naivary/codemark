@@ -32,7 +32,11 @@ type Docer[T any] interface {
 // TODO: write test for this function
 func setOptsDefaults(opts []*optionv1.Option, infoOpts map[string][]any, targets ...optionv1.Target) {
 	for _, opt := range opts {
-		if !slices.Equal(opt.Targets, targets) && !slices.Contains(targets, optionv1.TargetAny) && !opt.IsRequired() {
+		if opt.IsRequired() {
+			// requried options will be skipped
+			continue
+		}
+		if !slices.Equal(opt.Targets, targets) && !slices.Contains(targets, optionv1.TargetAny) {
 			continue
 		}
 		v := infoOpts[opt.Ident]

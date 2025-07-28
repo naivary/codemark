@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"bytes"
+	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,12 +30,22 @@ func newConfigMap(strc *infov1.StructInfo) (corev1.ConfigMap, error) {
 	return cm, nil
 }
 
+func configMapMetadataDefaults(strc *infov1.StructInfo) {
+	objectMetaDefaults(strc.Opts)
+	name := strc.Opts["k8s:meta:name"]
+	if len(name) == 0 {
+		cmName := strings.ToLower(strc.Spec.Name.Name)
+		strc.Opts["k8s:meta:name"] = []any{Name(cmName)}
+	}
+}
+
 func configMapDefaults(strc *infov1.StructInfo) {
 	opts := configMapOpts()
 	setOptsDefaults(opts, strc.Opts, optionv1.TargetStruct)
 	for _, finfo := range strc.Fields {
 		setOptsDefaults(opts, finfo.Opts, optionv1.TargetField)
 	}
+	configMapMetadataDefaults(strc)
 }
 
 func createConfigMap(strc *infov1.StructInfo) (*genv1.Artifact, error) {
@@ -63,26 +74,26 @@ func createConfigMap(strc *infov1.StructInfo) (*genv1.Artifact, error) {
 	}, nil
 }
 
-func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
-	var format KeyFormat
+func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (Format, error) {
+	var keyFormat Format
 	for _, opts := range strc.Opts {
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {
 			case Immutable:
 				err = o.apply(cm)
-			case KeyFormat:
-				format = o
+			case Format:
+				keyFormat = o
 			}
 			if err != nil {
-				return format, err
+				return keyFormat, err
 			}
 		}
 	}
-	return format, nil
+	return keyFormat, nil
 }
 
-func applyFieldOptToConfigMap(field infov1.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
+func applyFieldOptToConfigMap(field infov1.FieldInfo, format Format, cm *corev1.ConfigMap) error {
 	if !field.Ident.IsExported() {
 		// unexported fields will be ignored
 		return nil

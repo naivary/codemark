@@ -1,7 +1,5 @@
 package configmap
 
-// +k8s:meta:name="defaults"
-// +k8s:meta:namespace="codemark"
 type Valid struct {
 	// +k8s:configmap:default="4"
 	Int int

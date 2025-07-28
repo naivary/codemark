@@ -36,8 +36,8 @@ func TestResource_ConfigMap(t *testing.T) {
 		want    corev1.ConfigMap
 	}{
 		{
-			name:    "valid configmap",
-			path:    "tests/configmap/valid.go",
+			name:    "configmap with defaults",
+			path:    "tests/configmap/defaults.go",
 			isValid: true,
 			want: corev1.ConfigMap{
 				TypeMeta: metav1.TypeMeta{
@@ -45,8 +45,8 @@ func TestResource_ConfigMap(t *testing.T) {
 					Kind:       "ConfigMap",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "defaults",
-					Namespace: "codemark",
+					Name:      "valid",
+					Namespace: "default",
 				},
 				Immutable: &mutable,
 				Data: map[string]string{

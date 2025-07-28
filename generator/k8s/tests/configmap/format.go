@@ -2,7 +2,7 @@ package configmap
 
 // +k8s:meta:name="format"
 // +k8s:meta:namespace="codemark"
-// +k8s:configmap:keyformat="snake_case"
+// +k8s:configmap:format.key="snake_case"
 type ValidWithFormat struct {
 	// +k8s:configmap:default="4"
 	Int int

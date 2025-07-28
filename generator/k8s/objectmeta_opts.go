@@ -6,7 +6,19 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
+
+const _metaResource = "meta"
+
+func objectMetaOpts() []*optionv1.Option {
+	return makeOpts(_metaResource,
+		mustMakeOpt(_typeName, Name(""), _required, _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Namespace("default"), _optional, _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Labels(nil), _optional, _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Annotations(nil), _optional, _unique, optionv1.TargetAny),
+	)
+}
 
 type Name string
 
@@ -41,5 +53,23 @@ func (n Namespace) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    `Namespace of the object`,
 		Default: `default`,
+	}
+}
+
+type Labels []string
+
+func (l Labels) Doc() docv1.Option {
+	return docv1.Option{
+		Desc:    `Labels for the kubernetes object`,
+		Default: `[]string{}`,
+	}
+}
+
+type Annotations []string
+
+func (a Annotations) Doc() docv1.Option {
+	return docv1.Option{
+		Desc:    `Annotations for the kubernetes object`,
+		Default: `[]string{}`,
 	}
 }

@@ -7,17 +7,14 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-const _metaResource = "meta"
-
-func objectMetaOpts() []*optionv1.Option {
-	return makeOpts(_metaResource,
-		mustMakeOpt(_typeName, Name(""), _optional, _unique, optionv1.TargetAny),
-		mustMakeOpt(_typeName, Namespace(""), _optional, _unique, optionv1.TargetAny),
-	)
+func objectMetaDefaults(infoOpts map[string][]any) {
+	opts := objectMetaOpts()
+	setOptsDefaults(opts, infoOpts, optionv1.TargetAny)
 }
 
 func createObjectMeta(info infov1.Info) (metav1.ObjectMeta, error) {
 	obj := metav1.ObjectMeta{}
+	objectMetaDefaults(info.Options())
 	for _, opts := range info.Options() {
 		for _, opt := range opts {
 			var err error

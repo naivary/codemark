@@ -24,13 +24,13 @@ func configMapOpts() []*optionv1.Option {
 	return makeOpts(_configMapResource,
 		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
 		mustMakeOpt(_typeName, Default(""), _optional, _unique, optionv1.TargetField),
-		mustMakeOpt(_typeName, KeyFormat(CamelCase), _optional, _unique, optionv1.TargetStruct),
+		mustMakeOpt("format.key", Format(CamelCase), _optional, _unique, optionv1.TargetStruct),
 	)
 }
 
 type Default string
 
-func (d Default) apply(info infov1.FieldInfo, cm *corev1.ConfigMap, format KeyFormat) error {
+func (d Default) apply(info infov1.FieldInfo, cm *corev1.ConfigMap, format Format) error {
 	isImmutable := *cm.Immutable
 	if !isImmutable {
 		// TODO: check if the type of the field matches the default value
@@ -66,17 +66,17 @@ func (i Immutable) Doc() docv1.Option {
 	}
 }
 
-type KeyFormat string
+type Format string
 
 const (
-	SnakeCase  KeyFormat = "snake_case"
-	CamelCase  KeyFormat = "camelCase"
-	PascalCase KeyFormat = "pascalCase"
-	KebabCase  KeyFormat = "kebab-case"
-	Env        KeyFormat = "env"
+	SnakeCase  Format = "snake_case"
+	CamelCase  Format = "camelCase"
+	PascalCase Format = "pascalCase"
+	KebabCase  Format = "kebab-case"
+	Env        Format = "env"
 )
 
-func (k KeyFormat) Format(key string) string {
+func (k Format) Format(key string) string {
 	switch k {
 	case SnakeCase:
 		return strcase.ToSnake(key)
@@ -93,9 +93,9 @@ func (k KeyFormat) Format(key string) string {
 	}
 }
 
-func (k KeyFormat) Doc() docv1.Option {
+func (k Format) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    `Format of the key. It be used to manipulate based on the context of the configuration. For example if the configuration is ssettable via environment variable it is useful to choose the env formation.`,
-		Default: "lowercase",
+		Default: "camelCase",
 	}
 }
