@@ -45,7 +45,7 @@ func TestResource_ConfigMap(t *testing.T) {
 					Kind:       "ConfigMap",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "codemark-test-configmap",
+					Name:      "defaults",
 					Namespace: "codemark",
 				},
 				Immutable: &mutable,
@@ -60,6 +60,27 @@ func TestResource_ConfigMap(t *testing.T) {
 			name:    "immutable configmap without default",
 			path:    "tests/configmap/immutable.go",
 			isValid: false,
+		},
+		{
+			name:    "configmap with format",
+			path:    "tests/configmap/format.go",
+			isValid: true,
+			want: corev1.ConfigMap{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "ConfigMap",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      "format",
+					Namespace: "codemark",
+				},
+				Immutable: &mutable,
+				Data: map[string]string{
+					"int":        "4",
+					"string":     "1024",
+					"no_default": "",
+				},
+			},
 		},
 	}
 
