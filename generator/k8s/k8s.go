@@ -4,7 +4,7 @@ import (
 	"slices"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	"github.com/naivary/codemark/registry"
 )
 
@@ -59,7 +59,7 @@ func (g generator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g generator) Generate(proj loaderv1.Project) ([]*genv1.Artifact, error) {
+func (g generator) Generate(proj infov1.Project) ([]*genv1.Artifact, error) {
 	artifacts := make([]*genv1.Artifact, 0, len(proj))
 	for _, info := range proj {
 		for _, strc := range info.Structs {

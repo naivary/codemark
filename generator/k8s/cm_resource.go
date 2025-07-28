@@ -9,11 +9,11 @@ import (
 	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-func newConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
+func newConfigMap(strc *infov1.StructInfo) (corev1.ConfigMap, error) {
 	cm := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -29,7 +29,7 @@ func newConfigMap(strc *loaderv1.StructInfo) (corev1.ConfigMap, error) {
 	return cm, nil
 }
 
-func configMapDefaults(strc *loaderv1.StructInfo) {
+func configMapDefaults(strc *infov1.StructInfo) {
 	opts := configMapOpts()
 	setOptsDefaults(opts, strc.Opts, optionv1.TargetStruct)
 	for _, finfo := range strc.Fields {
@@ -37,7 +37,7 @@ func configMapDefaults(strc *loaderv1.StructInfo) {
 	}
 }
 
-func createConfigMap(strc *loaderv1.StructInfo) (*genv1.Artifact, error) {
+func createConfigMap(strc *infov1.StructInfo) (*genv1.Artifact, error) {
 	configMapDefaults(strc)
 	cm, err := newConfigMap(strc)
 	if err != nil {
@@ -63,7 +63,7 @@ func createConfigMap(strc *loaderv1.StructInfo) (*genv1.Artifact, error) {
 	}, nil
 }
 
-func applyStructOptsToConfigMap(strc *loaderv1.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
+func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (KeyFormat, error) {
 	var format KeyFormat
 	for _, opts := range strc.Opts {
 		for _, opt := range opts {
@@ -82,7 +82,7 @@ func applyStructOptsToConfigMap(strc *loaderv1.StructInfo, cm *corev1.ConfigMap)
 	return format, nil
 }
 
-func applyFieldOptToConfigMap(field loaderv1.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
+func applyFieldOptToConfigMap(field infov1.FieldInfo, format KeyFormat, cm *corev1.ConfigMap) error {
 	if !field.Ident.IsExported() {
 		// unexported fields will be ignored
 		return nil

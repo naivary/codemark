@@ -11,14 +11,14 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/converter"
 )
 
 type methodObject struct {
 	obj  types.Object
-	info loaderv1.FuncInfo
+	info infov1.FuncInfo
 }
 
 var _ Loader = (*localLoader)(nil)
@@ -28,7 +28,7 @@ type localLoader struct {
 	cfg  *packages.Config
 
 	// info is the current information being built
-	info *loaderv1.Information
+	info *infov1.Information
 	// pkg is the current package used to extract information from
 	pkg *packages.Package
 
@@ -53,7 +53,7 @@ func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	return l
 }
 
-func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderv1.Information, error) {
+func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*infov1.Information, error) {
 	pkgs, err := packages.Load(l.cfg, patterns...)
 	if err != nil {
 		return nil, err
@@ -64,7 +64,7 @@ func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*loaderv1.
 	if len(pkgs) == 0 {
 		return nil, ErrPkgsEmpty
 	}
-	projs := make(map[*packages.Package]*loaderv1.Information, len(pkgs))
+	projs := make(map[*packages.Package]*infov1.Information, len(pkgs))
 	for _, pkg := range pkgs {
 		l.pkg = pkg
 		if err := l.exctractInfosFromPkg(); err != nil {
@@ -190,7 +190,7 @@ func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := loaderv1.FuncInfo{
+	info := infov1.FuncInfo{
 		Decl: decl,
 		Opts: opts,
 	}
@@ -235,7 +235,7 @@ func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 	if err != nil {
 		return err
 	}
-	info := loaderv1.FuncInfo{
+	info := infov1.FuncInfo{
 		Decl: decl,
 		Opts: opts,
 	}
@@ -249,7 +249,7 @@ func (l *localLoader) extractFileInfo(file *ast.File) error {
 	if err != nil {
 		return err
 	}
-	info := loaderv1.FileInfo{
+	info := infov1.FileInfo{
 		File: file,
 		Opts: opts,
 	}
@@ -267,7 +267,7 @@ func (l *localLoader) extractImportInfo(decl *ast.GenDecl) error {
 		if err != nil {
 			return err
 		}
-		info := loaderv1.ImportInfo{
+		info := infov1.ImportInfo{
 			Spec: spec,
 			Decl: decl,
 			Opts: opts,
@@ -293,7 +293,7 @@ func (l *localLoader) extractVarInfo(decl *ast.GenDecl) error {
 			if err != nil {
 				return err
 			}
-			info := loaderv1.VarInfo{
+			info := infov1.VarInfo{
 				Spec: spec,
 				Decl: decl,
 				Opts: opts,
@@ -317,7 +317,7 @@ func (l *localLoader) extractConstInfo(decl *ast.GenDecl) error {
 			if err != nil {
 				return err
 			}
-			info := loaderv1.ConstInfo{
+			info := infov1.ConstInfo{
 				Spec: spec,
 				Decl: decl,
 				Opts: opts,
@@ -338,11 +338,11 @@ func (l *localLoader) extractNamedTypeInfo(decl *ast.GenDecl, spec *ast.TypeSpec
 	if err != nil {
 		return err
 	}
-	info := loaderv1.NamedInfo{
+	info := infov1.NamedInfo{
 		Spec:    spec,
 		Decl:    decl,
 		Opts:    opts,
-		Methods: make(map[types.Object]loaderv1.FuncInfo),
+		Methods: make(map[types.Object]infov1.FuncInfo),
 	}
 	obj, err := l.objectOf(spec.Name)
 	if err != nil {
@@ -363,7 +363,7 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	if err != nil {
 		return err
 	}
-	info := loaderv1.IfaceInfo{
+	info := infov1.IfaceInfo{
 		Spec:       spec,
 		Decl:       decl,
 		Opts:       opts,
@@ -379,8 +379,8 @@ func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 
 func (l *localLoader) extractIfaceSignatureInfo(
 	spec *ast.InterfaceType,
-) (map[types.Object]loaderv1.SignatureInfo, error) {
-	infos := make(map[types.Object]loaderv1.SignatureInfo, spec.Methods.NumFields())
+) (map[types.Object]infov1.SignatureInfo, error) {
+	infos := make(map[types.Object]infov1.SignatureInfo, spec.Methods.NumFields())
 	for _, meth := range spec.Methods.List {
 		doc := meth.Doc.Text()
 		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetIfaceSig)
@@ -392,7 +392,7 @@ func (l *localLoader) extractIfaceSignatureInfo(
 			if err != nil {
 				return nil, err
 			}
-			info := loaderv1.SignatureInfo{
+			info := infov1.SignatureInfo{
 				Ident:  name,
 				Method: meth,
 				Opts:   opts,
@@ -409,7 +409,7 @@ func (l *localLoader) extractAliasInfo(decl *ast.GenDecl, spec *ast.TypeSpec) er
 	if err != nil {
 		return err
 	}
-	info := loaderv1.AliasInfo{
+	info := infov1.AliasInfo{
 		Decl: decl,
 		Spec: spec,
 		Opts: opts,
@@ -433,12 +433,12 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 		return err
 	}
 	structType := spec.Type.(*ast.StructType)
-	info := loaderv1.StructInfo{
+	info := infov1.StructInfo{
 		Opts:    opts,
 		Spec:    spec,
 		Decl:    decl,
-		Fields:  make(map[types.Object]loaderv1.FieldInfo, structType.Fields.NumFields()),
-		Methods: make(map[types.Object]loaderv1.FuncInfo, 0),
+		Fields:  make(map[types.Object]infov1.FieldInfo, structType.Fields.NumFields()),
+		Methods: make(map[types.Object]infov1.FuncInfo, 0),
 	}
 	fieldInfos, err := l.extractFieldInfo(structType)
 	if err != nil {
@@ -449,8 +449,8 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]loaderv1.FieldInfo, error) {
-	infos := make(map[types.Object]loaderv1.FieldInfo, 0)
+func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]infov1.FieldInfo, error) {
+	infos := make(map[types.Object]infov1.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
 		if isEmbedded(field) {
@@ -462,7 +462,7 @@ func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]l
 			return nil, err
 		}
 		for _, name := range field.Names {
-			info := loaderv1.FieldInfo{
+			info := infov1.FieldInfo{
 				Ident: name,
 				Field: field,
 				Opts:  opts,

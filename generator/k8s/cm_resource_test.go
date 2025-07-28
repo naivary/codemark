@@ -9,11 +9,11 @@ import (
 	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	"github.com/naivary/codemark/loader"
 )
 
-func load(path string) (genv1.Generator, loaderv1.Project) {
+func load(path string) (genv1.Generator, infov1.Project) {
 	gen, err := New()
 	if err != nil {
 		panic(err)

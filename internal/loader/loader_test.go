@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	"github.com/naivary/codemark/converter"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
@@ -53,7 +53,7 @@ func validateMarker(want []marker.Marker, got map[string][]any) error {
 	return nil
 }
 
-func validate[T markers, V loaderv1.Info](want map[string]T, got map[types.Object]V) error {
+func validate[T markers, V infov1.Info](want map[string]T, got map[types.Object]V) error {
 	if len(got) != len(want) {
 		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(got), len(want))
 	}
@@ -66,7 +66,7 @@ func validate[T markers, V loaderv1.Info](want map[string]T, got map[types.Objec
 	return nil
 }
 
-func isValid(tc loaderTestCase, proj *loaderv1.Information) error {
+func isValid(tc loaderTestCase, proj *infov1.Information) error {
 	// check struct
 	if err := validate(tc.Structs, proj.Structs); err != nil {
 		return err

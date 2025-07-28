@@ -3,7 +3,7 @@ package v1
 import (
 	"io"
 
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	"github.com/naivary/codemark/registry"
 )
 
@@ -17,7 +17,7 @@ type Generator interface {
 	Explain(ident string) string
 
 	// Generate the artificats based on the given information.
-	Generate(proj loaderv1.Project) ([]*Artifact, error)
+	Generate(proj infov1.Project) ([]*Artifact, error)
 
 	// Registry containing all the options.
 	Registry() registry.Registry

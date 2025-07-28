@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
 var ErrPkgsEmpty = errors.New(
@@ -14,19 +14,19 @@ var ErrPkgsEmpty = errors.New(
 )
 
 type Loader interface {
-	Load(patterns ...string) (map[*packages.Package]*loaderv1.Information, error)
+	Load(patterns ...string) (map[*packages.Package]*infov1.Information, error)
 }
 
-func newInformation() *loaderv1.Information {
-	return &loaderv1.Information{
-		Structs: make(map[types.Object]*loaderv1.StructInfo),
-		Ifaces:  make(map[types.Object]loaderv1.IfaceInfo),
-		Aliases: make(map[types.Object]loaderv1.AliasInfo),
-		Named:   make(map[types.Object]*loaderv1.NamedInfo),
-		Consts:  make(map[types.Object]loaderv1.ConstInfo),
-		Vars:    make(map[types.Object]loaderv1.VarInfo),
-		Imports: make(map[types.Object]loaderv1.ImportInfo),
-		Funcs:   make(map[types.Object]loaderv1.FuncInfo),
-		Files:   make(map[loaderv1.Filename]loaderv1.FileInfo),
+func newInformation() *infov1.Information {
+	return &infov1.Information{
+		Structs: make(map[types.Object]*infov1.StructInfo),
+		Ifaces:  make(map[types.Object]infov1.IfaceInfo),
+		Aliases: make(map[types.Object]infov1.AliasInfo),
+		Named:   make(map[types.Object]*infov1.NamedInfo),
+		Consts:  make(map[types.Object]infov1.ConstInfo),
+		Vars:    make(map[types.Object]infov1.VarInfo),
+		Imports: make(map[types.Object]infov1.ImportInfo),
+		Funcs:   make(map[types.Object]infov1.FuncInfo),
+		Files:   make(map[infov1.Filename]infov1.FileInfo),
 	}
 }

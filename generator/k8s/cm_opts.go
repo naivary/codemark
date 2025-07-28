@@ -8,7 +8,7 @@ import (
 	"github.com/iancoleman/strcase"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
@@ -30,7 +30,7 @@ func configMapOpts() []*optionv1.Option {
 
 type Default string
 
-func (d Default) apply(info loaderv1.FieldInfo, cm *corev1.ConfigMap, format KeyFormat) error {
+func (d Default) apply(info infov1.FieldInfo, cm *corev1.ConfigMap, format KeyFormat) error {
 	isImmutable := *cm.Immutable
 	if !isImmutable {
 		// TODO: check if the type of the field matches the default value

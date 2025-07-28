@@ -3,7 +3,7 @@ package k8s
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
@@ -16,7 +16,7 @@ func objectMetaOpts() []*optionv1.Option {
 	)
 }
 
-func createObjectMeta(info loaderv1.Info) (metav1.ObjectMeta, error) {
+func createObjectMeta(info infov1.Info) (metav1.ObjectMeta, error) {
 	obj := metav1.ObjectMeta{}
 	for _, opts := range info.Options() {
 		for _, opt := range opts {

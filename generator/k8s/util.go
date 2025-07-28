@@ -1,10 +1,10 @@
 package k8s
 
 import (
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
-func shouldGenerateConfigMap(strc *loaderv1.StructInfo) bool {
+func shouldGenerateConfigMap(strc *infov1.StructInfo) bool {
 	for _, field := range strc.Fields {
 		for ident := range field.Opts {
 			if ident == "k8s:configmap:default" {
@@ -15,6 +15,6 @@ func shouldGenerateConfigMap(strc *loaderv1.StructInfo) bool {
 	return false
 }
 
-func isMainFunc(fn loaderv1.FuncInfo) bool {
+func isMainFunc(fn infov1.FuncInfo) bool {
 	return fn.Decl.Name.Name == "main"
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
-	loaderv1 "github.com/naivary/codemark/api/loader/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
 var errInvalidRole = errors.New(`
@@ -31,7 +31,7 @@ define multiple rules for the rbac role but have missed one of the markers:
 // +k8s:rbac:resources=["pod", "service"]
 `)
 
-func newRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
+func newRBACRole(fn infov1.FuncInfo) (rbacv1.Role, error) {
 	role := rbacv1.Role{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -47,7 +47,7 @@ func newRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
 	return role, nil
 }
 
-func newRBACRoleBinding(fn loaderv1.FuncInfo) (rbacv1.RoleBinding, error) {
+func newRBACRoleBinding(fn infov1.FuncInfo) (rbacv1.RoleBinding, error) {
 	roleBinding := rbacv1.RoleBinding{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
@@ -71,7 +71,7 @@ func validateRole(role rbacv1.Role) error {
 	return nil
 }
 
-func createRBAC(fn loaderv1.FuncInfo) (*genv1.Artifact, error) {
+func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 	role, err := createRBACRole(fn)
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func createRBAC(fn loaderv1.FuncInfo) (*genv1.Artifact, error) {
 	}, err
 }
 
-func createRBACRoleBinding(fn loaderv1.FuncInfo) (rbacv1.RoleBinding, error) {
+func createRBACRoleBinding(fn infov1.FuncInfo) (rbacv1.RoleBinding, error) {
 	binding, err := newRBACRoleBinding(fn)
 	if err != nil {
 		return binding, err
@@ -103,7 +103,7 @@ func createRBACRoleBinding(fn loaderv1.FuncInfo) (rbacv1.RoleBinding, error) {
 	return binding, nil
 }
 
-func createRBACRole(fn loaderv1.FuncInfo) (rbacv1.Role, error) {
+func createRBACRole(fn infov1.FuncInfo) (rbacv1.Role, error) {
 	role, err := newRBACRole(fn)
 	if err != nil {
 		return role, err
