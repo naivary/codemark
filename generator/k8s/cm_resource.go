@@ -31,11 +31,10 @@ func newConfigMap(strc *infov1.StructInfo) (corev1.ConfigMap, error) {
 }
 
 func configMapMetadataDefaults(strc *infov1.StructInfo) {
-	objectMetaDefaults(strc.Opts)
-	name := strc.Opts["k8s:meta:name"]
+	name := strc.Opts["k8s:metadata:name"]
 	if len(name) == 0 {
 		cmName := strings.ToLower(strc.Spec.Name.Name)
-		strc.Opts["k8s:meta:name"] = []any{Name(cmName)}
+		strc.Opts["k8s:metadata:name"] = []any{Name(cmName)}
 	}
 }
 
@@ -76,7 +75,10 @@ func createConfigMap(strc *infov1.StructInfo) (*genv1.Artifact, error) {
 
 func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (Format, error) {
 	var keyFormat Format
-	for _, opts := range strc.Opts {
+	for ident, opts := range strc.Opts {
+		if !isResource(ident, _configMapResource) {
+			continue
+		}
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {

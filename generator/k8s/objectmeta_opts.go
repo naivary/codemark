@@ -9,7 +9,7 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-const _metaResource = "meta"
+const _metaResource = "metadata"
 
 func objectMetaOpts() []*optionv1.Option {
 	return makeOpts(_metaResource,
@@ -17,17 +17,18 @@ func objectMetaOpts() []*optionv1.Option {
 		mustMakeOpt(_typeName, Namespace("default"), _optional, _unique, optionv1.TargetAny),
 		mustMakeOpt(_typeName, Labels(nil), _optional, _unique, optionv1.TargetAny),
 		mustMakeOpt(_typeName, Annotations(nil), _optional, _unique, optionv1.TargetAny),
+		mustMakeOpt("format.name", Format(KebabCase), _optional, _unique, optionv1.TargetAny),
 	)
 }
 
 type Name string
 
-func (n Name) apply(m *metav1.ObjectMeta) error {
+func (n Name) apply(m *metav1.ObjectMeta, format Format) error {
 	s := string(n)
 	if s == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
-	m.Name = string(n)
+	m.Name = format.Format(string(n))
 	return nil
 }
 

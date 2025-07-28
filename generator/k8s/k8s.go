@@ -74,11 +74,11 @@ func (g generator) Generate(proj infov1.Project) ([]*genv1.Artifact, error) {
 		for _, fn := range info.Funcs {
 			if isMainFunc(fn) {
 				// createPod(fn)
-				rbacSet, err := createRBAC(fn)
+				rbac, err := createRBAC(fn)
 				if err != nil {
 					return nil, err
 				}
-				artifacts = append(artifacts, rbacSet)
+				artifacts = append(artifacts, rbac)
 			}
 		}
 	}

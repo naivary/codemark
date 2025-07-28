@@ -1,7 +1,7 @@
 package configmap
 
-// +k8s:meta:name="codemark-test-configmap"
-// +k8s:meta:namespace="codemark"
+// +k8s:metadata:name="codemark-test-configmap"
+// +k8s:metadata:namespace="codemark"
 // +k8s:configmap:immutable=true
 type ImmutableButEmptyDefault struct {
 	// +k8s:configmap:default="4"
