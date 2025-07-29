@@ -1,11 +1,9 @@
 package k8s
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 
-	"github.com/goccy/go-yaml"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -80,19 +78,8 @@ func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	manifests := []any{role, binding}
-	var file bytes.Buffer
-	for _, manifest := range manifests {
-		err := yaml.NewEncoder(&file).Encode(&manifest)
-		if err != nil {
-			return nil, err
-		}
-	}
 	filename := fmt.Sprintf("%s.rbac.yaml", role.Name)
-	return &genv1.Artifact{
-		Name: filename,
-		Data: &file,
-	}, err
+	return newArtifact(filename, role, binding)
 }
 
 func createRBACRoleBinding(fn infov1.FuncInfo) (rbacv1.RoleBinding, error) {

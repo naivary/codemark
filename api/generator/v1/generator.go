@@ -24,9 +24,9 @@ type Generator interface {
 }
 
 type Artifact struct {
+	// Name of the Artifact. Make sure the name can be used as a file name
+	// because it might be written to the filesystem (including the extension).
 	Name string
-
-	ContentType string
 
 	Data io.Reader
 }
