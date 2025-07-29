@@ -30,6 +30,9 @@ type loader struct {
 
 // New Returns a new loader which can be used to read in go-packages.
 func New(mngr *converter.Manager, cfg *packages.Config) Loader {
+	if cfg == nil {
+		cfg = &packages.Config{}
+	}
 	l := &loader{
 		mngr: mngr,
 		cfg: &packages.Config{
