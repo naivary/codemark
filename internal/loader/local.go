@@ -162,13 +162,13 @@ func extractInfos(pkg *packages.Package, parse parseMarkers) (*infov1.Informatio
 				}
 			}
 		}
-
-		for _, methodDecl := range methodDecls {
-			if err := extractMethodInfo(pkg, parse, methodDecl, info); err != nil {
-				return nil, err
-			}
+	}
+	for _, methodDecl := range methodDecls {
+		if err := extractMethodInfo(pkg, parse, methodDecl, info); err != nil {
+			return nil, err
 		}
 	}
+
 	return info, nil
 }
 
