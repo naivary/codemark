@@ -1,12 +1,12 @@
 package loader
 
 import (
-	"errors"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
+	"os"
 	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
@@ -16,177 +16,177 @@ import (
 	"github.com/naivary/codemark/converter"
 )
 
-type methodObject struct {
-	obj  types.Object
-	info infov1.FuncInfo
-}
+const _badRequest = 1
 
-var _ Loader = (*localLoader)(nil)
+type parseMarkers = func(doc string, target optionv1.Target) (map[string][]any, error)
 
-type localLoader struct {
+var _ Loader = (*loader)(nil)
+
+type loader struct {
 	mngr *converter.Manager
-	cfg  *packages.Config
 
-	// info is the current information being built
-	info *infov1.Information
-	// pkg is the current package used to extract information from
-	pkg *packages.Package
-
-	methods map[types.Object]methodObject
+	cfg *packages.Config
 }
 
 // New Returns a new loader which can be used to read in go-packages.
 func New(mngr *converter.Manager, cfg *packages.Config) Loader {
-	l := &localLoader{
-		mngr:    mngr,
-		info:    newInformation(),
-		cfg:     &packages.Config{},
-		methods: make(map[types.Object]methodObject),
-	}
-	if cfg != nil {
-		l.cfg = cfg
-	}
-	l.cfg.Mode = packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes | packages.NeedImports
-	l.cfg.ParseFile = func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
-		return parser.ParseFile(fset, filename, src, parser.ParseComments)
+	l := &loader{
+		mngr: mngr,
+		cfg: &packages.Config{
+			Mode: packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes | packages.NeedImports,
+			ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
+				return parser.ParseFile(fset, filename, src, parser.ParseComments)
+			},
+			Dir:        cfg.Dir,
+			Overlay:    cfg.Overlay,
+			Context:    cfg.Context,
+			Logf:       cfg.Logf,
+			Env:        cfg.Env,
+			BuildFlags: cfg.BuildFlags,
+			Tests:      cfg.Tests,
+		},
 	}
 	return l
 }
 
-func (l *localLoader) Load(patterns ...string) (map[*packages.Package]*infov1.Information, error) {
-	pkgs, err := packages.Load(l.cfg, patterns...)
+func (l *loader) Load(args ...string) (infov1.Project, error) {
+	pkgs, err := packages.Load(l.cfg, args...)
 	if err != nil {
 		return nil, err
 	}
 	if packages.PrintErrors(pkgs) > 0 {
-		return nil, errors.New("error occured after load")
+		os.Exit(_badRequest)
 	}
-	if len(pkgs) == 0 {
-		return nil, ErrPkgsEmpty
-	}
-	projs := make(map[*packages.Package]*infov1.Information, len(pkgs))
+	proj := make(map[*packages.Package]*infov1.Information, len(pkgs))
 	for _, pkg := range pkgs {
-		l.pkg = pkg
-		if err := l.exctractInfosFromPkg(); err != nil {
+		info, err := extractInfos(pkg, l.mngr.ParseMarkers)
+		if err != nil {
 			return nil, err
 		}
-		if len(l.methods) != 0 {
-			if err := l.addMethods(); err != nil {
-				return nil, err
-			}
-		}
-		projs[pkg] = l.info
-		l.reset()
+		proj[pkg] = info
 	}
-	return projs, nil
+	return proj, nil
 }
 
-func (l *localLoader) addMethods() error {
-	for n, meth := range l.methods {
-		namedInfo, found := l.info.Named[n]
-		if !found {
-			return fmt.Errorf("named type not found in post: %v", n)
-		}
-		namedInfo.Methods[meth.obj] = meth.info
-	}
-	return nil
-}
-
-func (l *localLoader) reset() {
-	l.info = newInformation()
-	l.pkg = nil
-	l.methods = make(map[types.Object]methodObject)
-}
-
-func (l *localLoader) objectOf(ident *ast.Ident) (types.Object, error) {
-	obj := l.pkg.TypesInfo.ObjectOf(ident)
+func objectOf(pkg *packages.Package, ident *ast.Ident) (types.Object, error) {
+	obj := pkg.TypesInfo.ObjectOf(ident)
 	if obj == nil {
 		return nil, fmt.Errorf("object not found: %v", ident)
 	}
 	return obj, nil
 }
 
-func (l *localLoader) exctractInfosFromPkg() error {
-	for _, file := range l.pkg.Syntax {
-		if err := l.extractInfosFromFile(file); err != nil {
-			return err
-		}
-		if err := l.extractFileInfo(file); err != nil {
-			return err
-		}
+func typeOf(pkg *packages.Package, expr ast.Expr) (types.Type, error) {
+	typ := pkg.TypesInfo.TypeOf(expr)
+	if typ == nil {
+		return nil, fmt.Errorf("type not found: %v", expr)
 	}
-	return nil
+	return typ, nil
 }
 
-func (l *localLoader) extractInfosFromFile(file *ast.File) error {
-	for _, decl := range file.Decls {
-		var err error
-		switch d := decl.(type) {
-		case *ast.FuncDecl:
-			err = l.funcDecl(d)
-		case *ast.GenDecl:
-			err = l.genDecl(d)
+func extractInfos(pkg *packages.Package, parse parseMarkers) (*infov1.Information, error) {
+	info := newInformation()
+	methodDecls := make([]*ast.FuncDecl, 0)
+	for _, file := range pkg.Syntax {
+		if err := extractFileInfo(pkg, parse, file, info); err != nil {
+			return nil, err
 		}
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (l *localLoader) funcDecl(decl *ast.FuncDecl) error {
-	if isMethod(decl) {
-		return l.extractMethodInfo(decl)
-	}
-	return l.extractFuncInfo(decl)
-}
-
-func (l *localLoader) genDecl(decl *ast.GenDecl) error {
-	var err error
-	switch decl.Tok {
-	case token.CONST:
-		err = l.extractConstInfo(decl)
-	case token.VAR:
-		err = l.extractVarInfo(decl)
-	case token.IMPORT:
-		err = l.extractImportInfo(decl)
-	case token.TYPE:
-		err = l.typeDecl(decl)
-	}
-	return err
-}
-
-func (l *localLoader) typeDecl(decl *ast.GenDecl) error {
-	specs := convertSpecs[*ast.TypeSpec](decl.Specs)
-	for _, spec := range specs {
-		var err error
-		typ := l.pkg.TypesInfo.TypeOf(spec.Name)
-		_, isAlias := typ.(*types.Alias)
-		if isAlias {
-			err = l.extractAliasInfo(decl, spec)
-			if err != nil {
-				return err
+		for _, decl := range file.Decls {
+			// this part of the code is only responsible for finding the correct
+			// extract function.
+			var err error
+			var isTypeToken bool
+			funcDecl, isFunc := decl.(*ast.FuncDecl)
+			if isFunc && isMethod(funcDecl) {
+				methodDecls = append(methodDecls, funcDecl)
+				continue
 			}
-			continue
+			if isFunc && !isMethod(funcDecl) {
+				err = extractFuncInfo(pkg, parse, funcDecl, info)
+			}
+			if err != nil {
+				return nil, err
+			}
+			if isFunc {
+				continue
+			}
+			genDecl := decl.(*ast.GenDecl)
+			switch genDecl.Tok {
+			case token.CONST:
+				err = extractConstInfo(pkg, parse, genDecl, info)
+			case token.VAR:
+				err = extractVarInfo(pkg, parse, genDecl, info)
+			case token.IMPORT:
+				err = extractImportInfo(pkg, parse, genDecl, info)
+			default:
+				isTypeToken = true
+			}
+			if err != nil {
+				return nil, err
+			}
+			if !isTypeToken {
+				continue
+			}
+			// TYPE token
+			specs := convertSpecs[*ast.TypeSpec](genDecl.Specs)
+			for _, spec := range specs {
+				var err error
+				typ, err := typeOf(pkg, spec.Name)
+				if err != nil {
+					return nil, err
+				}
+				// in go Aliases are not type Named
+				_, isAlias := typ.(*types.Alias)
+				if isAlias {
+					err = extractAliasInfo(pkg, parse, genDecl, spec, info)
+				}
+				if err != nil {
+					return nil, err
+				}
+				if isAlias {
+					continue
+				}
+				switch typ.(*types.Named).Underlying().(type) {
+				case *types.Struct:
+					err = extractStructInfo(pkg, parse, genDecl, spec, info)
+				case *types.Interface:
+					err = extractIfaceInfo(pkg, parse, genDecl, spec, info)
+				default:
+					err = extractNamedInfo(pkg, parse, genDecl, spec, info)
+				}
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
-		switch typ.(*types.Named).Underlying().(type) {
-		case *types.Struct:
-			err = l.extractStructInfo(decl, spec)
-		case *types.Interface:
-			err = l.extractIfaceInfo(decl, spec)
-		default:
-			err = l.extractNamedTypeInfo(decl, spec)
-		}
-		if err != nil {
-			return err
+
+		for _, methodDecl := range methodDecls {
+			if err := extractMethodInfo(pkg, parse, methodDecl, info); err != nil {
+				return nil, err
+			}
 		}
 	}
+	return info, nil
+}
+
+func extractFileInfo(pkg *packages.Package, parse parseMarkers, file *ast.File, infos *infov1.Information) error {
+	doc := file.Doc.Text()
+	opts, err := parse(doc, optionv1.TargetPkg)
+	if err != nil {
+		return err
+	}
+	info := infov1.FileInfo{
+		File: file,
+		Opts: opts,
+	}
+	filename := filepath.Base(pkg.Fset.Position(file.Package).Filename)
+	infos.Files[filename] = info
 	return nil
 }
 
-func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
+func extractMethodInfo(pkg *packages.Package, parse parseMarkers, decl *ast.FuncDecl, infos *infov1.Information) error {
 	doc := decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetMethod)
+	opts, err := parse(doc, optionv1.TargetMethod)
 	if err != nil {
 		return err
 	}
@@ -195,43 +195,38 @@ func (l *localLoader) extractMethodInfo(decl *ast.FuncDecl) error {
 		Opts: opts,
 	}
 	rec := decl.Recv.List[0].Type
-	recIdent := ident(rec)
-	if recIdent == nil {
-		return fmt.Errorf("is not *ast.Ident: %v", rec)
-	}
-	recObj, err := l.objectOf(recIdent)
+	recObj, err := objectOf(pkg, ident(rec))
 	if err != nil {
 		return err
 	}
-	methObj, err := l.objectOf(decl.Name)
+	methObj, err := objectOf(pkg, decl.Name)
 	if err != nil {
 		return err
 	}
-	struc, isStruct := l.info.Structs[recObj]
-	if isStruct {
-		struc.Methods[methObj] = info
+	return addMethodToType(recObj, methObj, info, infos)
+}
+
+func addMethodToType(receiver, method types.Object, methodInfo infov1.FuncInfo, info *infov1.Information) error {
+	named, isNamed := info.Named[receiver]
+	if isNamed {
+		named.Methods[method] = methodInfo
 		return nil
 	}
-	// check if the type of the method is already extracted because for methods
-	// order is important
-	named, found := l.info.Named[recObj]
-	if !found {
-		// store the method for the post addition
-		l.methods[recObj] = methodObject{info: info, obj: methObj}
-		return nil
+	strct, isStruct := info.Structs[receiver]
+	if !isStruct {
+		return fmt.Errorf("type is not extracted yet: %v", receiver)
 	}
-	named.Methods[methObj] = info
+	strct.Methods[method] = methodInfo
 	return nil
 }
 
-func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
+func extractFuncInfo(pkg *packages.Package, parse parseMarkers, decl *ast.FuncDecl, infos *infov1.Information) error {
 	doc := decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetFunc)
+	opts, err := parse(doc, optionv1.TargetFunc)
 	if err != nil {
 		return err
 	}
-
-	obj, err := l.objectOf(decl.Name)
+	obj, err := objectOf(pkg, decl.Name)
 	if err != nil {
 		return err
 	}
@@ -239,57 +234,16 @@ func (l *localLoader) extractFuncInfo(decl *ast.FuncDecl) error {
 		Decl: decl,
 		Opts: opts,
 	}
-	l.info.Funcs[obj] = info
+	infos.Funcs[obj] = info
 	return nil
 }
 
-func (l *localLoader) extractFileInfo(file *ast.File) error {
-	doc := file.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetPkg)
-	if err != nil {
-		return err
-	}
-	info := infov1.FileInfo{
-		File: file,
-		Opts: opts,
-	}
-
-	filename := filepath.Base(l.pkg.Fset.Position(file.Package).Filename)
-	l.info.Files[filename] = info
-	return nil
-}
-
-func (l *localLoader) extractImportInfo(decl *ast.GenDecl) error {
-	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
-	for _, spec := range specs {
-		doc := decl.Doc.Text() + spec.Doc.Text()
-		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetImport)
-		if err != nil {
-			return err
-		}
-		info := infov1.ImportInfo{
-			Spec: spec,
-			Decl: decl,
-			Opts: opts,
-		}
-		obj, err := l.objectOf(spec.Name)
-		if err != nil {
-			obj = l.pkg.TypesInfo.Implicits[spec]
-		}
-		if obj == nil {
-			return fmt.Errorf("no types.Object found: %v", spec.Path.Value)
-		}
-		l.info.Imports[obj] = info
-	}
-	return nil
-}
-
-func (l *localLoader) extractVarInfo(decl *ast.GenDecl) error {
+func extractVarInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, infos *infov1.Information) error {
 	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		for _, name := range spec.Names {
-			opts, err := l.mngr.ParseDefs(doc, optionv1.TargetVar)
+			opts, err := parse(doc, optionv1.TargetVar)
 			if err != nil {
 				return err
 			}
@@ -298,22 +252,22 @@ func (l *localLoader) extractVarInfo(decl *ast.GenDecl) error {
 				Decl: decl,
 				Opts: opts,
 			}
-			obj, err := l.objectOf(name)
+			obj, err := objectOf(pkg, name)
 			if err != nil {
 				return err
 			}
-			l.info.Vars[obj] = info
+			infos.Vars[obj] = info
 		}
 	}
 	return nil
 }
 
-func (l *localLoader) extractConstInfo(decl *ast.GenDecl) error {
+func extractConstInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, infos *infov1.Information) error {
 	specs := convertSpecs[*ast.ValueSpec](decl.Specs)
 	for _, spec := range specs {
 		doc := decl.Doc.Text() + spec.Doc.Text()
 		for _, name := range spec.Names {
-			opts, err := l.mngr.ParseDefs(doc, optionv1.TargetConst)
+			opts, err := parse(doc, optionv1.TargetConst)
 			if err != nil {
 				return err
 			}
@@ -322,19 +276,63 @@ func (l *localLoader) extractConstInfo(decl *ast.GenDecl) error {
 				Decl: decl,
 				Opts: opts,
 			}
-			obj, err := l.objectOf(name)
+			obj, err := objectOf(pkg, name)
 			if err != nil {
 				return err
 			}
-			l.info.Consts[obj] = info
+			infos.Consts[obj] = info
 		}
 	}
 	return nil
 }
 
-func (l *localLoader) extractNamedTypeInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
+func extractImportInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, infos *infov1.Information) error {
+	specs := convertSpecs[*ast.ImportSpec](decl.Specs)
+	for _, spec := range specs {
+		doc := decl.Doc.Text() + spec.Doc.Text()
+		opts, err := parse(doc, optionv1.TargetImport)
+		if err != nil {
+			return err
+		}
+		info := infov1.ImportInfo{
+			Spec: spec,
+			Decl: decl,
+			Opts: opts,
+		}
+		obj, err := objectOf(pkg, spec.Name)
+		if err != nil {
+			obj = pkg.TypesInfo.Implicits[spec]
+		}
+		if obj == nil {
+			return fmt.Errorf("no types.Object found: %v", spec.Path.Value)
+		}
+		infos.Imports[obj] = info
+	}
+	return nil
+}
+
+func extractAliasInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, spec *ast.TypeSpec, infos *infov1.Information) error {
 	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetNamed)
+	opts, err := parse(doc, optionv1.TargetAlias)
+	if err != nil {
+		return err
+	}
+	info := infov1.AliasInfo{
+		Decl: decl,
+		Spec: spec,
+		Opts: opts,
+	}
+	obj, err := objectOf(pkg, spec.Name)
+	if err != nil {
+		return err
+	}
+	infos.Aliases[obj] = info
+	return nil
+}
+
+func extractNamedInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, spec *ast.TypeSpec, infos *infov1.Information) error {
+	doc := spec.Doc.Text() + decl.Doc.Text()
+	opts, err := parse(doc, optionv1.TargetNamed)
 	if err != nil {
 		return err
 	}
@@ -344,91 +342,21 @@ func (l *localLoader) extractNamedTypeInfo(decl *ast.GenDecl, spec *ast.TypeSpec
 		Opts:    opts,
 		Methods: make(map[types.Object]infov1.FuncInfo),
 	}
-	obj, err := l.objectOf(spec.Name)
+	obj, err := objectOf(pkg, spec.Name)
 	if err != nil {
 		return err
 	}
-	l.info.Named[obj] = &info
+	infos.Named[obj] = &info
 	return nil
 }
 
-func (l *localLoader) extractIfaceInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
+func extractStructInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, spec *ast.TypeSpec, infos *infov1.Information) error {
 	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetIface)
+	opts, err := parse(doc, optionv1.TargetStruct)
 	if err != nil {
 		return err
 	}
-	ifaceType := spec.Type.(*ast.InterfaceType)
-	sigs, err := l.extractIfaceSignatureInfo(ifaceType)
-	if err != nil {
-		return err
-	}
-	info := infov1.IfaceInfo{
-		Spec:       spec,
-		Decl:       decl,
-		Opts:       opts,
-		Signatures: sigs,
-	}
-	obj, err := l.objectOf(spec.Name)
-	if err != nil {
-		return err
-	}
-	l.info.Ifaces[obj] = info
-	return nil
-}
-
-func (l *localLoader) extractIfaceSignatureInfo(
-	spec *ast.InterfaceType,
-) (map[types.Object]infov1.SignatureInfo, error) {
-	infos := make(map[types.Object]infov1.SignatureInfo, spec.Methods.NumFields())
-	for _, meth := range spec.Methods.List {
-		doc := meth.Doc.Text()
-		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetIfaceSig)
-		if err != nil {
-			return nil, err
-		}
-		for _, name := range meth.Names {
-			obj, err := l.objectOf(meth.Names[0])
-			if err != nil {
-				return nil, err
-			}
-			info := infov1.SignatureInfo{
-				Ident:  name,
-				Method: meth,
-				Opts:   opts,
-			}
-			infos[obj] = info
-		}
-	}
-	return infos, nil
-}
-
-func (l *localLoader) extractAliasInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
-	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetAlias)
-	if err != nil {
-		return err
-	}
-	info := infov1.AliasInfo{
-		Decl: decl,
-		Spec: spec,
-		Opts: opts,
-	}
-	obj, err := l.objectOf(spec.Name)
-	if err != nil {
-		return err
-	}
-	l.info.Aliases[obj] = info
-	return nil
-}
-
-func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) error {
-	doc := spec.Doc.Text() + decl.Doc.Text()
-	opts, err := l.mngr.ParseDefs(doc, optionv1.TargetStruct)
-	if err != nil {
-		return err
-	}
-	obj, err := l.objectOf(spec.Name)
+	obj, err := objectOf(pkg, spec.Name)
 	if err != nil {
 		return err
 	}
@@ -440,24 +368,24 @@ func (l *localLoader) extractStructInfo(decl *ast.GenDecl, spec *ast.TypeSpec) e
 		Fields:  make(map[types.Object]infov1.FieldInfo, structType.Fields.NumFields()),
 		Methods: make(map[types.Object]infov1.FuncInfo, 0),
 	}
-	fieldInfos, err := l.extractFieldInfo(structType)
+	fieldInfos, err := fieldInfoOf(pkg, parse, structType)
 	if err != nil {
 		return err
 	}
 	info.Fields = fieldInfos
-	l.info.Structs[obj] = &info
+	infos.Structs[obj] = &info
 	return nil
 }
 
-func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]infov1.FieldInfo, error) {
-	infos := make(map[types.Object]infov1.FieldInfo, 0)
+func fieldInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.StructType) (map[types.Object]infov1.FieldInfo, error) {
+	fields := make(map[types.Object]infov1.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
 		if isEmbedded(field) {
 			continue
 		}
 		doc := field.Doc.Text()
-		opts, err := l.mngr.ParseDefs(doc, optionv1.TargetField)
+		opts, err := parse(doc, optionv1.TargetField)
 		if err != nil {
 			return nil, err
 		}
@@ -467,12 +395,61 @@ func (l *localLoader) extractFieldInfo(spec *ast.StructType) (map[types.Object]i
 				Field: field,
 				Opts:  opts,
 			}
-			obj, err := l.objectOf(name)
+			obj, err := objectOf(pkg, name)
 			if err != nil {
 				return nil, err
 			}
-			infos[obj] = info
+			fields[obj] = info
 		}
 	}
-	return infos, nil
+	return fields, nil
+}
+
+func extractIfaceInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl, spec *ast.TypeSpec, infos *infov1.Information) error {
+	doc := spec.Doc.Text() + decl.Doc.Text()
+	opts, err := parse(doc, optionv1.TargetIface)
+	if err != nil {
+		return err
+	}
+	ifaceType := spec.Type.(*ast.InterfaceType)
+	sigs, err := signatureInfoOf(pkg, parse, ifaceType)
+	if err != nil {
+		return err
+	}
+	info := infov1.IfaceInfo{
+		Spec:       spec,
+		Decl:       decl,
+		Opts:       opts,
+		Signatures: sigs,
+	}
+	obj, err := objectOf(pkg, spec.Name)
+	if err != nil {
+		return err
+	}
+	infos.Ifaces[obj] = info
+	return nil
+}
+
+func signatureInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.InterfaceType) (map[types.Object]infov1.SignatureInfo, error) {
+	sigs := make(map[types.Object]infov1.SignatureInfo, spec.Methods.NumFields())
+	for _, meth := range spec.Methods.List {
+		doc := meth.Doc.Text()
+		opts, err := parse(doc, optionv1.TargetIfaceSig)
+		if err != nil {
+			return nil, err
+		}
+		for _, name := range meth.Names {
+			obj, err := objectOf(pkg, meth.Names[0])
+			if err != nil {
+				return nil, err
+			}
+			info := infov1.SignatureInfo{
+				Ident:  name,
+				Method: meth,
+				Opts:   opts,
+			}
+			sigs[obj] = info
+		}
+	}
+	return sigs, nil
 }

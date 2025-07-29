@@ -13,7 +13,7 @@ import (
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
-// TODO: add unamed and named imports in thge generated files
+// TODO: add unamed and named imports in the generated files
 func TestLoaderLocal(t *testing.T) {
 	tc, err := randLoaderTestCase()
 	if err != nil {
@@ -53,9 +53,9 @@ func validateMarker(want []marker.Marker, got map[string][]any) error {
 	return nil
 }
 
-func validate[T markers, V infov1.Info](want map[string]T, got map[types.Object]V) error {
+func validate[T markers, V infov1.Info](typ string, want map[string]T, got map[types.Object]V) error {
 	if len(got) != len(want) {
-		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(got), len(want))
+		return fmt.Errorf("quantity not equal for %s. got: %d; want: %d\n", typ, len(got), len(want))
 	}
 	for typ, info := range got {
 		m := want[typ.Name()].markers()
@@ -68,56 +68,56 @@ func validate[T markers, V infov1.Info](want map[string]T, got map[types.Object]
 
 func isValid(tc loaderTestCase, proj *infov1.Information) error {
 	// check struct
-	if err := validate(tc.Structs, proj.Structs); err != nil {
+	if err := validate("structs", tc.Structs, proj.Structs); err != nil {
 		return err
 	}
 	for typ, s := range proj.Structs {
 		name := typ.Name()
-		if err := validate(tc.Structs[name].Fields, s.Fields); err != nil {
+		if err := validate("struct.fields", tc.Structs[name].Fields, s.Fields); err != nil {
 			return err
 		}
-		if err := validate(tc.Structs[name].Methods, s.Methods); err != nil {
+		if err := validate("struct.methods", tc.Structs[name].Methods, s.Methods); err != nil {
 			return err
 		}
 	}
 	// check iface
-	if err := validate(tc.Ifaces, proj.Ifaces); err != nil {
+	if err := validate("interfaces", tc.Ifaces, proj.Ifaces); err != nil {
 		return err
 	}
 	for typ, iface := range proj.Ifaces {
 		name := typ.Name()
-		if err := validate(tc.Ifaces[name].Signatures, iface.Signatures); err != nil {
+		if err := validate("interfaces.signature", tc.Ifaces[name].Signatures, iface.Signatures); err != nil {
 			return err
 		}
 	}
-	if err := validate(tc.Named, proj.Named); err != nil {
+	if err := validate("named", tc.Named, proj.Named); err != nil {
 		return err
 	}
 	for typ, named := range proj.Named {
 		name := typ.Name()
-		if err := validate(tc.Named[name].Methods, named.Methods); err != nil {
+		if err := validate("named.methods", tc.Named[name].Methods, named.Methods); err != nil {
 			return err
 		}
 	}
 	// check rest
-	if err := validate(tc.Consts, proj.Consts); err != nil {
+	if err := validate("consts", tc.Consts, proj.Consts); err != nil {
 		return err
 	}
-	if err := validate(tc.Vars, proj.Vars); err != nil {
+	if err := validate("vars", tc.Vars, proj.Vars); err != nil {
 		return err
 	}
-	if err := validate(tc.Imports, proj.Imports); err != nil {
+	if err := validate("imports", tc.Imports, proj.Imports); err != nil {
 		return err
 	}
-	if err := validate(tc.Aliases, proj.Aliases); err != nil {
+	if err := validate("aliases", tc.Aliases, proj.Aliases); err != nil {
 		return err
 	}
-	if err := validate(tc.Funcs, proj.Funcs); err != nil {
+	if err := validate("funcs", tc.Funcs, proj.Funcs); err != nil {
 		return err
 	}
 	// check file because its a special case because of the missing types.Object
 	if len(tc.Files) != len(proj.Files) {
-		return fmt.Errorf("quantity not equal. got: %d; want: %d\n", len(proj.Files), len(tc.Files))
+		return fmt.Errorf("quantity not equal for files. got: %d; want: %d\n", len(proj.Files), len(tc.Files))
 	}
 	for filename, info := range proj.Files {
 		markers := tc.Files[filename].markers()

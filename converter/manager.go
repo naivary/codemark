@@ -114,7 +114,7 @@ func (m *Manager) Convert(mrk marker.Marker, t optionv1.Target) (any, error) {
 	return out.Interface(), nil
 }
 
-func (m *Manager) ParseDefs(doc string, t optionv1.Target) (map[string][]any, error) {
+func (m *Manager) ParseMarkers(doc string, t optionv1.Target) (map[string][]any, error) {
 	markers, err := parser.Parse(doc)
 	if err != nil {
 		return nil, err
