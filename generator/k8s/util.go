@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"bytes"
+	"fmt"
 
 	"github.com/goccy/go-yaml"
 
@@ -26,11 +27,10 @@ func isMainFunc(fn infov1.FuncInfo) bool {
 
 func newArtifact(name string, manifests ...any) (*genv1.Artifact, error) {
 	var data bytes.Buffer
+	enc := yaml.NewEncoder(&data)
+	defer enc.Close()
 	for _, manifest := range manifests {
-		if err := yaml.NewEncoder(&data).Encode(&manifest); err != nil {
-			return nil, err
-		}
-		if _, err := data.WriteString("---"); err != nil {
+		if err := enc.Encode(&manifest); err != nil {
 			return nil, err
 		}
 	}
@@ -38,4 +38,21 @@ func newArtifact(name string, manifests ...any) (*genv1.Artifact, error) {
 		Name: name,
 		Data: &data,
 	}, nil
+}
+
+func mergeArtifacts(artifacts ...*genv1.Artifact) (*genv1.Artifact, error) {
+	if len(artifacts) == 0 {
+		return nil, nil
+	}
+	base := artifacts[0]
+	for _, artifact := range artifacts {
+		var data bytes.Buffer
+		data.ReadFrom(artifact.Data)
+		_, err := base.Data.Write()
+		if err != nil {
+			return nil, err
+		}
+	}
+	fmt.Println(base)
+	return base, nil
 }

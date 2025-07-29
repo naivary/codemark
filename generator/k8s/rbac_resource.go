@@ -26,8 +26,7 @@ define multiple rules for the rbac role but have missed one of the markers:
 // +k8s:rbac:resources=["pod"]
 // +k8s:rbac:apigroups=[""] <-- added apigroups
 // +k8s:rbac:verbs=["get", "list"] <-- added verbs
-// +k8s:rbac:resources=["pod", "service"]
-`)
+// +k8s:rbac:resources=["pod", "service"]`)
 
 func newRBACRole(fn infov1.FuncInfo) (rbacv1.Role, error) {
 	role := rbacv1.Role{
@@ -69,6 +68,8 @@ func validateRole(role rbacv1.Role) error {
 	return nil
 }
 
+// createRBAC creates the set of RBAC manifests e.g. Role, RoleBinding and
+// ServiceAccount.
 func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 	role, err := createRBACRole(fn)
 	if err != nil {
@@ -79,7 +80,20 @@ func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 		return nil, err
 	}
 	filename := fmt.Sprintf("%s.rbac.yaml", role.Name)
-	return newArtifact(filename, role, binding)
+	rbacArtifact, err := newArtifact(filename, role, binding)
+	if err != nil {
+		return nil, err
+	}
+	const svaName = "k8s:serviceaccount:name"
+	name := fn.Opts[svaName]
+	if len(name) == 0 {
+		fn.Opts[svaName] = []any{ServiceAccountName(role.Name)}
+	}
+	sva, err := createServiceAccount(fn)
+	if err != nil {
+		return nil, err
+	}
+	return mergeArtifacts(rbacArtifact, sva)
 }
 
 func createRBACRoleBinding(fn infov1.FuncInfo) (rbacv1.RoleBinding, error) {
