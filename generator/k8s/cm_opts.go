@@ -12,18 +12,17 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-var errImmutableConfigMapWithoutDefault = errors.New(`
-when you decide to have an immutable ConfigMap the default value of the marker cannot be empty. 
-If you would like to have the empty default value remove the marker completly and use the default 
-value of the struct field in go.
+var errEmptyDefault = errors.New(`
+the default value of a config option cannot be empty. If you want it to be empty just remove the marker 
+and use the empty value of the go type itself.
 `)
 
 const _configMapResource = "configmap"
 
 func configMapOpts() []*optionv1.Option {
 	return makeOpts(_configMapResource,
+		mustMakeOpt(_typeName, Default(""), _required, _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
-		mustMakeOpt(_typeName, Default(""), _optional, _unique, optionv1.TargetField),
 		mustMakeOpt("format.key", Format(CamelCase), _optional, _unique, optionv1.TargetStruct),
 	)
 }
@@ -31,15 +30,10 @@ func configMapOpts() []*optionv1.Option {
 type Default string
 
 func (d Default) apply(info infov1.FieldInfo, cm *corev1.ConfigMap, format Format) error {
-	isImmutable := *cm.Immutable
-	if !isImmutable {
-		// TODO: check if the type of the field matches the default value
-		cm.Data[format.Format(info.Ident.Name)] = string(d)
-		return nil
-	}
 	if len(string(d)) == 0 {
-		return errImmutableConfigMapWithoutDefault
+		return errEmptyDefault
 	}
+	// TODO: check if the type of the field matches the default value
 	cm.Data[format.Format(info.Ident.Name)] = string(d)
 	return nil
 }

@@ -3,11 +3,11 @@ package k8s
 import (
 	"bytes"
 	"errors"
-
-	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"fmt"
 
 	"github.com/goccy/go-yaml"
+	rbacv1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
@@ -88,10 +88,10 @@ func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 			return nil, err
 		}
 	}
+	filename := fmt.Sprintf("%s.rbac.yaml", role.Name)
 	return &genv1.Artifact{
-		Name:        "codemark_k8s_rbac",
-		ContentType: "application/json",
-		Data:        &file,
+		Name: filename,
+		Data: &file,
 	}, err
 }
 
