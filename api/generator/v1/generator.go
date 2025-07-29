@@ -28,5 +28,5 @@ type Artifact struct {
 	// because it might be written to the filesystem (including the extension).
 	Name string
 
-	Data io.Reader
+	Data io.ReadWriter
 }
