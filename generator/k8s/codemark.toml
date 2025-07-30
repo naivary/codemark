@@ -1,4 +1,6 @@
 [k8s]
-namespace = "something"
+namespace = "<application>"
+name_format = "format"
 
-configmap_key_format = "env"
+[k8s.configmap]
+format = "snake_case"

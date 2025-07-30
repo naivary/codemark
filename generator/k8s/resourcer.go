@@ -11,11 +11,12 @@ import (
 type Resourcer interface {
 	// Resouce represented by this resouce
 	Resource() string
+
 	// Options of the resource
 	Options() []*optionv1.Option
 
 	// Create generated the actual artifact
-	Create(info infov1.Info, metadata metav1.ObjectMeta) (*genv1.Artifact, error)
+	Create(info infov1.Info, metadata metav1.ObjectMeta, config *config) (*genv1.Artifact, error)
 
 	CanCreate(info infov1.Info) bool
 }

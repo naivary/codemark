@@ -48,7 +48,7 @@ func (c configMapResourcer) CanCreate(info infov1.Info) bool {
 	return false
 }
 
-func (c configMapResourcer) Create(info infov1.Info, metadata metav1.ObjectMeta) (*genv1.Artifact, error) {
+func (c configMapResourcer) Create(info infov1.Info, metadata metav1.ObjectMeta, cfg *config) (*genv1.Artifact, error) {
 	structInfo := info.(*infov1.StructInfo)
 	c.setDefaultOpts(structInfo)
 	cm := c.newConfigMap(structInfo, metadata)
@@ -73,8 +73,8 @@ func (c configMapResourcer) newConfigMap(info *infov1.StructInfo, metadata metav
 		ObjectMeta: metadata,
 		Data:       make(map[string]string, len(info.Fields)),
 	}
-	if cm.ObjectMeta.Name == "" {
-		cm.ObjectMeta.Name = KebabCase.Format(info.Spec.Name.Name)
+	if cm.Name == "" {
+		cm.Name = KebabCase.Format(info.Spec.Name.Name)
 	}
 	return cm
 }

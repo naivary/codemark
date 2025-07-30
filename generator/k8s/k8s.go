@@ -73,7 +73,10 @@ func (g k8sGenerator) Registry() registry.Registry {
 
 func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*genv1.Artifact, error) {
 	artifacts := make([]*genv1.Artifact, 0, len(proj))
-	// TODO: generate metav1.ObjectMeta for every resourcer
+	cfg, err := newConfig(config)
+	if err != nil {
+		return nil, err
+	}
 	for _, info := range proj {
 		for _, strc := range info.Structs {
 			metadata, err := createObjectMeta(strc)
@@ -81,12 +84,11 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 				return nil, err
 			}
 			rtype := reflect.TypeOf(strc)
-			resources := g.resources[rtype]
-			for _, resource := range resources {
+			for _, resource := range g.resources[rtype] {
 				if !resource.CanCreate(strc) {
 					continue
 				}
-				artifact, err := resource.Create(strc, metadata)
+				artifact, err := resource.Create(strc, metadata, cfg)
 				if err != nil {
 					return nil, err
 				}
