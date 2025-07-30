@@ -1,0 +1,126 @@
+package k8s
+
+import (
+	"fmt"
+
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	genv1 "github.com/naivary/codemark/api/generator/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
+	optionv1 "github.com/naivary/codemark/api/option/v1"
+)
+
+type Resourcer[I infov1.Info] interface {
+	// Resouce represented by this resouce
+	Resource() string
+	// Options of the resource
+	Options() []*optionv1.Option
+	// Create generated the actual artifact
+	Create(info I, metadata metav1.ObjectMeta) (*genv1.Artifact, error)
+}
+
+var _ Resourcer[*infov1.StructInfo] = (*configMapResourcer)(nil)
+
+func NewConfigMapResourcer() Resourcer[*infov1.StructInfo] {
+	return &configMapResourcer{resource: "configmap"}
+}
+
+type configMapResourcer struct {
+	resource string
+}
+
+func (c configMapResourcer) Resource() string {
+	return c.resource
+}
+
+func (c configMapResourcer) Options() []*optionv1.Option {
+	return makeOpts(_configMapResource,
+		mustMakeOpt(_typeName, Default(""), _required, _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
+		mustMakeOpt("format.key", Format(CamelCase), _optional, _unique, optionv1.TargetStruct),
+	)
+}
+
+func (c configMapResourcer) Create(info *infov1.StructInfo, metadata metav1.ObjectMeta) (*genv1.Artifact, error) {
+	c.setDefaultOpts(info)
+	cm := c.newConfigMap(info, metadata)
+	format, err := c.applyStructOpts(info, &cm)
+	if err != nil {
+		return nil, err
+	}
+	err = c.applyFieldOpts(info, format, &cm)
+	if err != nil {
+		return nil, err
+	}
+	filename := fmt.Sprintf("%s.configmap.yaml", cm.Name)
+	return newArtifact(filename, cm)
+}
+
+func (c configMapResourcer) newConfigMap(info *infov1.StructInfo, metadata metav1.ObjectMeta) corev1.ConfigMap {
+	cm := corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metadata,
+	}
+	if cm.ObjectMeta.Name == "" {
+		cm.ObjectMeta.Name = KebabCase.Format(info.Spec.Name.Name)
+	}
+	return cm
+}
+
+func (c configMapResourcer) setDefaultOpts(info *infov1.StructInfo) {
+	opts := c.Options()
+	setOptsDefaults(opts, info.Opts, optionv1.TargetStruct)
+	for _, finfo := range info.Fields {
+		setOptsDefaults(opts, finfo.Opts, optionv1.TargetField)
+	}
+}
+
+func (c configMapResourcer) applyStructOpts(info *infov1.StructInfo, cm *corev1.ConfigMap) (Format, error) {
+	var keyFormat Format
+	for ident, opts := range info.Opts {
+		if !isResource(ident, _configMapResource) {
+			continue
+		}
+		for _, opt := range opts {
+			var err error
+			switch o := opt.(type) {
+			case Immutable:
+				err = o.apply(cm)
+			case Format:
+				keyFormat = o
+			}
+			if err != nil {
+				return keyFormat, err
+			}
+		}
+	}
+	return keyFormat, nil
+}
+
+func (c configMapResourcer) applyFieldOpts(info *infov1.StructInfo, format Format, cm *corev1.ConfigMap) error {
+	for _, finfo := range info.Fields {
+		if !finfo.Ident.IsExported() {
+			continue
+		}
+		for ident, opts := range finfo.Opts {
+			if !isResource(ident, _configMapResource) {
+				continue
+			}
+			for _, opt := range opts {
+				var err error
+				switch o := opt.(type) {
+				case Default:
+					err = o.apply(finfo, cm, format)
+				}
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}

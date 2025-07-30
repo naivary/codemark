@@ -7,23 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/goccy/go-yaml"
-
-	genv1 "github.com/naivary/codemark/api/generator/v1"
-	infov1 "github.com/naivary/codemark/api/info/v1"
-	"github.com/naivary/codemark/loader"
 )
-
-func load(path string) (genv1.Generator, infov1.Project) {
-	gen, err := New()
-	if err != nil {
-		panic(err)
-	}
-	proj, err := loader.Load(gen.Registry(), path)
-	if err != nil {
-		panic(err)
-	}
-	return gen, proj
-}
 
 func TestResource_ConfigMap(t *testing.T) {
 	immutable := true
@@ -84,13 +68,12 @@ func TestResource_ConfigMap(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			gen, proj := load(tc.path)
-			artifacts, err := gen.Generate(proj)
+			artifacts, err := gen(tc.path)
 			if err != nil && tc.isValid {
 				t.Errorf("err occured: %s\n", err)
 			}
 			if err != nil && !tc.isValid {
-				t.Skipf("this error was expected: %s\n", err)
+				t.Skipf("expected error occucred: %s", err)
 			}
 			if len(artifacts) == 0 {
 				t.Errorf("no artifacts generated")

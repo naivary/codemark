@@ -24,9 +24,9 @@ func newRegistry() (registry.Registry, error) {
 	return reg, nil
 }
 
-var _ genv1.Generator = (*generator)(nil)
+var _ genv1.Generator = (*k8sGenerator)(nil)
 
-type generator struct {
+type k8sGenerator struct {
 	reg registry.Registry
 }
 
@@ -35,30 +35,29 @@ func New() (genv1.Generator, error) {
 	if err != nil {
 		return nil, err
 	}
-	gen := &generator{
+	gen := &k8sGenerator{
 		reg: reg,
 	}
 	return gen, nil
 }
 
-func (g generator) Domain() string {
+func (g k8sGenerator) Domain() string {
 	return "k8s"
 }
 
-func (g generator) Explain(ident string) string {
-	option, err := g.reg.Get(ident)
+func (g k8sGenerator) Explain(ident string) string {
+	_, err := g.reg.Get(ident)
 	if err != nil {
 		return ""
 	}
-	_ = option
 	return ""
 }
 
-func (g generator) Registry() registry.Registry {
+func (g k8sGenerator) Registry() registry.Registry {
 	return g.reg
 }
 
-func (g generator) Generate(proj infov1.Project) ([]*genv1.Artifact, error) {
+func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*genv1.Artifact, error) {
 	artifacts := make([]*genv1.Artifact, 0, len(proj))
 	for _, info := range proj {
 		for _, strc := range info.Structs {

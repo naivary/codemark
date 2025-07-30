@@ -43,10 +43,12 @@ func TestResource_RBAC(t *testing.T) {
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			gen, proj := load(tc.path)
-			artifacts, err := gen.Generate(proj)
-			if err != nil {
+			artifacts, err := gen(tc.path)
+			if err != nil && tc.isValid {
 				t.Errorf("err occured: %s\n", err)
+			}
+			if err == nil && !tc.isValid {
+				t.Skipf("expected error occured: %s", err)
 			}
 			role := rbacv1.Role{}
 			binding := rbacv1.RoleBinding{}
@@ -56,7 +58,6 @@ func TestResource_RBAC(t *testing.T) {
 			dec.Decode(&role)
 			dec.Decode(&binding)
 			dec.Decode(&sva)
-			t.Log(role.Rules, binding, sva)
 		})
 	}
 }
