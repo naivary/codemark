@@ -11,10 +11,7 @@ import (
 func newRegistry() (registry.Registry, error) {
 	reg := registry.InMemory()
 	opts := slices.Concat(
-		configMapOpts(),
 		objectMetaOpts(),
-		rbacOpts(),
-		serviceAccountOpts(),
 	)
 	for _, opt := range opts {
 		if err := reg.Define(opt); err != nil {
@@ -59,24 +56,10 @@ func (g k8sGenerator) Registry() registry.Registry {
 
 func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*genv1.Artifact, error) {
 	artifacts := make([]*genv1.Artifact, 0, len(proj))
+	// TODO: generate metav1.ObjectMeta for every resourcer
 	for _, info := range proj {
 		for _, strc := range info.Structs {
 			if shouldGenerateConfigMap(strc) {
-				cm, err := createConfigMap(strc)
-				if err != nil {
-					return nil, err
-				}
-				artifacts = append(artifacts, cm)
-			}
-		}
-		for _, fn := range info.Funcs {
-			if isMainFunc(fn) {
-				// createPod(fn)
-				rbac, err := createRBAC(fn)
-				if err != nil {
-					return nil, err
-				}
-				artifacts = append(artifacts, rbac)
 			}
 		}
 	}

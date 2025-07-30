@@ -9,23 +9,12 @@ import (
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
-	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
 var errEmptyDefault = errors.New(`
 the default value of a config option cannot be empty. If you want it to be empty just remove the marker 
 and use the empty value of the go type itself.
 `)
-
-const _configMapResource = "configmap"
-
-func configMapOpts() []*optionv1.Option {
-	return makeOpts(_configMapResource,
-		mustMakeOpt(_typeName, Default(""), _required, _unique, optionv1.TargetField),
-		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
-		mustMakeOpt("format.key", Format(CamelCase), _optional, _unique, optionv1.TargetStruct),
-	)
-}
 
 type Default string
 

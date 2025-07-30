@@ -2,7 +2,6 @@ package k8s
 
 import (
 	"fmt"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,62 +11,69 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-func newConfigMap(strc *infov1.StructInfo) (corev1.ConfigMap, error) {
-	cm := corev1.ConfigMap{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "ConfigMap",
-		},
-		Data: make(map[string]string),
-	}
-	objectMeta, err := createObjectMeta(strc)
-	if err != nil {
-		return cm, err
-	}
-	cm.ObjectMeta = objectMeta
-	return cm, nil
+var _ Resourcer[*infov1.StructInfo] = (*configMapResourcer)(nil)
+
+func NewConfigMapResourcer() Resourcer[*infov1.StructInfo] {
+	return &configMapResourcer{resource: "configmap"}
 }
 
-func configMapMetadataDefaults(strc *infov1.StructInfo) {
-	name := strc.Opts["k8s:metadata:name"]
-	if len(name) == 0 {
-		cmName := strings.ToLower(strc.Spec.Name.Name)
-		strc.Opts["k8s:metadata:name"] = []any{Name(cmName)}
-	}
+type configMapResourcer struct {
+	resource string
 }
 
-func configMapDefaults(strc *infov1.StructInfo) {
-	opts := configMapOpts()
-	setOptsDefaults(opts, strc.Opts, optionv1.TargetStruct)
-	for _, finfo := range strc.Fields {
-		setOptsDefaults(opts, finfo.Opts, optionv1.TargetField)
-	}
-	configMapMetadataDefaults(strc)
+func (c configMapResourcer) Resource() string {
+	return c.resource
 }
 
-func createConfigMap(strc *infov1.StructInfo) (*genv1.Artifact, error) {
-	configMapDefaults(strc)
-	cm, err := newConfigMap(strc)
+func (c configMapResourcer) Options() []*optionv1.Option {
+	return makeOpts(c.resource,
+		mustMakeOpt(_typeName, Default(""), _required, _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
+		mustMakeOpt("format.key", Format(CamelCase), _optional, _unique, optionv1.TargetStruct),
+	)
+}
+
+func (c configMapResourcer) Create(info *infov1.StructInfo, metadata metav1.ObjectMeta) (*genv1.Artifact, error) {
+	c.setDefaultOpts(info)
+	cm := c.newConfigMap(info, metadata)
+	format, err := c.applyStructOpts(info, &cm)
 	if err != nil {
 		return nil, err
 	}
-	format, err := applyStructOptsToConfigMap(strc, &cm)
+	err = c.applyFieldOpts(info, format, &cm)
 	if err != nil {
 		return nil, err
-	}
-	for _, finfo := range strc.Fields {
-		if err := applyFieldOptToConfigMap(finfo, format, &cm); err != nil {
-			return nil, err
-		}
 	}
 	filename := fmt.Sprintf("%s.configmap.yaml", cm.Name)
 	return newArtifact(filename, cm)
 }
 
-func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (Format, error) {
+func (c configMapResourcer) newConfigMap(info *infov1.StructInfo, metadata metav1.ObjectMeta) corev1.ConfigMap {
+	cm := corev1.ConfigMap{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "ConfigMap",
+		},
+		ObjectMeta: metadata,
+	}
+	if cm.ObjectMeta.Name == "" {
+		cm.ObjectMeta.Name = KebabCase.Format(info.Spec.Name.Name)
+	}
+	return cm
+}
+
+func (c configMapResourcer) setDefaultOpts(info *infov1.StructInfo) {
+	opts := c.Options()
+	setOptsDefaults(opts, info.Opts, optionv1.TargetStruct)
+	for _, finfo := range info.Fields {
+		setOptsDefaults(opts, finfo.Opts, optionv1.TargetField)
+	}
+}
+
+func (c configMapResourcer) applyStructOpts(info *infov1.StructInfo, cm *corev1.ConfigMap) (Format, error) {
 	var keyFormat Format
-	for ident, opts := range strc.Opts {
-		if !isResource(ident, _configMapResource) {
+	for ident, opts := range info.Opts {
+		if !isResource(ident, c.resource) {
 			continue
 		}
 		for _, opt := range opts {
@@ -86,23 +92,24 @@ func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (
 	return keyFormat, nil
 }
 
-func applyFieldOptToConfigMap(field infov1.FieldInfo, format Format, cm *corev1.ConfigMap) error {
-	if !field.Ident.IsExported() {
-		// unexported fields will be ignored
-		return nil
-	}
-	for ident, opts := range field.Opts {
-		if !isResource(ident, _configMapResource) {
+func (c configMapResourcer) applyFieldOpts(info *infov1.StructInfo, format Format, cm *corev1.ConfigMap) error {
+	for _, finfo := range info.Fields {
+		if !finfo.Ident.IsExported() {
 			continue
 		}
-		for _, opt := range opts {
-			var err error
-			switch o := opt.(type) {
-			case Default:
-				err = o.apply(field, cm, format)
+		for ident, opts := range finfo.Opts {
+			if !isResource(ident, c.resource) {
+				continue
 			}
-			if err != nil {
-				return err
+			for _, opt := range opts {
+				var err error
+				switch o := opt.(type) {
+				case Default:
+					err = o.apply(finfo, cm, format)
+				}
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
