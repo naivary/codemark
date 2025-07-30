@@ -8,12 +8,14 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-type Resourcer[I infov1.Info] interface {
+type Resourcer interface {
 	// Resouce represented by this resouce
 	Resource() string
 	// Options of the resource
 	Options() []*optionv1.Option
+
 	// Create generated the actual artifact
-	// TODO: Config has to be passed (rpobably directly as viper instance)
-	Create(info I, metadata metav1.ObjectMeta, config map[string]any) (*genv1.Artifact, error)
+	Create(info infov1.Info, metadata metav1.ObjectMeta) (*genv1.Artifact, error)
+
+	CanCreate(info infov1.Info) bool
 }

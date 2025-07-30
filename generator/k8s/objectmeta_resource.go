@@ -7,24 +7,14 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-var _ Resourcer[infov1.Info] = (*objectMetaResourcer)(nil)
-
-type objectMetaResourcer struct {
-	resource string
-}
-
-func NewObjectMetaResourcer() Resourcer[infov1.Info] {
-	return &objectMetaResourcer{resource: "metadata"}
-}
-
-func objectMetaDefaults(infoOpts map[string][]any) {
+func setObjectMetaDefaults(infoOpts map[string][]any) {
 	opts := objectMetaOpts()
 	setOptsDefaults(opts, infoOpts, optionv1.TargetAny)
 }
 
 func createObjectMeta(info infov1.Info) (metav1.ObjectMeta, error) {
 	obj := metav1.ObjectMeta{}
-	objectMetaDefaults(info.Options())
+	setObjectMetaDefaults(info.Options())
 	format := info.Options()["k8s:metadata:format.name"][0].(Format)
 	for _, opts := range info.Options() {
 		for _, opt := range opts {

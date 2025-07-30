@@ -3,9 +3,9 @@ package k8s
 import (
 	"errors"
 
-	corev1 "k8s.io/api/core/v1"
-
 	"github.com/iancoleman/strcase"
+
+	corev1 "k8s.io/api/core/v1"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"

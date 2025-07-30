@@ -11,9 +11,9 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-var _ Resourcer[*infov1.StructInfo] = (*configMapResourcer)(nil)
+var _ Resourcer = (*configMapResourcer)(nil)
 
-func NewConfigMapResourcer() Resourcer[*infov1.StructInfo] {
+func NewConfigMapResourcer() Resourcer {
 	return &configMapResourcer{resource: "configmap"}
 }
 
@@ -33,14 +33,30 @@ func (c configMapResourcer) Options() []*optionv1.Option {
 	)
 }
 
-func (c configMapResourcer) Create(info *infov1.StructInfo, metadata metav1.ObjectMeta) (*genv1.Artifact, error) {
-	c.setDefaultOpts(info)
-	cm := c.newConfigMap(info, metadata)
-	format, err := c.applyStructOpts(info, &cm)
+func (c configMapResourcer) CanCreate(info infov1.Info) bool {
+	structInfo, isStructInfo := info.(*infov1.StructInfo)
+	if !isStructInfo {
+		return false
+	}
+	for _, field := range structInfo.Fields {
+		for ident := range field.Opts {
+			if ident == "k8s:configmap:default" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (c configMapResourcer) Create(info infov1.Info, metadata metav1.ObjectMeta) (*genv1.Artifact, error) {
+	structInfo := info.(*infov1.StructInfo)
+	c.setDefaultOpts(structInfo)
+	cm := c.newConfigMap(structInfo, metadata)
+	format, err := c.applyStructOpts(structInfo, &cm)
 	if err != nil {
 		return nil, err
 	}
-	err = c.applyFieldOpts(info, format, &cm)
+	err = c.applyFieldOpts(structInfo, format, &cm)
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +71,7 @@ func (c configMapResourcer) newConfigMap(info *infov1.StructInfo, metadata metav
 			Kind:       "ConfigMap",
 		},
 		ObjectMeta: metadata,
+		Data:       make(map[string]string, len(info.Fields)),
 	}
 	if cm.ObjectMeta.Name == "" {
 		cm.ObjectMeta.Name = KebabCase.Format(info.Spec.Name.Name)

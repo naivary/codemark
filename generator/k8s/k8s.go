@@ -1,6 +1,8 @@
 package k8s
 
 import (
+	"maps"
+	"reflect"
 	"slices"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
@@ -8,12 +10,18 @@ import (
 	"github.com/naivary/codemark/registry"
 )
 
-func newRegistry() (registry.Registry, error) {
+func newRegistry(resources ...Resourcer) (registry.Registry, error) {
 	reg := registry.InMemory()
-	opts := slices.Concat(
-		objectMetaOpts(),
-	)
-	for _, opt := range opts {
+	for _, resource := range resources {
+		opts := resource.Options()
+		for _, opt := range opts {
+			if err := reg.Define(opt); err != nil {
+				return nil, err
+			}
+		}
+
+	}
+	for _, opt := range objectMetaOpts() {
 		if err := reg.Define(opt); err != nil {
 			return nil, err
 		}
@@ -24,22 +32,31 @@ func newRegistry() (registry.Registry, error) {
 var _ genv1.Generator = (*k8sGenerator)(nil)
 
 type k8sGenerator struct {
+	domain string
+
 	reg registry.Registry
+
+	resources map[reflect.Type][]Resourcer
 }
 
 func New() (genv1.Generator, error) {
-	reg, err := newRegistry()
+	gen := &k8sGenerator{
+		domain: "k8s",
+		resources: map[reflect.Type][]Resourcer{
+			reflect.TypeFor[*infov1.StructInfo](): {NewConfigMapResourcer()},
+		},
+	}
+	resources := flatten(slices.Collect(maps.Values(gen.resources)))
+	reg, err := newRegistry(resources...)
 	if err != nil {
 		return nil, err
 	}
-	gen := &k8sGenerator{
-		reg: reg,
-	}
+	gen.reg = reg
 	return gen, nil
 }
 
 func (g k8sGenerator) Domain() string {
-	return "k8s"
+	return g.domain
 }
 
 func (g k8sGenerator) Explain(ident string) string {
@@ -59,9 +76,31 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 	// TODO: generate metav1.ObjectMeta for every resourcer
 	for _, info := range proj {
 		for _, strc := range info.Structs {
-			if shouldGenerateConfigMap(strc) {
+			metadata, err := createObjectMeta(strc)
+			if err != nil {
+				return nil, err
+			}
+			rtype := reflect.TypeOf(strc)
+			resources := g.resources[rtype]
+			for _, resource := range resources {
+				if !resource.CanCreate(strc) {
+					continue
+				}
+				artifact, err := resource.Create(strc, metadata)
+				if err != nil {
+					return nil, err
+				}
+				artifacts = append(artifacts, artifact)
 			}
 		}
 	}
 	return artifacts, nil
+}
+
+func flatten[T any](lists [][]T) []T {
+	var res []T
+	for _, list := range lists {
+		res = append(res, list...)
+	}
+	return res
 }
