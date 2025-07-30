@@ -87,16 +87,22 @@ func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	const svaName = "k8s:serviceaccount:name"
-	name := fn.Opts[svaName]
-	if len(name) == 0 {
-		fn.Opts[svaName] = []any{ServiceAccountName(role.Name)}
-	}
-	sva, err := createServiceAccount(fn)
+	svaArtifact, err := createRBACServiceAccount(fn, role.ObjectMeta)
 	if err != nil {
 		return nil, err
 	}
-	return mergeArtifacts(rbacArtifact, sva)
+	return mergeArtifacts(rbacArtifact, svaArtifact)
+}
+
+// createRBACServiceAccount is a wrapper around createServiceAccount which is
+// setting the needed options from the context of RBAC.
+func createRBACServiceAccount(fn infov1.FuncInfo, objectMeta metav1.ObjectMeta) (*genv1.Artifact, error) {
+	const svaName = "k8s:serviceaccount:name"
+	name := fn.Opts[svaName]
+	if len(name) == 0 {
+		fn.Opts[svaName] = []any{ServiceAccountName(objectMeta.Name)}
+	}
+	return createServiceAccount(fn)
 }
 
 func createRBACRoleBinding(fn infov1.FuncInfo) (rbacv1.RoleBinding, error) {
