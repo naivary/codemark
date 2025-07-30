@@ -2,7 +2,7 @@ package k8s
 
 import (
 	"bytes"
-	"fmt"
+	"io"
 
 	"github.com/goccy/go-yaml"
 
@@ -45,14 +45,15 @@ func mergeArtifacts(artifacts ...*genv1.Artifact) (*genv1.Artifact, error) {
 		return nil, nil
 	}
 	base := artifacts[0]
-	for _, artifact := range artifacts {
-		var data bytes.Buffer
-		data.ReadFrom(artifact.Data)
-		_, err := base.Data.Write()
+	for _, artifact := range artifacts[1:] {
+		_, err := io.WriteString(base.Data, "---\n")
+		if err != nil {
+			return nil, err
+		}
+		_, err = io.Copy(base.Data, artifact.Data)
 		if err != nil {
 			return nil, err
 		}
 	}
-	fmt.Println(base)
 	return base, nil
 }
