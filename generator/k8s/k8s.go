@@ -13,7 +13,6 @@ func newRegistry() (registry.Registry, error) {
 	opts := slices.Concat(
 		configMapOpts(),
 		objectMetaOpts(),
-		podOpts(),
 		rbacOpts(),
 		serviceAccountOpts(),
 	)

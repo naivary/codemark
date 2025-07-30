@@ -40,6 +40,9 @@ func newRBACRole(fn infov1.FuncInfo) (rbacv1.Role, error) {
 	if err != nil {
 		return role, err
 	}
+	if objectMeta.Name == "" {
+		return role, errors.New("you have to define a +k8s:metadata:name")
+	}
 	role.ObjectMeta = objectMeta
 	return role, nil
 }
