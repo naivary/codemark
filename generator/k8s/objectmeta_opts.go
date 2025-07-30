@@ -9,10 +9,10 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-const _metaResource = "metadata"
+const _metadataResource = "metadata"
 
 func objectMetaOpts() []*optionv1.Option {
-	return makeOpts(_metaResource,
+	return makeOpts(_metadataResource,
 		mustMakeOpt(_typeName, Name(""), _required, _unique, optionv1.TargetAny),
 		mustMakeOpt(_typeName, Namespace("default"), _optional, _unique, optionv1.TargetAny),
 		mustMakeOpt(_typeName, Labels(nil), _optional, _unique, optionv1.TargetAny),

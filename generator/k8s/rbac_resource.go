@@ -1,13 +1,11 @@
 package k8s
 
 import (
-	"bytes"
 	"errors"
+	"fmt"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
@@ -28,8 +26,7 @@ define multiple rules for the rbac role but have missed one of the markers:
 // +k8s:rbac:resources=["pod"]
 // +k8s:rbac:apigroups=[""] <-- added apigroups
 // +k8s:rbac:verbs=["get", "list"] <-- added verbs
-// +k8s:rbac:resources=["pod", "service"]
-`)
+// +k8s:rbac:resources=["pod", "service"]`)
 
 func newRBACRole(fn infov1.FuncInfo) (rbacv1.Role, error) {
 	role := rbacv1.Role{
@@ -42,6 +39,9 @@ func newRBACRole(fn infov1.FuncInfo) (rbacv1.Role, error) {
 	objectMeta, err := createObjectMeta(fn)
 	if err != nil {
 		return role, err
+	}
+	if objectMeta.Name == "" {
+		return role, errors.New("you have to define a +k8s:metadata:name")
 	}
 	role.ObjectMeta = objectMeta
 	return role, nil
@@ -71,6 +71,8 @@ func validateRole(role rbacv1.Role) error {
 	return nil
 }
 
+// createRBAC creates the set of RBAC manifests e.g. Role, RoleBinding and
+// ServiceAccount.
 func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 	role, err := createRBACRole(fn)
 	if err != nil {
@@ -80,19 +82,27 @@ func createRBAC(fn infov1.FuncInfo) (*genv1.Artifact, error) {
 	if err != nil {
 		return nil, err
 	}
-	manifests := []any{role, binding}
-	var file bytes.Buffer
-	for _, manifest := range manifests {
-		err := yaml.NewEncoder(&file).Encode(&manifest)
-		if err != nil {
-			return nil, err
-		}
+	filename := fmt.Sprintf("%s.rbac.yaml", role.Name)
+	rbacArtifact, err := newArtifact(filename, role, binding)
+	if err != nil {
+		return nil, err
 	}
-	return &genv1.Artifact{
-		Name:        "codemark_k8s_rbac",
-		ContentType: "application/json",
-		Data:        &file,
-	}, err
+	svaArtifact, err := createRBACServiceAccount(fn, role.ObjectMeta)
+	if err != nil {
+		return nil, err
+	}
+	return mergeArtifacts(rbacArtifact, svaArtifact)
+}
+
+// createRBACServiceAccount is a wrapper around createServiceAccount which is
+// setting the needed options from the context of RBAC.
+func createRBACServiceAccount(fn infov1.FuncInfo, objectMeta metav1.ObjectMeta) (*genv1.Artifact, error) {
+	const svaName = "k8s:serviceaccount:name"
+	name := fn.Opts[svaName]
+	if len(name) == 0 {
+		fn.Opts[svaName] = []any{ServiceAccountName(objectMeta.Name)}
+	}
+	return createServiceAccount(fn)
 }
 
 func createRBACRoleBinding(fn infov1.FuncInfo) (rbacv1.RoleBinding, error) {

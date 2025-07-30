@@ -4,6 +4,8 @@ type Domain struct {
 	Desc string
 	// Name of the resources of this domain
 	Resources []string
+
+	Examples string
 }
 
 type Resource struct {

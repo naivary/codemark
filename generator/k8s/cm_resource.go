@@ -1,13 +1,11 @@
 package k8s
 
 import (
-	"bytes"
+	"fmt"
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
@@ -62,15 +60,8 @@ func createConfigMap(strc *infov1.StructInfo) (*genv1.Artifact, error) {
 			return nil, err
 		}
 	}
-	var file bytes.Buffer
-	if err := yaml.NewEncoder(&file).Encode(&cm); err != nil {
-		return nil, err
-	}
-	return &genv1.Artifact{
-		Name:        "codemark_k8s_configmap",
-		ContentType: "text/yaml",
-		Data:        &file,
-	}, nil
+	filename := fmt.Sprintf("%s.configmap.yaml", cm.Name)
+	return newArtifact(filename, cm)
 }
 
 func applyStructOptsToConfigMap(strc *infov1.StructInfo, cm *corev1.ConfigMap) (Format, error) {

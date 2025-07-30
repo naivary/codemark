@@ -36,7 +36,7 @@ func setOptsDefaults(opts []*optionv1.Option, infoOpts map[string][]any, targets
 			// requried options will be skipped
 			continue
 		}
-		if !slices.Equal(opt.Targets, targets) && !slices.Contains(targets, optionv1.TargetAny) {
+		if !slices.Equal(opt.Targets, targets) && len(targets) > 0 {
 			continue
 		}
 		v := infoOpts[opt.Ident]
