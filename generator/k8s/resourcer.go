@@ -14,5 +14,6 @@ type Resourcer[I infov1.Info] interface {
 	// Options of the resource
 	Options() []*optionv1.Option
 	// Create generated the actual artifact
-	Create(info I, metadata metav1.ObjectMeta) (*genv1.Artifact, error)
+	// TODO: Config has to be passed (rpobably directly as viper instance)
+	Create(info I, metadata metav1.ObjectMeta, config map[string]any) (*genv1.Artifact, error)
 }
