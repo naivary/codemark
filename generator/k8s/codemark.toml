@@ -1,5 +1,5 @@
 [k8s]
-namespace = "<application>"
+namespace = "my_application"
 name_format = "format"
 
 [k8s.configmap]

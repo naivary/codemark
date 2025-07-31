@@ -51,9 +51,9 @@ func setDefaults(opts []*optionv1.Option, info infov1.Info, cfg *config, target 
 		if len(v) != 0 || !slices.Contains(opt.Targets, target) {
 			continue
 		}
-		defaultt := cfg.Get(opt.Ident)
-		if defaultt != nil {
-			info.Options()[opt.Ident] = []any{defaultt}
+		deflt := cfg.Get(opt.Ident)
+		if deflt != nil {
+			info.Options()[opt.Ident] = []any{deflt}
 		}
 	}
 }

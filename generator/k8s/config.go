@@ -8,7 +8,7 @@ import (
 
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
-		Namespace:  "default",
+		Namespace:  Namespace("default"),
 		NameFormat: SnakeCase,
 		ConfigMap: configMapConfig{
 			KeyFormat: CamelCase,
@@ -22,9 +22,14 @@ func newConfig(cfg map[string]any) (*config, error) {
 	return &c, err
 }
 
+type configMapConfig struct {
+	Immutable Immutable `toml:"immutable"`
+	KeyFormat Format    `toml:"format"`
+}
+
 type config struct {
-	Namespace  string `toml:"namespace"`
-	NameFormat Format `toml:"name_format"`
+	Namespace  Namespace `toml:"namespace"`
+	NameFormat Format    `toml:"name_format"`
 
 	ConfigMap configMapConfig `toml:"configmap"`
 }
@@ -35,8 +40,11 @@ func (c *config) Get(ident string) any {
 	switch resource {
 	case _configMapResource:
 		return c.getConfigMap(option)
+	case _objectMetaResource:
+		return c.getObjectMeta(option)
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (c *config) getConfigMap(option string) any {
@@ -52,7 +60,13 @@ func (c *config) getConfigMap(option string) any {
 	}
 }
 
-type configMapConfig struct {
-	Immutable Immutable `toml:"immutable"`
-	KeyFormat Format    `toml:"format"`
+func (c *config) getObjectMeta(option string) any {
+	switch option {
+	case "namespace":
+		return c.Namespace
+	case "format.name":
+		return c.NameFormat
+	default:
+		return nil
+	}
 }
