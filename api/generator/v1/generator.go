@@ -17,7 +17,7 @@ type Generator interface {
 	Explain(ident string) string
 
 	// Generate the artificats based on the given information.
-	Generate(proj infov1.Project) ([]*Artifact, error)
+	Generate(proj infov1.Project, config map[string]any) ([]*Artifact, error)
 
 	// Registry containing all the options.
 	Registry() registry.Registry

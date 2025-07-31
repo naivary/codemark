@@ -183,7 +183,7 @@ func extractFileInfo(pkg *packages.Package, parse parseMarkers, file *ast.File, 
 		Opts: opts,
 	}
 	filename := filepath.Base(pkg.Fset.Position(file.Package).Filename)
-	infos.Files[filename] = info
+	infos.Files[filename] = &info
 	return nil
 }
 
@@ -212,14 +212,14 @@ func extractMethodInfo(pkg *packages.Package, parse parseMarkers, decl *ast.Func
 func addMethodToType(receiver, method types.Object, methodInfo infov1.FuncInfo, info *infov1.Information) error {
 	named, isNamed := info.Named[receiver]
 	if isNamed {
-		named.Methods[method] = methodInfo
+		named.Methods[method] = &methodInfo
 		return nil
 	}
 	strct, isStruct := info.Structs[receiver]
 	if !isStruct {
 		return fmt.Errorf("type is not extracted yet: %v", receiver)
 	}
-	strct.Methods[method] = methodInfo
+	strct.Methods[method] = &methodInfo
 	return nil
 }
 
@@ -237,7 +237,7 @@ func extractFuncInfo(pkg *packages.Package, parse parseMarkers, decl *ast.FuncDe
 		Decl: decl,
 		Opts: opts,
 	}
-	infos.Funcs[obj] = info
+	infos.Funcs[obj] = &info
 	return nil
 }
 
@@ -259,7 +259,7 @@ func extractVarInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDecl
 			if err != nil {
 				return err
 			}
-			infos.Vars[obj] = info
+			infos.Vars[obj] = &info
 		}
 	}
 	return nil
@@ -283,7 +283,7 @@ func extractConstInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDe
 			if err != nil {
 				return err
 			}
-			infos.Consts[obj] = info
+			infos.Consts[obj] = &info
 		}
 	}
 	return nil
@@ -309,7 +309,7 @@ func extractImportInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenD
 		if obj == nil {
 			return fmt.Errorf("no types.Object found: %v", spec.Path.Value)
 		}
-		infos.Imports[obj] = info
+		infos.Imports[obj] = &info
 	}
 	return nil
 }
@@ -329,7 +329,7 @@ func extractAliasInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDe
 	if err != nil {
 		return err
 	}
-	infos.Aliases[obj] = info
+	infos.Aliases[obj] = &info
 	return nil
 }
 
@@ -343,7 +343,7 @@ func extractNamedInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDe
 		Spec:    spec,
 		Decl:    decl,
 		Opts:    opts,
-		Methods: make(map[types.Object]infov1.FuncInfo),
+		Methods: make(map[types.Object]*infov1.FuncInfo),
 	}
 	obj, err := objectOf(pkg, spec.Name)
 	if err != nil {
@@ -368,8 +368,8 @@ func extractStructInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenD
 		Opts:    opts,
 		Spec:    spec,
 		Decl:    decl,
-		Fields:  make(map[types.Object]infov1.FieldInfo, structType.Fields.NumFields()),
-		Methods: make(map[types.Object]infov1.FuncInfo, 0),
+		Fields:  make(map[types.Object]*infov1.FieldInfo, structType.Fields.NumFields()),
+		Methods: make(map[types.Object]*infov1.FuncInfo, 0),
 	}
 	fieldInfos, err := fieldInfoOf(pkg, parse, structType)
 	if err != nil {
@@ -380,8 +380,8 @@ func extractStructInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenD
 	return nil
 }
 
-func fieldInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.StructType) (map[types.Object]infov1.FieldInfo, error) {
-	fields := make(map[types.Object]infov1.FieldInfo, 0)
+func fieldInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.StructType) (map[types.Object]*infov1.FieldInfo, error) {
+	fields := make(map[types.Object]*infov1.FieldInfo, 0)
 	for _, field := range spec.Fields.List {
 		// embedded fields will be skipped
 		if isEmbedded(field) {
@@ -402,7 +402,7 @@ func fieldInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.StructType
 			if err != nil {
 				return nil, err
 			}
-			fields[obj] = info
+			fields[obj] = &info
 		}
 	}
 	return fields, nil
@@ -429,12 +429,12 @@ func extractIfaceInfo(pkg *packages.Package, parse parseMarkers, decl *ast.GenDe
 	if err != nil {
 		return err
 	}
-	infos.Ifaces[obj] = info
+	infos.Ifaces[obj] = &info
 	return nil
 }
 
-func signatureInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.InterfaceType) (map[types.Object]infov1.SignatureInfo, error) {
-	sigs := make(map[types.Object]infov1.SignatureInfo, spec.Methods.NumFields())
+func signatureInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.InterfaceType) (map[types.Object]*infov1.SignatureInfo, error) {
+	sigs := make(map[types.Object]*infov1.SignatureInfo, spec.Methods.NumFields())
 	for _, meth := range spec.Methods.List {
 		doc := meth.Doc.Text()
 		opts, err := parse(doc, optionv1.TargetIfaceSig)
@@ -451,7 +451,7 @@ func signatureInfoOf(pkg *packages.Package, parse parseMarkers, spec *ast.Interf
 				Method: meth,
 				Opts:   opts,
 			}
-			sigs[obj] = info
+			sigs[obj] = &info
 		}
 	}
 	return sigs, nil

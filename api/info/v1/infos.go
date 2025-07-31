@@ -17,14 +17,14 @@ type Filename = string
 
 type Information struct {
 	Structs map[types.Object]*StructInfo
-	Ifaces  map[types.Object]IfaceInfo
-	Aliases map[types.Object]AliasInfo
+	Ifaces  map[types.Object]*IfaceInfo
+	Aliases map[types.Object]*AliasInfo
 	Named   map[types.Object]*NamedInfo
-	Consts  map[types.Object]ConstInfo
-	Vars    map[types.Object]VarInfo
-	Imports map[types.Object]ImportInfo
-	Funcs   map[types.Object]FuncInfo
-	Files   map[Filename]FileInfo
+	Consts  map[types.Object]*ConstInfo
+	Vars    map[types.Object]*VarInfo
+	Imports map[types.Object]*ImportInfo
+	Funcs   map[types.Object]*FuncInfo
+	Files   map[Filename]*FileInfo
 }
 
 type FuncInfo struct {
@@ -32,7 +32,7 @@ type FuncInfo struct {
 	Opts map[string][]any
 }
 
-func (f FuncInfo) Options() map[string][]any {
+func (f *FuncInfo) Options() map[string][]any {
 	return f.Opts
 }
 
@@ -41,7 +41,7 @@ type FileInfo struct {
 	Opts map[string][]any
 }
 
-func (f FileInfo) Options() map[string][]any {
+func (f *FileInfo) Options() map[string][]any {
 	return f.Opts
 }
 
@@ -51,7 +51,7 @@ type ImportInfo struct {
 	Opts map[string][]any
 }
 
-func (i ImportInfo) Options() map[string][]any {
+func (i *ImportInfo) Options() map[string][]any {
 	return i.Opts
 }
 
@@ -61,7 +61,7 @@ type VarInfo struct {
 	Opts map[string][]any
 }
 
-func (v VarInfo) Options() map[string][]any {
+func (v *VarInfo) Options() map[string][]any {
 	return v.Opts
 }
 
@@ -71,7 +71,7 @@ type ConstInfo struct {
 	Opts map[string][]any
 }
 
-func (c ConstInfo) Options() map[string][]any {
+func (c *ConstInfo) Options() map[string][]any {
 	return c.Opts
 }
 
@@ -80,10 +80,10 @@ type NamedInfo struct {
 	Spec *ast.TypeSpec
 	Opts map[string][]any
 
-	Methods map[types.Object]FuncInfo
+	Methods map[types.Object]*FuncInfo
 }
 
-func (n NamedInfo) Options() map[string][]any {
+func (n *NamedInfo) Options() map[string][]any {
 	return n.Opts
 }
 
@@ -93,7 +93,7 @@ type AliasInfo struct {
 	Opts map[string][]any
 }
 
-func (a AliasInfo) Options() map[string][]any {
+func (a *AliasInfo) Options() map[string][]any {
 	return a.Opts
 }
 
@@ -102,10 +102,10 @@ type IfaceInfo struct {
 	Spec *ast.TypeSpec
 	Opts map[string][]any
 
-	Signatures map[types.Object]SignatureInfo
+	Signatures map[types.Object]*SignatureInfo
 }
 
-func (i IfaceInfo) Options() map[string][]any {
+func (i *IfaceInfo) Options() map[string][]any {
 	return i.Opts
 }
 
@@ -115,7 +115,7 @@ type SignatureInfo struct {
 	Opts   map[string][]any
 }
 
-func (s SignatureInfo) Options() map[string][]any {
+func (s *SignatureInfo) Options() map[string][]any {
 	return s.Opts
 }
 
@@ -124,11 +124,11 @@ type StructInfo struct {
 	Spec *ast.TypeSpec
 	Opts map[string][]any
 
-	Fields  map[types.Object]FieldInfo
-	Methods map[types.Object]FuncInfo
+	Fields  map[types.Object]*FieldInfo
+	Methods map[types.Object]*FuncInfo
 }
 
-func (s StructInfo) Options() map[string][]any {
+func (s *StructInfo) Options() map[string][]any {
 	return s.Opts
 }
 
@@ -138,6 +138,6 @@ type FieldInfo struct {
 	Opts  map[string][]any
 }
 
-func (f FieldInfo) Options() map[string][]any {
+func (f *FieldInfo) Options() map[string][]any {
 	return f.Opts
 }

@@ -20,13 +20,13 @@ type Loader interface {
 func newInformation() *infov1.Information {
 	return &infov1.Information{
 		Structs: make(map[types.Object]*infov1.StructInfo),
-		Ifaces:  make(map[types.Object]infov1.IfaceInfo),
-		Aliases: make(map[types.Object]infov1.AliasInfo),
+		Ifaces:  make(map[types.Object]*infov1.IfaceInfo),
+		Aliases: make(map[types.Object]*infov1.AliasInfo),
 		Named:   make(map[types.Object]*infov1.NamedInfo),
-		Consts:  make(map[types.Object]infov1.ConstInfo),
-		Vars:    make(map[types.Object]infov1.VarInfo),
-		Imports: make(map[types.Object]infov1.ImportInfo),
-		Funcs:   make(map[types.Object]infov1.FuncInfo),
-		Files:   make(map[infov1.Filename]infov1.FileInfo),
+		Consts:  make(map[types.Object]*infov1.ConstInfo),
+		Vars:    make(map[types.Object]*infov1.VarInfo),
+		Imports: make(map[types.Object]*infov1.ImportInfo),
+		Funcs:   make(map[types.Object]*infov1.FuncInfo),
+		Files:   make(map[infov1.Filename]*infov1.FileInfo),
 	}
 }

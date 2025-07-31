@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/pelletier/go-toml/v2"
+
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/loader"
 	"github.com/naivary/codemark/registry"
@@ -48,9 +50,14 @@ func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*gen
 	if err != nil {
 		return nil, err
 	}
+	config, err := readInConfig()
+	if err != nil {
+		return nil, err
+	}
 	artifacts := make(map[domain][]*genv1.Artifact, len(gens))
 	for _, gen := range gens {
-		generatedArtifacts, err := gen.Generate(info)
+		genConfig := config[gen.Domain()].(map[string]any)
+		generatedArtifacts, err := gen.Generate(info, genConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -74,4 +81,13 @@ func (m *Manager) Add(gen genv1.Generator) error {
 	}
 	m.gens[domain] = gen
 	return nil
+}
+
+func readInConfig() (map[string]any, error) {
+	var config map[string]any
+	file, err := os.ReadFile("codemark.toml")
+	if err != nil {
+		return nil, err
+	}
+	return config, toml.Unmarshal(file, &config)
 }
