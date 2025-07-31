@@ -2,13 +2,13 @@ package k8s
 
 import (
 	"errors"
+	"go/ast"
 
 	"github.com/iancoleman/strcase"
 
 	corev1 "k8s.io/api/core/v1"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
-	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
 var errEmptyDefault = errors.New(`
@@ -18,12 +18,11 @@ and use the empty value of the go type itself.
 
 type Default string
 
-func (d Default) apply(info *infov1.FieldInfo, cm *corev1.ConfigMap, format Format) error {
+func (d Default) apply(ident *ast.Ident, cm *corev1.ConfigMap, format Format) error {
 	if len(string(d)) == 0 {
 		return errEmptyDefault
 	}
-	// TODO: check if the type of the field matches the default value
-	cm.Data[format.Format(info.Ident.Name)] = string(d)
+	cm.Data[format.Format(ident.Name)] = string(d)
 	return nil
 }
 

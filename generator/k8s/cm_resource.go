@@ -2,7 +2,9 @@ package k8s
 
 import (
 	"fmt"
+	"go/types"
 
+	"golang.org/x/tools/go/packages"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -31,7 +33,7 @@ func (c configMapResourcer) Options() []*optionv1.Option {
 	return makeOpts(c.resource,
 		mustMakeOpt(_typeName, Default(""), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, Immutable(false), _unique, optionv1.TargetStruct),
-		mustMakeOpt("format.key", Format(CamelCase), _unique, optionv1.TargetStruct),
+		mustMakeOpt("format.key", Format(""), _unique, optionv1.TargetStruct),
 	)
 }
 
@@ -50,7 +52,13 @@ func (c configMapResourcer) CanCreate(info infov1.Info) bool {
 	return false
 }
 
-func (c configMapResourcer) Create(info infov1.Info, metadata metav1.ObjectMeta, cfg *config) (*genv1.Artifact, error) {
+func (c configMapResourcer) Create(
+	pkg *packages.Package,
+	obj types.Object,
+	info infov1.Info,
+	metadata metav1.ObjectMeta,
+	cfg *config,
+) (*genv1.Artifact, error) {
 	structInfo := info.(*infov1.StructInfo)
 	c.setDefaultOpts(structInfo, cfg)
 	cm := c.newConfigMap(structInfo, metadata)
@@ -124,7 +132,7 @@ func (c configMapResourcer) applyFieldOpts(info *infov1.StructInfo, format Forma
 				var err error
 				switch o := opt.(type) {
 				case Default:
-					err = o.apply(finfo, cm, format)
+					err = o.apply(finfo.Ident, cm, format)
 				}
 				if err != nil {
 					return err

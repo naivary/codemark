@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"go/types"
 	"maps"
 	"reflect"
 	"slices"
@@ -77,9 +78,9 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 	if err != nil {
 		return nil, err
 	}
-	for _, pkgInfo := range proj {
+	for pkg, pkgInfo := range proj {
 		infos := collectInfos(pkgInfo)
-		for _, info := range infos {
+		for obj, info := range infos {
 			metadata, err := createObjectMeta(info, cfg)
 			if err != nil {
 				return nil, err
@@ -89,7 +90,7 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 				if !resource.CanCreate(info) {
 					continue
 				}
-				artifact, err := resource.Create(info, metadata, cfg)
+				artifact, err := resource.Create(pkg, obj, info, metadata, cfg)
 				if err != nil {
 					return nil, err
 				}
@@ -109,35 +110,36 @@ func flatten[T any](lists [][]T) []T {
 	return res
 }
 
-func collectInfos(info *infov1.Information) []infov1.Info {
-	all := make([]infov1.Info, 0, infoCap(info))
-	for _, str := range info.Structs {
-		all = append(all, str)
+func collectInfos(info *infov1.Information) map[types.Object]infov1.Info {
+	all := make(map[types.Object]infov1.Info, infoCap(info))
+	for obj, str := range info.Structs {
+		all[obj] = str
 	}
-	for _, alias := range info.Aliases {
-		all = append(all, alias)
+	for obj, alias := range info.Aliases {
+		all[obj] = alias
 	}
-	for _, v := range info.Vars {
-		all = append(all, v)
+	for obj, v := range info.Vars {
+		all[obj] = v
 	}
-	for _, c := range info.Consts {
-		all = append(all, c)
+	for obj, c := range info.Consts {
+		all[obj] = c
 	}
-	for _, fn := range info.Funcs {
-		all = append(all, fn)
+	for obj, fn := range info.Funcs {
+		all[obj] = fn
 	}
-	for _, iface := range info.Ifaces {
-		all = append(all, iface)
+	for obj, iface := range info.Ifaces {
+		all[obj] = iface
 	}
-	for _, imp := range info.Imports {
-		all = append(all, imp)
+	for obj, imp := range info.Imports {
+		all[obj] = imp
 	}
-	for _, named := range info.Named {
-		all = append(all, named)
+	for obj, named := range info.Named {
+		all[obj] = named
 	}
-	for _, file := range info.Files {
-		all = append(all, file)
-	}
+	// TODO: Need types.Object for file or a fake one atleast
+	// for filename, file := range info.Files {
+	// 	all[nil] = file
+	// }
 	return all
 }
 
