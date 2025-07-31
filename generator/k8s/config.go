@@ -6,10 +6,10 @@ type config struct {
 	Namespace  string `toml:"namespace"`
 	NameFormat Format `toml:"name_format"`
 
-	ConfigMap ConfigMapConfig `toml:"configmap"`
+	ConfigMap configMapConfig `toml:"configmap"`
 }
 
-type ConfigMapConfig struct {
+type configMapConfig struct {
 	KeyFormat Format `toml:"format"`
 }
 
@@ -17,7 +17,7 @@ func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
 		Namespace:  "default",
 		NameFormat: SnakeCase,
-		ConfigMap: ConfigMapConfig{
+		ConfigMap: configMapConfig{
 			KeyFormat: CamelCase,
 		},
 	}
