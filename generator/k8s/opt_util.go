@@ -3,7 +3,6 @@ package k8s
 import (
 	"fmt"
 	"reflect"
-	"slices"
 	"strings"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
@@ -18,36 +17,11 @@ const (
 	_repetable = false
 )
 
-var (
-	_required any = nil
-	// optional is something non nil signaling the underlying function used to
-	// use the default of the type
-	_optional any = new(any)
-)
-
 type Docer[T any] interface {
 	Doc() T
 }
 
-// TODO: write test for this function
-func setOptsDefaults(opts []*optionv1.Option, infoOpts map[string][]any, targets ...optionv1.Target) {
-	for _, opt := range opts {
-		if opt.IsRequired() {
-			// requried options will be skipped
-			continue
-		}
-		if !slices.Equal(opt.Targets, targets) && len(targets) > 0 {
-			continue
-		}
-		v := infoOpts[opt.Ident]
-		if len(v) > 0 {
-			continue
-		}
-		infoOpts[opt.Ident] = append(v, opt.Default)
-	}
-}
-
-func mustMakeOpt(name string, output, defult any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
+func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
 	rtype := reflect.TypeOf(output)
 	doc := output.(Docer[docv1.Option]).Doc()
 	// undefined ident is needed to pass the validation of the name for the
@@ -55,11 +29,8 @@ func mustMakeOpt(name string, output, defult any, isUnique bool, targets ...opti
 	if name == "" {
 		name = strings.ToLower(rtype.Name())
 	}
-	if defult != nil {
-		defult = output
-	}
 	ident := fmt.Sprintf("k8s:undefined:%s", name)
-	opt := optionutil.MustMake(ident, rtype, defult, &doc, isUnique, targets...)
+	opt := optionutil.MustMake(ident, rtype, &doc, isUnique, targets...)
 	return &opt
 }
 

@@ -11,10 +11,12 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
+const _configMapResource = "configmap"
+
 var _ Resourcer = (*configMapResourcer)(nil)
 
 func NewConfigMapResourcer() Resourcer {
-	return &configMapResourcer{resource: "configmap"}
+	return &configMapResourcer{resource: _configMapResource}
 }
 
 type configMapResourcer struct {
@@ -27,9 +29,9 @@ func (c configMapResourcer) Resource() string {
 
 func (c configMapResourcer) Options() []*optionv1.Option {
 	return makeOpts(c.resource,
-		mustMakeOpt(_typeName, Default(""), _required, _unique, optionv1.TargetField),
-		mustMakeOpt(_typeName, Immutable(false), _optional, _unique, optionv1.TargetStruct),
-		mustMakeOpt("format.key", Format(CamelCase), _optional, _unique, optionv1.TargetStruct),
+		mustMakeOpt(_typeName, Default(""), _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, Immutable(false), _unique, optionv1.TargetStruct),
+		mustMakeOpt("format.key", Format(CamelCase), _unique, optionv1.TargetStruct),
 	)
 }
 
@@ -80,15 +82,10 @@ func (c configMapResourcer) newConfigMap(info *infov1.StructInfo, metadata metav
 }
 
 func (c configMapResourcer) setDefaultOpts(info *infov1.StructInfo, cfg *config) {
-	// TODO: there has to be a better way than this
-	format := info.Opts["k8s:configmap:format.key"]
-	if len(format) == 0 {
-		info.Opts["k8s:configmap:format.key"] = []any{cfg.ConfigMap.KeyFormat}
-	}
 	opts := c.Options()
-	setOptsDefaults(opts, info.Opts, optionv1.TargetStruct)
+	setDefaults(opts, info, cfg, optionv1.TargetStruct)
 	for _, finfo := range info.Fields {
-		setOptsDefaults(opts, finfo.Opts, optionv1.TargetField)
+		setDefaults(opts, finfo, cfg, optionv1.TargetField)
 	}
 }
 

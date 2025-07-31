@@ -26,9 +26,6 @@ type Option struct {
 
 	// Whether this option is unique
 	IsUnique bool
-
-	// The Default value of the option. If nil the option is taken as required
-	Default any
 }
 
 func (o *Option) DeprecateInFavorOf(ident string) {
@@ -41,8 +38,4 @@ func (o *Option) IsDeprecated() bool {
 
 func (o *Option) HasDoc() bool {
 	return o.Doc != nil
-}
-
-func (o *Option) IsRequired() bool {
-	return o.Default == nil
 }

@@ -80,7 +80,7 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 	for _, pkgInfo := range proj {
 		infos := collectInfos(pkgInfo)
 		for _, info := range infos {
-			metadata, err := createObjectMeta(info)
+			metadata, err := createObjectMeta(info, cfg)
 			if err != nil {
 				return nil, err
 			}

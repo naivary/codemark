@@ -78,13 +78,13 @@ func opts() []optionv1.Option {
 		optionutil.MustMake(
 			"codemark:registry:plain",
 			reflect.TypeFor[string](),
-			nil, nil, false,
+			nil, false,
 			optionv1.TargetAny),
 		optionutil.MustMake(
 			"codemark:registry:doc",
 			reflect.TypeFor[string](),
 			&docv1.Option{Desc: "some doc"},
-			nil, false,
+			false,
 			optionv1.TargetAny,
 		),
 	}

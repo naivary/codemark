@@ -10,22 +10,20 @@ import (
 	"github.com/naivary/codemark/validate"
 )
 
-func Make(ident string, typ reflect.Type, defult any, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) (optionv1.Option, error) {
+func Make(ident string, typ reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) (optionv1.Option, error) {
 	opt := optionv1.Option{
 		Ident:   ident,
 		Targets: targets,
 		Type:    typ,
-		Default: defult,
 	}
 	return opt, IsValid(opt)
 }
 
-func MustMake(ident string, output reflect.Type, defult any, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) optionv1.Option {
+func MustMake(ident string, output reflect.Type, doc *docv1.Option, isUnique bool, targets ...optionv1.Target) optionv1.Option {
 	opt := optionv1.Option{
 		Ident:   ident,
 		Targets: targets,
 		Type:    output,
-		Default: defult,
 	}
 	if err := IsValid(opt); err != nil {
 		panic(err)

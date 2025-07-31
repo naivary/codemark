@@ -13,11 +13,11 @@ const _metadataResource = "metadata"
 
 func objectMetaOpts() []*optionv1.Option {
 	return makeOpts(_metadataResource,
-		mustMakeOpt(_typeName, Name(""), _required, _unique, optionv1.TargetAny),
-		mustMakeOpt(_typeName, Namespace("default"), _optional, _unique, optionv1.TargetAny),
-		mustMakeOpt(_typeName, Labels(nil), _optional, _unique, optionv1.TargetAny),
-		mustMakeOpt(_typeName, Annotations(nil), _optional, _unique, optionv1.TargetAny),
-		mustMakeOpt("format.name", Format(KebabCase), _optional, _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Name(""), _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Namespace(""), _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Labels(nil), _unique, optionv1.TargetAny),
+		mustMakeOpt(_typeName, Annotations(nil), _unique, optionv1.TargetAny),
+		mustMakeOpt("format.name", Format(KebabCase), _unique, optionv1.TargetAny),
 	)
 }
 

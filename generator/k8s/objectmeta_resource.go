@@ -7,14 +7,14 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-func setObjectMetaDefaults(infoOpts map[string][]any) {
+func setObjectMetaDefaults(info infov1.Info, cfg *config) {
 	opts := objectMetaOpts()
-	setOptsDefaults(opts, infoOpts, optionv1.TargetAny)
+	setDefaults(opts, info, cfg, optionv1.TargetAny)
 }
 
-func createObjectMeta(info infov1.Info) (metav1.ObjectMeta, error) {
+func createObjectMeta(info infov1.Info, cfg *config) (metav1.ObjectMeta, error) {
 	obj := metav1.ObjectMeta{}
-	setObjectMetaDefaults(info.Options())
+	setObjectMetaDefaults(info, cfg)
 	format := info.Options()["k8s:metadata:format.name"][0].(Format)
 	for _, opts := range info.Options() {
 		for _, opt := range opts {
