@@ -6,6 +6,11 @@ import (
 	"github.com/naivary/codemark/optionutil"
 )
 
+// TODO: validateConfig
+func validateConfig(cfg *config) error {
+	return nil
+}
+
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
 		Namespace:  Namespace("default"),
@@ -18,7 +23,11 @@ func newConfig(cfg map[string]any) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &c, toml.Unmarshal(data, &c)
+	err = toml.Unmarshal(data, &c)
+	if err != nil {
+		return nil, err
+	}
+	return &c, validateConfig(&c)
 }
 
 type configMapConfig struct {
