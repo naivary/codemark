@@ -18,7 +18,7 @@ and use the empty value of the go type itself.
 
 type Default string
 
-func (d Default) apply(info infov1.FieldInfo, cm *corev1.ConfigMap, format Format) error {
+func (d Default) apply(info *infov1.FieldInfo, cm *corev1.ConfigMap, format Format) error {
 	if len(string(d)) == 0 {
 		return errEmptyDefault
 	}

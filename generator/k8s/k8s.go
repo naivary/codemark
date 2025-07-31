@@ -77,23 +77,25 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 	if err != nil {
 		return nil, err
 	}
-	for _, info := range proj {
-		for _, strc := range info.Structs {
-			metadata, err := createObjectMeta(strc)
+	for _, pkgInfo := range proj {
+		infos := collectInfos(pkgInfo)
+		for _, info := range infos {
+			metadata, err := createObjectMeta(info)
 			if err != nil {
 				return nil, err
 			}
-			rtype := reflect.TypeOf(strc)
-			for _, resource := range g.resources[rtype] {
-				if !resource.CanCreate(strc) {
+			infoType := reflect.TypeOf(info)
+			for _, resource := range g.resources[infoType] {
+				if !resource.CanCreate(info) {
 					continue
 				}
-				artifact, err := resource.Create(strc, metadata, cfg)
+				artifact, err := resource.Create(info, metadata, cfg)
 				if err != nil {
 					return nil, err
 				}
 				artifacts = append(artifacts, artifact)
 			}
+
 		}
 	}
 	return artifacts, nil
@@ -105,4 +107,58 @@ func flatten[T any](lists [][]T) []T {
 		res = append(res, list...)
 	}
 	return res
+}
+
+func collectInfos(info *infov1.Information) []infov1.Info {
+	all := make([]infov1.Info, 0, infoCap(info))
+	for _, str := range info.Structs {
+		all = append(all, str)
+	}
+	for _, alias := range info.Aliases {
+		all = append(all, alias)
+	}
+	for _, v := range info.Vars {
+		all = append(all, v)
+	}
+	for _, c := range info.Consts {
+		all = append(all, c)
+	}
+	for _, fn := range info.Funcs {
+		all = append(all, fn)
+	}
+	for _, iface := range info.Ifaces {
+		all = append(all, iface)
+	}
+	for _, imp := range info.Imports {
+		all = append(all, imp)
+	}
+	for _, named := range info.Named {
+		all = append(all, named)
+	}
+	for _, file := range info.Files {
+		all = append(all, file)
+	}
+	return all
+}
+
+func infoCap(info *infov1.Information) int {
+	return len(
+		info.Structs,
+	) + len(
+		info.Aliases,
+	) + len(
+		info.Vars,
+	) + len(
+		info.Consts,
+	) + len(
+		info.Funcs,
+	) + len(
+		info.Ifaces,
+	) + len(
+		info.Imports,
+	) + len(
+		info.Named,
+	) + len(
+		info.Files,
+	)
 }

@@ -50,7 +50,7 @@ func (c configMapResourcer) CanCreate(info infov1.Info) bool {
 
 func (c configMapResourcer) Create(info infov1.Info, metadata metav1.ObjectMeta, cfg *config) (*genv1.Artifact, error) {
 	structInfo := info.(*infov1.StructInfo)
-	c.setDefaultOpts(structInfo)
+	c.setDefaultOpts(structInfo, cfg)
 	cm := c.newConfigMap(structInfo, metadata)
 	format, err := c.applyStructOpts(structInfo, &cm)
 	if err != nil {
@@ -79,7 +79,12 @@ func (c configMapResourcer) newConfigMap(info *infov1.StructInfo, metadata metav
 	return cm
 }
 
-func (c configMapResourcer) setDefaultOpts(info *infov1.StructInfo) {
+func (c configMapResourcer) setDefaultOpts(info *infov1.StructInfo, cfg *config) {
+	// TODO: there has to be a better way than this
+	format := info.Opts["k8s:configmap:format.key"]
+	if len(format) == 0 {
+		info.Opts["k8s:configmap:format.key"] = []any{cfg.ConfigMap.KeyFormat}
+	}
 	opts := c.Options()
 	setOptsDefaults(opts, info.Opts, optionv1.TargetStruct)
 	for _, finfo := range info.Fields {
