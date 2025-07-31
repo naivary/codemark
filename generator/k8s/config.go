@@ -18,8 +18,7 @@ func newConfig(cfg map[string]any) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = toml.Unmarshal(data, &c)
-	return &c, err
+	return &c, toml.Unmarshal(data, &c)
 }
 
 type configMapConfig struct {

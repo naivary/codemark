@@ -59,8 +59,9 @@ func TestResource_ConfigMap(t *testing.T) {
 				},
 				Immutable: &mutable,
 				Data: map[string]string{
-					"int":    "4",
-					"string": "1024",
+					"int":        "4",
+					"string":     "1024",
+					"no_default": "no-default",
 				},
 			},
 		},

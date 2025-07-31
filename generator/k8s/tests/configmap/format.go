@@ -9,6 +9,7 @@ type ValidWithFormat struct {
 	// +k8s:configmap:default="1024"
 	String string
 
+	// +k8s:configmap:default="no-default"
 	NoDefault string
 
 	unexported string

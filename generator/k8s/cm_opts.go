@@ -53,7 +53,7 @@ type Format string
 const (
 	SnakeCase  Format = "snake_case"
 	CamelCase  Format = "camelCase"
-	PascalCase Format = "pascalCase"
+	PascalCase Format = "PascalCase"
 	KebabCase  Format = "kebab-case"
 	Env        Format = "env"
 )
