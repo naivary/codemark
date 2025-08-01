@@ -18,51 +18,23 @@ func TestResource_RBAC(t *testing.T) {
 		name    string
 		path    string
 		isValid bool
-		role    rbacv1.Role
-		binding rbacv1.RoleBinding
-		sva     corev1.ServiceAccount
+		set     rbacSet
 	}{
 		{
 			name:    "valid",
 			path:    "testdata/rbac/valid.go",
 			isValid: true,
-			role: rbacv1.Role{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "codemark-rbac",
-					Namespace: "codemark-rbac",
+			set: newRBACSet("codemark-rbac", "codemark-rbac",
+				[][]string{
+					{""},
 				},
-				Rules: []rbacv1.PolicyRule{
-					{
-						APIGroups: []string{""},
-						Verbs:     []string{"get", "list"},
-						Resources: []string{"pods"},
-					},
+				[][]string{
+					{"pods"},
 				},
-			},
-			binding: rbacv1.RoleBinding{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "codemark-rbac",
-					Namespace: "codemark-rbac",
+				[][]string{
+					{"get", "list"},
 				},
-				RoleRef: rbacv1.RoleRef{
-					APIGroup: "rbac.authorization.k8s.io",
-					Kind:     "Role",
-					Name:     "codemark-rbac",
-				},
-				Subjects: []rbacv1.Subject{
-					{
-						Kind:      "ServiceAccount",
-						Name:      "codemark-rbac",
-						Namespace: "codemark-rbac",
-					},
-				},
-			},
-			sva: corev1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "codemark-rbac",
-					Namespace: "codemark-rbac",
-				},
-			},
+			),
 		},
 		{
 			name:    "partially defined",
@@ -85,20 +57,66 @@ func TestResource_RBAC(t *testing.T) {
 				t.FailNow()
 			}
 			role, binding, sva := readRBACFromAritfact(artifacts[0])
-			err = compareRole(role, tc.role)
+			err = compareRole(role, tc.set.role)
 			if err != nil {
 				t.Errorf("role error: %s", err)
 			}
-			err = compareRoleBinding(binding, tc.binding)
+			err = compareRoleBinding(binding, tc.set.binding)
 			if err != nil {
 				t.Errorf("role binding error: %s", err)
 			}
-			err = compareServiceAccount(sva, tc.sva)
+			err = compareServiceAccount(sva, tc.set.sva)
 			if err != nil {
 				t.Errorf("service account error: %s", err)
 			}
 		})
 	}
+}
+
+type rbacSet struct {
+	role    rbacv1.Role
+	binding rbacv1.RoleBinding
+	sva     corev1.ServiceAccount
+}
+
+func newRBACSet(name, namespace string, apiGroups, resources, verbs [][]string) rbacSet {
+	metadata := metav1.ObjectMeta{
+		Name:      name,
+		Namespace: namespace,
+	}
+	role := rbacv1.Role{
+		ObjectMeta: metadata,
+		Rules:      make([]rbacv1.PolicyRule, 0, len(apiGroups)),
+	}
+
+	for i := range len(apiGroups) {
+		rule := rbacv1.PolicyRule{
+			APIGroups: apiGroups[i],
+			Resources: resources[i],
+			Verbs:     verbs[i],
+		}
+		role.Rules = append(role.Rules, rule)
+	}
+
+	binding := rbacv1.RoleBinding{
+		ObjectMeta: metadata,
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "Role",
+			Name:     metadata.Name,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      metadata.Name,
+				Namespace: metadata.Namespace,
+			},
+		},
+	}
+	sva := corev1.ServiceAccount{
+		ObjectMeta: metadata,
+	}
+	return rbacSet{role, binding, sva}
 }
 
 func readRBACFromAritfact(artifact *genv1.Artifact) (rbacv1.Role, rbacv1.RoleBinding, corev1.ServiceAccount) {
@@ -121,12 +139,25 @@ func readRBACFromAritfact(artifact *genv1.Artifact) (rbacv1.Role, rbacv1.RoleBin
 	return role, binding, sva
 }
 
-func compareServiceAccount(got, want corev1.ServiceAccount) error {
+func compareRole(got, want rbacv1.Role) error {
 	if got.Name != want.Name {
-		return fmt.Errorf("service account name not equal: got: %s; want: %s", got.Name, want.Name)
+		return fmt.Errorf("role name not equal: got: %s; want: %s", got.Name, want.Name)
 	}
 	if got.Namespace != want.Namespace {
-		return fmt.Errorf("service account namespace not equal: got: %s; want: %s", got.Namespace, want.Namespace)
+		return fmt.Errorf("role namespace not equal: got: %s; want: %s", got.Namespace, want.Namespace)
+	}
+	for i := range len(got.Rules) {
+		gotRule := got.Rules[i]
+		wantRule := want.Rules[i]
+		if !slices.Equal(gotRule.APIGroups, wantRule.APIGroups) {
+			return fmt.Errorf("APIGroups not equal. got: %v; want: %v", gotRule.APIGroups, wantRule.APIGroups)
+		}
+		if !slices.Equal(gotRule.Resources, wantRule.Resources) {
+			return fmt.Errorf("Resources not equal. got: %v; want: %v", gotRule.Resources, wantRule.Resources)
+		}
+		if !slices.Equal(gotRule.Verbs, wantRule.Verbs) {
+			return fmt.Errorf("Verbs not equal. got: %v; want: %v", gotRule.Verbs, wantRule.Verbs)
+		}
 	}
 	return nil
 }
@@ -149,23 +180,12 @@ func compareRoleBinding(got, want rbacv1.RoleBinding) error {
 	return nil
 }
 
-func compareRole(got, want rbacv1.Role) error {
+func compareServiceAccount(got, want corev1.ServiceAccount) error {
 	if got.Name != want.Name {
-		return fmt.Errorf("role name not equal: got: %s; want: %s", got.Name, want.Name)
+		return fmt.Errorf("service account name not equal: got: %s; want: %s", got.Name, want.Name)
 	}
 	if got.Namespace != want.Namespace {
-		return fmt.Errorf("role namespace not equal: got: %s; want: %s", got.Namespace, want.Namespace)
-	}
-	for i, rule := range got.Rules {
-		if !slices.Equal(rule.APIGroups, want.Rules[i].APIGroups) {
-			return fmt.Errorf("APIGroups not equal. got: %v; want: %v", rule.APIGroups, want.Rules[i].APIGroups)
-		}
-		if !slices.Equal(rule.Resources, want.Rules[i].Resources) {
-			return fmt.Errorf("Resources not equal. got: %v; want: %v", rule.Resources, want.Rules[i].Resources)
-		}
-		if !slices.Equal(rule.Verbs, want.Rules[i].Verbs) {
-			return fmt.Errorf("Verbs not equal. got: %v; want: %v", rule.Verbs, want.Rules[i].Verbs)
-		}
+		return fmt.Errorf("service account namespace not equal: got: %s; want: %s", got.Namespace, want.Namespace)
 	}
 	return nil
 }
