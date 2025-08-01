@@ -17,18 +17,17 @@ func objectMetaOpts() []*optionv1.Option {
 		mustMakeOpt(_typeName, Namespace(""), _unique, optionv1.TargetAny),
 		mustMakeOpt(_typeName, Labels(nil), _unique, optionv1.TargetAny),
 		mustMakeOpt(_typeName, Annotations(nil), _unique, optionv1.TargetAny),
-		mustMakeOpt("format.name", Format(KebabCase), _unique, optionv1.TargetAny),
 	)
 }
 
 type Name string
 
-func (n Name) apply(m *metav1.ObjectMeta, format Format) error {
+func (n Name) apply(m *metav1.ObjectMeta) error {
 	s := string(n)
 	if s == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
-	m.Name = format.Format(string(n))
+	m.Name = string(n)
 	return nil
 }
 

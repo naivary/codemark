@@ -8,9 +8,6 @@
       "type": "string",
       "minLength": 1
     },
-    "nameFormat": {
-      "$ref": "format.json"
-    },
     "configMap": {
       "$ref": "configmap.json"
     }

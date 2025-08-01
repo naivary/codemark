@@ -30,8 +30,7 @@ func validateConfig(data []byte) error {
 
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
-		Namespace:  Namespace("default"),
-		NameFormat: KebabCase,
+		Namespace: Namespace("default"),
 		ConfigMap: configMapConfig{
 			KeyFormat: CamelCase,
 		},
@@ -54,8 +53,7 @@ type configMapConfig struct {
 }
 
 type config struct {
-	Namespace  Namespace `yaml:"namespace"`
-	NameFormat Format    `yaml:"name_format"`
+	Namespace Namespace `yaml:"namespace"`
 
 	ConfigMap configMapConfig `yaml:"configMap"`
 }
@@ -90,8 +88,6 @@ func (c *config) getObjectMeta(option string) any {
 	switch option {
 	case "namespace":
 		return c.Namespace
-	case "format.name":
-		return c.NameFormat
 	default:
 		return nil
 	}

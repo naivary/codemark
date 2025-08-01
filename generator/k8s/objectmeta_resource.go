@@ -17,13 +17,12 @@ func setObjectMetaDefaults(info infov1.Info, cfg *config) {
 func createObjectMeta(info infov1.Info, cfg *config) (metav1.ObjectMeta, error) {
 	obj := metav1.ObjectMeta{}
 	setObjectMetaDefaults(info, cfg)
-	format := info.Options()["k8s:metadata:format.name"][0].(Format)
 	for _, opts := range info.Options() {
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {
 			case Name:
-				err = o.apply(&obj, format)
+				err = o.apply(&obj)
 			case Namespace:
 				err = o.apply(&obj)
 			}
