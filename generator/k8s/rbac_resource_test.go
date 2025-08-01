@@ -20,7 +20,7 @@ func TestResource_RBAC(t *testing.T) {
 	}{
 		{
 			name:    "valid",
-			path:    "./tests/rbac/valid.go",
+			path:    "testdata/rbac/valid.go",
 			isValid: true,
 			role: rbacv1.Role{
 				ObjectMeta: metav1.ObjectMeta{
@@ -40,21 +40,45 @@ func TestResource_RBAC(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:    "partially defined",
+			path:    "testdata/rbac/partial.go",
+			isValid: false,
+		},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			artifacts, err := gen(tc.path)
-			if err != nil {
+			if err != nil && tc.isValid {
 				t.Errorf("err occured: %s\n", err)
+				t.FailNow()
 			}
+			if err != nil && !tc.isValid {
+				t.Skipf("expected error occucred: %s", err)
+			}
+			if len(artifacts) == 0 {
+				t.Errorf("no artifacts generated")
+				t.FailNow()
+			}
+			dec := yaml.NewDecoder(artifacts[0].Data)
 			role := rbacv1.Role{}
 			binding := rbacv1.RoleBinding{}
 			sva := corev1.ServiceAccount{}
-			dec := yaml.NewDecoder(artifacts[0].Data)
-
-			dec.Decode(&role)
-			dec.Decode(&binding)
-			dec.Decode(&sva)
+			err = dec.Decode(&role)
+			if err != nil {
+				t.Errorf("err occured: %s\n", err)
+				t.FailNow()
+			}
+			err = dec.Decode(&binding)
+			if err != nil {
+				t.Errorf("err occured: %s\n", err)
+				t.FailNow()
+			}
+			err = dec.Decode(&sva)
+			if err != nil {
+				t.Errorf("err occured: %s\n", err)
+				t.FailNow()
+			}
 			t.Log(role.Rules, binding, sva)
 		})
 	}

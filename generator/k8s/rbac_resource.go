@@ -22,7 +22,7 @@ define multiple rules for the rbac role but have missed one of the markers:
 // +k8s:rbac:apigroups=[""]
 // +k8s:rbac:verbs=["get"]
 // +k8s:rbac:resources=["pod"]
-// +k8s:rbac:resources=["pod", "service"] <-- second rule in RBAC role partially defined
+// +k8s:rbac:resources=["pod", "service"] <-- second rule in role only partially defined
 ----
 // GOOD
 // +k8s:rbac:apigroups=[""]
@@ -92,13 +92,17 @@ func (r *rbacResourcer) Create(
 }
 
 func (r *rbacResourcer) newRole(metadata metav1.ObjectMeta, fn *infov1.FuncInfo) (rbacv1.Role, error) {
+	apiGroups := fn.Options()["k8s:rbac:apigroups"]
+	resources := fn.Options()["k8s:rbac:resources"]
+	verbs := fn.Options()["k8s:rbac:verbs"]
+	numOfRules := max(len(apiGroups), len(resources), len(verbs))
 	role := rbacv1.Role{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "rbac.authorization.k8s.io/v1",
 			Kind:       "Role",
 		},
 		ObjectMeta: metadata,
-		Rules:      make([]rbacv1.PolicyRule, 1),
+		Rules:      make([]rbacv1.PolicyRule, numOfRules),
 	}
 	if role.Name == "" {
 		return role, errors.New("you have to define a +k8s:metadata:name")
@@ -116,9 +120,6 @@ func (r *rbacResourcer) applyOptsToRole(fn *infov1.FuncInfo, role *rbacv1.Role) 
 			continue
 		}
 		for i, opt := range opts {
-			if len(role.Rules) <= i {
-				role.Rules = append(role.Rules, rbacv1.PolicyRule{})
-			}
 			rule := role.Rules[i]
 			var err error
 			switch o := opt.(type) {
