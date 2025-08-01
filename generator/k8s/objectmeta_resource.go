@@ -12,6 +12,8 @@ func setObjectMetaDefaults(info infov1.Info, cfg *config) {
 	setDefaults(opts, info, cfg, optionv1.TargetAny)
 }
 
+// TODO: allow for default labels for all manifest to be set and merged with the
+// labels of the concrete manifest
 func createObjectMeta(info infov1.Info, cfg *config) (metav1.ObjectMeta, error) {
 	obj := metav1.ObjectMeta{}
 	setObjectMetaDefaults(info, cfg)

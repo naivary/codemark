@@ -9,15 +9,15 @@ import (
 	"github.com/naivary/codemark/optionutil"
 )
 
-// TODO: validateConfig
 func validateConfig(data []byte) error {
+	const schemaFilePath = "./schema/k8s.json"
 	json, err := yaml.YAMLToJSON(data)
 	if err != nil {
 		return err
 	}
 	r := bytes.NewReader(json)
 	c := jsonschema.NewCompiler()
-	schm, err := c.Compile("./schema/k8s.json")
+	schm, err := c.Compile(schemaFilePath)
 	if err != nil {
 		return err
 	}

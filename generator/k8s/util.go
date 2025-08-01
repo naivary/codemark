@@ -2,6 +2,7 @@ package k8s
 
 import (
 	"bytes"
+	"go/types"
 	"io"
 	"slices"
 
@@ -56,4 +57,67 @@ func setDefaults(opts []*optionv1.Option, info infov1.Info, cfg *config, target 
 			info.Options()[opt.Ident] = []any{deflt}
 		}
 	}
+}
+
+func flatten[T any](lists [][]T) []T {
+	var res []T
+	for _, list := range lists {
+		res = append(res, list...)
+	}
+	return res
+}
+
+func collectInfos(info *infov1.Information) map[types.Object]infov1.Info {
+	all := make(map[types.Object]infov1.Info, infoCap(info))
+	for obj, str := range info.Structs {
+		all[obj] = str
+	}
+	for obj, alias := range info.Aliases {
+		all[obj] = alias
+	}
+	for obj, v := range info.Vars {
+		all[obj] = v
+	}
+	for obj, c := range info.Consts {
+		all[obj] = c
+	}
+	for obj, fn := range info.Funcs {
+		all[obj] = fn
+	}
+	for obj, iface := range info.Ifaces {
+		all[obj] = iface
+	}
+	for obj, imp := range info.Imports {
+		all[obj] = imp
+	}
+	for obj, named := range info.Named {
+		all[obj] = named
+	}
+	// TODO: Need types.Object for file or a fake one atleast
+	// for filename, file := range info.Files {
+	// 	all[nil] = file
+	// }
+	return all
+}
+
+func infoCap(info *infov1.Information) int {
+	return len(
+		info.Structs,
+	) + len(
+		info.Aliases,
+	) + len(
+		info.Vars,
+	) + len(
+		info.Consts,
+	) + len(
+		info.Funcs,
+	) + len(
+		info.Ifaces,
+	) + len(
+		info.Imports,
+	) + len(
+		info.Named,
+	) + len(
+		info.Files,
+	)
 }
