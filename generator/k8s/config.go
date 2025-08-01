@@ -1,6 +1,9 @@
 package k8s
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/pelletier/go-toml/v2"
 
 	"github.com/naivary/codemark/optionutil"
@@ -8,13 +11,23 @@ import (
 
 // TODO: validateConfig
 func validateConfig(cfg *config) error {
+	const formatTestString = "testString"
+	if cfg.Namespace == "" {
+		return errors.New("default namespace in codemark.toml cannot be empty")
+	}
+	if s := cfg.NameFormat.Format(formatTestString); s == "" {
+		return fmt.Errorf("format not supported: %s", cfg.NameFormat)
+	}
+	if s := cfg.ConfigMap.KeyFormat.Format(formatTestString); s == "" {
+		return fmt.Errorf("format not supported: %s", cfg.ConfigMap.KeyFormat)
+	}
 	return nil
 }
 
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
 		Namespace:  Namespace("default"),
-		NameFormat: SnakeCase,
+		NameFormat: KebabCase,
 		ConfigMap: configMapConfig{
 			KeyFormat: CamelCase,
 		},
@@ -31,8 +44,8 @@ func newConfig(cfg map[string]any) (*config, error) {
 }
 
 type configMapConfig struct {
-	Immutable Immutable `toml:"immutable"`
-	KeyFormat Format    `toml:"format"`
+	KeyFormat Format    `toml:"key_format"`
+	immutable Immutable `toml:"immutable"`
 }
 
 type config struct {
@@ -60,7 +73,7 @@ func (c *config) getConfigMap(option string) any {
 	case "default":
 		return nil
 	case "immutable":
-		return c.ConfigMap.Immutable
+		return c.ConfigMap.immutable
 	case "format.key":
 		return c.ConfigMap.KeyFormat
 	default:

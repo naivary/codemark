@@ -71,7 +71,7 @@ func (k Format) Format(key string) string {
 	case KebabCase:
 		return strcase.ToKebab(key)
 	default:
-		return key
+		return ""
 	}
 }
 
