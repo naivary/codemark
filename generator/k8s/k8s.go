@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"fmt"
 	"go/types"
 	"maps"
 	"reflect"
@@ -78,6 +79,7 @@ func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*g
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(config)
 	for pkg, pkgInfo := range proj {
 		infos := collectInfos(pkgInfo)
 		for obj, info := range infos {

@@ -1,6 +1,0 @@
-[k8s]
-namespace = "default"
-name_format = "kebab-case"
-
-[k8s.configmap]
-key_format = "camelCase"

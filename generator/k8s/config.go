@@ -1,27 +1,31 @@
 package k8s
 
 import (
-	"errors"
-	"fmt"
+	"bytes"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/goccy/go-yaml"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/naivary/codemark/optionutil"
 )
 
 // TODO: validateConfig
-func validateConfig(cfg *config) error {
-	const formatTestString = "testString"
-	if cfg.Namespace == "" {
-		return errors.New("default namespace in codemark.toml cannot be empty")
+func validateConfig(data []byte) error {
+	json, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
 	}
-	if s := cfg.NameFormat.Format(formatTestString); s == "" {
-		return fmt.Errorf("format not supported: %s", cfg.NameFormat)
+	r := bytes.NewReader(json)
+	c := jsonschema.NewCompiler()
+	schm, err := c.Compile("./schema/k8s.json")
+	if err != nil {
+		return err
 	}
-	if s := cfg.ConfigMap.KeyFormat.Format(formatTestString); s == "" {
-		return fmt.Errorf("format not supported: %s", cfg.ConfigMap.KeyFormat)
+	inst, err := jsonschema.UnmarshalJSON(r)
+	if err != nil {
+		return err
 	}
-	return nil
+	return schm.Validate(inst)
 }
 
 func newConfig(cfg map[string]any) (*config, error) {
@@ -32,27 +36,28 @@ func newConfig(cfg map[string]any) (*config, error) {
 			KeyFormat: CamelCase,
 		},
 	}
-	data, err := toml.Marshal(cfg)
+	data, err := yaml.Marshal(cfg)
 	if err != nil {
 		return nil, err
 	}
-	err = toml.Unmarshal(data, &c)
+	err = validateConfig(data)
 	if err != nil {
 		return nil, err
 	}
-	return &c, validateConfig(&c)
+	err = yaml.Unmarshal(data, &c)
+	return &c, err
 }
 
 type configMapConfig struct {
-	KeyFormat Format    `toml:"key_format"`
-	immutable Immutable `toml:"immutable"`
+	KeyFormat Format    `yaml:"key_format"`
+	immutable Immutable `yaml:"immutable"`
 }
 
 type config struct {
-	Namespace  Namespace `toml:"namespace"`
-	NameFormat Format    `toml:"name_format"`
+	Namespace  Namespace `yaml:"namespace"`
+	NameFormat Format    `yaml:"name_format"`
 
-	ConfigMap configMapConfig `toml:"configmap"`
+	ConfigMap configMapConfig `yaml:"configMap"`
 }
 
 func (c *config) Get(ident string) any {

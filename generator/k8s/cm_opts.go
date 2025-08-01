@@ -55,7 +55,7 @@ const (
 	CamelCase  Format = "camelCase"
 	PascalCase Format = "PascalCase"
 	KebabCase  Format = "kebab-case"
-	Env        Format = "env"
+	Env        Format = "ENV"
 )
 
 func (k Format) Format(key string) string {

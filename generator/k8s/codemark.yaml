@@ -3,6 +3,4 @@ k8s:
   name_format: "camelCase"
 
   configMap:
-    key_format: "env"
-  
-jsonschema:
+    key_format: "camelCase"

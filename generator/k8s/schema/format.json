@@ -1,0 +1,12 @@
+{
+  "$id": "format.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "available formats",
+  "enum": [
+    "snake_case",
+    "camelCase",
+    "PascalCase",
+    "kebab-case",
+    "ENV"
+  ]
+}

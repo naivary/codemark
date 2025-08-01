@@ -1,0 +1,11 @@
+{
+  "id": "configmap",
+  "url": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Settings for the configmap generator of k8s",
+  "type": "object",
+  "properties": {
+    "key_format": {
+      "$ref": "format.json"
+    }
+  }
+}
