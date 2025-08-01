@@ -6,7 +6,6 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"os"
 	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
@@ -15,8 +14,6 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/converter"
 )
-
-const _badRequest = 1
 
 type parseMarkers = func(doc string, target optionv1.Target) (map[string][]any, error)
 
@@ -58,7 +55,10 @@ func (l *loader) Load(args ...string) (infov1.Project, error) {
 		return nil, err
 	}
 	if packages.PrintErrors(pkgs) > 0 {
-		os.Exit(_badRequest)
+		return nil, ErrBadLoadRequest
+	}
+	if len(pkgs) == 0 {
+		return nil, ErrPkgsEmpty
 	}
 	proj := make(map[*packages.Package]*infov1.Information, len(pkgs))
 	for _, pkg := range pkgs {

@@ -9,8 +9,11 @@ import (
 	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
-var ErrPkgsEmpty = errors.New(
-	"loaded packages are empty. check that the defined patterns are matching any files",
+var (
+	ErrPkgsEmpty = errors.New(
+		"loaded packages are empty. check that the defined patterns are matching any files",
+	)
+	ErrBadLoadRequest = errors.New("bad load request")
 )
 
 type Loader interface {
