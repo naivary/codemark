@@ -5,7 +5,7 @@ go 1.24.4
 require (
 	github.com/goccy/go-yaml v1.18.0
 	github.com/iancoleman/strcase v0.3.0
-	github.com/pelletier/go-toml/v2 v2.2.4
+	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/spf13/cobra v1.9.1
 	golang.org/x/exp v0.0.0-20250718183923-645b1fa84792
 	golang.org/x/tools v0.35.0
@@ -22,6 +22,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/mod v0.26.0 // indirect

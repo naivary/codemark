@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/loader"
@@ -85,9 +85,9 @@ func (m *Manager) Add(gen genv1.Generator) error {
 
 func readInConfig() (map[string]any, error) {
 	var config map[string]any
-	file, err := os.ReadFile("codemark.toml")
+	file, err := os.ReadFile("codemark.yaml")
 	if err != nil {
 		return nil, err
 	}
-	return config, toml.Unmarshal(file, &config)
+	return config, yaml.Unmarshal(file, &config)
 }
