@@ -10,9 +10,10 @@ import (
 )
 
 func TestResource_ConfigMap(t *testing.T) {
-	immutable := true
-	mutable := false
-	_ = immutable
+	const (
+		immutable = true
+		mutable   = false
+	)
 	tests := []struct {
 		name    string
 		path    string
@@ -23,21 +24,10 @@ func TestResource_ConfigMap(t *testing.T) {
 			name:    "configmap with defaults",
 			path:    "testdata/configmap/defaults.go",
 			isValid: true,
-			want: corev1.ConfigMap{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "ConfigMap",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "valid",
-					Namespace: "default",
-				},
-				Immutable: &mutable,
-				Data: map[string]string{
-					"int":    "4",
-					"string": "1024",
-				},
-			},
+			want: newConfigMap("valid", "default", mutable, map[string]string{
+				"int":    "4",
+				"string": "1024",
+			}),
 		},
 		{
 			name:    "immutable configmap without default",
@@ -48,22 +38,11 @@ func TestResource_ConfigMap(t *testing.T) {
 			name:    "configmap with format",
 			path:    "testdata/configmap/format.go",
 			isValid: true,
-			want: corev1.ConfigMap{
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "ConfigMap",
-				},
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "format",
-					Namespace: "codemark",
-				},
-				Immutable: &mutable,
-				Data: map[string]string{
-					"int":        "4",
-					"string":     "1024",
-					"no_default": "no-default",
-				},
-			},
+			want: newConfigMap("format", "codemark", mutable, map[string]string{
+				"int":        "4",
+				"string":     "1024",
+				"no_default": "no-default",
+			}),
 		},
 	}
 
@@ -106,4 +85,16 @@ func TestResource_ConfigMap(t *testing.T) {
 			}
 		})
 	}
+}
+
+func newConfigMap(name, namespace string, immutable bool, data map[string]string) corev1.ConfigMap {
+	cm := corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Immutable: &immutable,
+		Data:      data,
+	}
+	return cm
 }

@@ -36,10 +36,10 @@ func IsValid(opt optionv1.Option) error {
 		return err
 	}
 	if opt.Type == nil {
-		return fmt.Errorf("output type cannot be nil: %s", opt.Ident)
+		return fmt.Errorf("type cannot be nil: %s", opt.Ident)
 	}
 	if len(opt.Targets) == 0 {
-		return fmt.Errorf("definition has not target defined: %s", opt.Ident)
+		return fmt.Errorf("option has not target defined: %s", opt.Ident)
 	}
 	return nil
 }

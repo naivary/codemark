@@ -8,7 +8,7 @@ import (
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
-	k8sgen "github.com/naivary/codemark/generator/k8s"
+	k8sgen "github.com/naivary/codemark/internal/generator/k8s"
 )
 
 // TODO: make the functions of the commands use codes
