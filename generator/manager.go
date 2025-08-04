@@ -11,6 +11,15 @@ import (
 	"github.com/naivary/codemark/registry"
 )
 
+func readInConfig() (map[string]any, error) {
+	var config map[string]any
+	file, err := os.ReadFile("codemark.yaml")
+	if err != nil {
+		return nil, err
+	}
+	return config, yaml.Unmarshal(file, &config)
+}
+
 type domain = string
 
 type Manager struct {
@@ -25,19 +34,13 @@ func NewManager() (*Manager, error) {
 }
 
 func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*genv1.Artifact, error) {
-	gens := make([]genv1.Generator, 0, len(domains))
-	for _, domain := range domains {
-		gen, err := m.Get(domain)
-		if err != nil {
-			return nil, err
-		}
-		gens = append(gens, gen)
+	gens, err := m.all(domains...)
+	if err != nil {
+		return nil, err
 	}
-	reg := registry.InMemory()
-	for _, gen := range gens {
-		if err := reg.Merge(gen.Registry()); err != nil {
-			return nil, err
-		}
+	reg, err := m.merge(gens...)
+	if err != nil {
+		return nil, err
 	}
 	info, err := loader.Load(reg, pattern)
 	if err != nil {
@@ -47,16 +50,19 @@ func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*gen
 	if err != nil {
 		return nil, err
 	}
-	artifacts := make(map[domain][]*genv1.Artifact, len(gens))
+	output := make(map[domain][]*genv1.Artifact)
 	for _, gen := range gens {
-		genConfig := config[gen.Domain()].(map[string]any)
-		generatedArtifacts, err := gen.Generate(info, genConfig)
+		genCfg, isMap := config[gen.Domain()].(map[string]any)
+		if !isMap {
+			genCfg = make(map[string]any)
+		}
+		artifacts, err := gen.Generate(info, genCfg)
 		if err != nil {
 			return nil, err
 		}
-		artifacts[gen.Domain()] = generatedArtifacts
+		output[gen.Domain()] = artifacts
 	}
-	return artifacts, nil
+	return output, nil
 }
 
 func (m *Manager) Get(domain string) (genv1.Generator, error) {
@@ -76,11 +82,25 @@ func (m *Manager) Add(gen genv1.Generator) error {
 	return nil
 }
 
-func readInConfig() (map[string]any, error) {
-	var config map[string]any
-	file, err := os.ReadFile("codemark.yaml")
-	if err != nil {
-		return nil, err
+func (m *Manager) all(domains ...string) ([]genv1.Generator, error) {
+	gens := make([]genv1.Generator, 0, len(domains))
+	for _, domain := range domains {
+		gen, err := m.Get(domain)
+		if err != nil {
+			return nil, err
+		}
+		gens = append(gens, gen)
 	}
-	return config, yaml.Unmarshal(file, &config)
+	return gens, nil
+}
+
+// merge merges all the registries of the given generators in one registry.
+func (m *Manager) merge(gens ...genv1.Generator) (registry.Registry, error) {
+	reg := registry.InMemory()
+	for _, gen := range gens {
+		if err := reg.Merge(gen.Registry()); err != nil {
+			return nil, err
+		}
+	}
+	return reg, nil
 }
