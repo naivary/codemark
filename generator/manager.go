@@ -3,7 +3,6 @@ package generator
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/goccy/go-yaml"
 
@@ -15,17 +14,11 @@ import (
 type domain = string
 
 type Manager struct {
-	dir  string
 	gens map[domain]genv1.Generator
 }
 
 func NewManager() (*Manager, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
 	mngr := &Manager{
-		dir:  filepath.Join(home, ".codemark", "gens"),
 		gens: make(map[domain]genv1.Generator),
 	}
 	return mngr, nil
@@ -69,7 +62,7 @@ func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*gen
 func (m *Manager) Get(domain string) (genv1.Generator, error) {
 	gen, found := m.gens[domain]
 	if !found {
-		return nil, fmt.Errorf("genv1.not found for domain: %s", domain)
+		return nil, fmt.Errorf("generator not found for domain: %s", domain)
 	}
 	return gen, nil
 }
@@ -77,7 +70,7 @@ func (m *Manager) Get(domain string) (genv1.Generator, error) {
 func (m *Manager) Add(gen genv1.Generator) error {
 	domain := gen.Domain()
 	if _, found := m.gens[domain]; found {
-		return fmt.Errorf("genv1.for domain already exists: %s", domain)
+		return fmt.Errorf("generator for domain already exists: %s", domain)
 	}
 	m.gens[domain] = gen
 	return nil
