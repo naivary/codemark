@@ -3,7 +3,6 @@ package k8s
 import (
 	"bytes"
 	"go/types"
-	"io"
 	"slices"
 
 	"github.com/goccy/go-yaml"
@@ -26,24 +25,6 @@ func newArtifact(name string, manifests ...any) (*genv1.Artifact, error) {
 		Name: name,
 		Data: &data,
 	}, nil
-}
-
-func mergeArtifacts(artifacts ...*genv1.Artifact) (*genv1.Artifact, error) {
-	if len(artifacts) == 0 {
-		return nil, nil
-	}
-	base := artifacts[0]
-	for _, artifact := range artifacts[1:] {
-		_, err := io.WriteString(base.Data, "---\n")
-		if err != nil {
-			return nil, err
-		}
-		_, err = io.Copy(base.Data, artifact.Data)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return base, nil
 }
 
 func setDefaults(opts []*optionv1.Option, info infov1.Info, cfg *config, target optionv1.Target) {
