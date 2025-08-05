@@ -73,11 +73,11 @@ func (g k8sGenerator) Registry() registry.Registry {
 }
 
 func (g k8sGenerator) Generate(proj infov1.Project, config map[string]any) ([]*genv1.Artifact, error) {
-	artifacts := make([]*genv1.Artifact, 0, len(proj))
 	cfg, err := newConfig(config)
 	if err != nil {
 		return nil, err
 	}
+	artifacts := make([]*genv1.Artifact, 0, len(proj))
 	for pkg, pkgInfo := range proj {
 		infos := collectInfos(pkgInfo)
 		for obj, info := range infos {

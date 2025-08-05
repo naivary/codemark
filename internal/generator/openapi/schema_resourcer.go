@@ -1,8 +1,8 @@
 package openapi
 
 import (
-	"fmt"
 	"go/types"
+	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
 
@@ -69,8 +69,7 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 			return nil, err
 		}
 	}
-	fmt.Println(schema.ID)
-	filename := fmt.Sprintf("%s.json", cfg.Schema.Formats.Filename.Format(structInfo.Spec.Name.Name))
+	filename := filepath.Base(schema.ID)
 	return newArtifact(filename, schema)
 }
 

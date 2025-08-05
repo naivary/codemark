@@ -51,7 +51,7 @@ func lexIdent(l *Lexer) stateFunc {
 		return l.errorf("marker identifier cannot start with a digit: %d", r)
 	}
 	valid := func(r rune) bool {
-		return (unicode.IsLetter(r) && unicode.IsLower(r)) || unicode.IsDigit(r) || r == _colon ||
+		return unicode.IsLetter(r) || unicode.IsDigit(r) || r == _colon ||
 			r == _underscore ||
 			r == _dot
 	}
