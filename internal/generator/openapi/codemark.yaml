@@ -1,0 +1,7 @@
+openapi:
+  schema:
+    formats:
+      key: "camelCase"
+      filename: "snake_case"
+    draft: "2012-10"
+    idBaseURL: "http://codemark.io/schemas"

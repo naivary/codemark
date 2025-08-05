@@ -1,14 +1,14 @@
 package schema
 
-// +openapi:schema:title=""
-// +openapi:schema:description=""
+// +openapi:schema:description="authentication request data type"
 type AuthRequest struct {
-	// +openapi:schema:required
-	// +openapi:schema:format="email"
 	Email string
 
-	// +openapi:schema:required
 	// +openapi:schema:minLength=12
 	// +openapi:schema:maxLength=32
 	Password string
+
+	// +openapi:schema:maximum=99
+	// +openapi:schema:minimum=18
+	Age int
 }
