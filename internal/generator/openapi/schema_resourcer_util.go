@@ -32,9 +32,10 @@ type Schema struct {
 	Items       *Schema `json:"items,omitzero"`
 
 	// object
-	Properties           map[string]*Schema `json:"properties,omitzero"`
-	Required             []string           `json:"required,omitzero"`
-	AdditionalProperties *Schema            `json:"additionalProperties,omitzero"`
+	Properties           map[string]*Schema  `json:"properties,omitzero"`
+	Required             []string            `json:"required,omitzero"`
+	AdditionalProperties *Schema             `json:"additionalProperties,omitzero"`
+	DependentRequired    map[string][]string `json:"dependentRequired,omitzero"`
 
 	// string
 	MinLength        int    `json:"minLength,omitzero"`

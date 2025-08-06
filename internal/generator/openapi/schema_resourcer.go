@@ -46,6 +46,7 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 		mustMakeOpt(_typeName, UniqueItems(false), _unique, optionv1.TargetField),
 		// object
 		mustMakeOpt(_typeName, Required(false), _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, DependentRequired(nil), _unique, optionv1.TargetField),
 		// string
 		mustMakeOpt(_typeName, Pattern(""), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, Format(""), _unique, optionv1.TargetField),
@@ -113,10 +114,11 @@ func (s schemaResourcer) newRootSchema(info *infov1.StructInfo, cfg *config) (Sc
 		return Schema{}, err
 	}
 	schema := Schema{
-		ID:         id,
-		Draft:      cfg.Schema.Draft,
-		Type:       objectType,
-		Properties: make(map[string]*Schema, len(info.Fields)),
+		ID:                id,
+		Draft:             cfg.Schema.Draft,
+		Type:              objectType,
+		Properties:        make(map[string]*Schema, len(info.Fields)),
+		DependentRequired: make(map[string][]string),
 	}
 	return schema, nil
 }
@@ -178,6 +180,8 @@ func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.
 			// object
 			case Required:
 				err = o.apply(root, info, cfg)
+			case DependentRequired:
+				err = o.apply(root, cfg, info)
 			}
 			if err != nil {
 				return err

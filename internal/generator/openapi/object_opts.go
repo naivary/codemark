@@ -21,3 +21,21 @@ func (r Required) apply(schema *Schema, finfo *infov1.FieldInfo, cfg *config) er
 	schema.Required = append(schema.Required, fieldName)
 	return nil
 }
+
+type DependentRequired []string
+
+func (dr DependentRequired) Doc() docv1.Option {
+	return docv1.Option{}
+}
+
+func (dr DependentRequired) apply(schema *Schema, cfg *config, finfo *infov1.FieldInfo) error {
+	if schema.Type != objectType {
+		return errors.New("dependentRequired can only be applied to objects")
+	}
+	fieldName := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
+	for _, required := range dr {
+		field := cfg.Schema.Formats.Property.Format(required)
+		schema.DependentRequired[fieldName] = append(schema.DependentRequired[fieldName], field)
+	}
+	return nil
+}
