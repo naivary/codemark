@@ -13,5 +13,7 @@ type AuthRequest struct {
 	// +openapi:schema:minimum=18
 	// +openapi:schema:exclusiveMaximum=99
 	// +openapi:schema:required
+	// +openapi:schema:title="age of the person"
+	// +openapi:schema:description="longer desc"
 	Age int
 }
