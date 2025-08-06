@@ -3,5 +3,5 @@ openapi:
     formats:
       key: "camelCase"
       filename: "snake_case"
-    draft: "2012-10"
+    draft: "https://json-schema.org/draft/2020-12/schema" 
     idBaseURL: "http://codemark.io/schemas"

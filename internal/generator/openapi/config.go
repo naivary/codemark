@@ -1,6 +1,9 @@
 package openapi
 
 import (
+	"fmt"
+	"net/url"
+
 	"github.com/goccy/go-yaml"
 
 	"github.com/naivary/codemark/optionutil"
@@ -9,7 +12,7 @@ import (
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
 		Schema: schemaConfig{
-			Draft:     Draft("https://json-schema.org/draft/2020-12/schema"),
+			Draft:     "https://json-schema.org/draft/2020-12/schema",
 			IDBaseURL: "http://codemark.io/schemas",
 			Formats: schemaFormats{
 				Property: CamelCase,
@@ -22,7 +25,10 @@ func newConfig(cfg map[string]any) (*config, error) {
 		return nil, err
 	}
 	err = yaml.Unmarshal(data, &c)
-	return &c, err
+	if err != nil {
+		return nil, err
+	}
+	return &c, c.validate()
 }
 
 type config struct {
@@ -30,7 +36,7 @@ type config struct {
 }
 
 type schemaConfig struct {
-	Draft Draft `yaml:"draft"`
+	Draft string `yaml:"draft"`
 	// IDBaseURL is the base of the url controlled by you. It follows the following
 	// url convention: http://<domain-controlled-by-you>/schemas
 	IDBaseURL string `yaml:"idBaseURL"`
@@ -39,8 +45,8 @@ type schemaConfig struct {
 }
 
 type schemaFormats struct {
-	Property Format `yaml:"property"`
-	Filename Format `yaml:"filename"`
+	Property NamingConvention `yaml:"property"`
+	Filename NamingConvention `yaml:"filename"`
 }
 
 // Get is returning the default value of the identifier. If no default value is
@@ -61,4 +67,11 @@ func (c *config) getSchema(opt string) any {
 	default:
 		return nil
 	}
+}
+
+func (c *config) validate() error {
+	if _, err := url.ParseRequestURI(c.Schema.Draft); err != nil {
+		return fmt.Errorf("the draft you have choosen is not a proper URL: %s", c.Schema.Draft)
+	}
+	return nil
 }
