@@ -9,8 +9,6 @@ import (
 
 	"golang.org/x/tools/go/packages"
 
-	"github.com/iancoleman/strcase"
-
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
@@ -42,6 +40,10 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 		mustMakeOpt(_typeName, Deprecated(false), _unique, optionv1.TargetStruct, optionv1.TargetField),
 		mustMakeOpt(_typeName, WriteOnly(false), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, ReadOnly(false), _unique, optionv1.TargetField),
+		// array
+		mustMakeOpt(_typeName, MinItems(0), _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, MaxItems(0), _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, UniqueItems(false), _unique, optionv1.TargetField),
 		// object
 		mustMakeOpt(_typeName, Required(false), _unique, optionv1.TargetField),
 		// string
@@ -67,7 +69,7 @@ func (s schemaResourcer) CanCreate(info infov1.Info) bool {
 func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info infov1.Info, cfg *config) (*genv1.Artifact, error) {
 	structInfo := info.(*infov1.StructInfo)
 	s.setDefaultOpts(structInfo, cfg)
-	root, err := s.newSchema(structInfo, cfg)
+	root, err := s.newRootSchema(structInfo, cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +77,22 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 	if err != nil {
 		return nil, err
 	}
-	for _, finfo := range structInfo.Fields {
-		name := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
-		fieldSchema := root.Properties[name]
-		err = s.applyFieldOpts(&root, fieldSchema, finfo, cfg)
+	for obj, finfo := range structInfo.Fields {
+		fieldSchema, err := newSchema(obj.Type(), cfg)
 		if err != nil {
 			return nil, err
 		}
+		name := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
+		if fieldSchema.Ref != "" {
+			root.Properties[name] = &fieldSchema
+			continue
+		}
+
+		err = s.applyFieldOpts(&root, &fieldSchema, finfo, cfg)
+		if err != nil {
+			return nil, err
+		}
+		root.Properties[name] = &fieldSchema
 	}
 	fmt.Println(json.NewEncoder(os.Stdout).Encode(&root))
 	filename := filepath.Base(root.ID)
@@ -96,7 +107,7 @@ func (s schemaResourcer) setDefaultOpts(info *infov1.StructInfo, cfg *config) {
 	}
 }
 
-func (s schemaResourcer) newSchema(info *infov1.StructInfo, cfg *config) (Schema, error) {
+func (s schemaResourcer) newRootSchema(info *infov1.StructInfo, cfg *config) (Schema, error) {
 	id, err := id(info.Spec.Name.Name, cfg.Schema.IDBaseURL, cfg.Schema.Formats.Filename)
 	if err != nil {
 		return Schema{}, err
@@ -106,12 +117,6 @@ func (s schemaResourcer) newSchema(info *infov1.StructInfo, cfg *config) (Schema
 		Draft:      cfg.Schema.Draft,
 		Type:       objectType,
 		Properties: make(map[string]*Schema, len(info.Fields)),
-	}
-	for obj, finfo := range info.Fields {
-		fieldName := strcase.ToLowerCamel(finfo.Ident.Name)
-		schema.Properties[fieldName] = &Schema{
-			Type: jsonTypeOf(obj.Type()),
-		}
 	}
 	return schema, nil
 }
@@ -124,6 +129,13 @@ func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {
+			// array
+			case MinItems:
+				err = o.apply(fieldSchema)
+			case MaxItems:
+				err = o.apply(fieldSchema)
+			case UniqueItems:
+				err = o.apply(fieldSchema)
 			// annotations
 			case Title:
 				err = o.apply(fieldSchema)

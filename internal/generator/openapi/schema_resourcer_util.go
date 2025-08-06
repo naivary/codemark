@@ -1,17 +1,22 @@
 package openapi
 
 import (
+	"errors"
+	"fmt"
 	"go/types"
 	"net/url"
 )
 
+var _schemaz = Schema{}
+
 type Schema struct {
-	// metadata --
+	// metadata
 	ID    string   `json:"$id,omitzero"`
 	Draft string   `json:"$schema,omitzero"`
-	Type  jsonType `json:"type"`
+	Ref   string   `json:"$ref,omitzero"`
+	Type  jsonType `json:"type,omitzero"`
 
-	// annotations --
+	// annotations
 	Title      string   `json:"title,omitzero"`
 	Desc       string   `json:"description,omitzero"`
 	Examples   []string `json:"examples,omitzero"`
@@ -20,11 +25,18 @@ type Schema struct {
 	ReadOnly   bool     `json:"readOnly,omitzero"`
 	Default    string   `json:"default,omitzero"`
 
-	// object --
-	Properties map[string]*Schema `json:"properties,omitzero"`
-	Required   []string           `json:"required,omitzero"`
+	// array
+	MaxItems    int64   `json:"maxItems,omitzero"`
+	MinItems    int64   `json:"minItems,omitzero"`
+	UniqueItems bool    `json:"uniqueItems,omitzero"`
+	Items       *Schema `json:"items,omitzero"`
 
-	// string --
+	// object
+	Properties           map[string]*Schema `json:"properties,omitzero"`
+	Required             []string           `json:"required,omitzero"`
+	AdditionalProperties *Schema            `json:"additionalProperties,omitzero"`
+
+	// string
 	MinLength        int    `json:"minLength,omitzero"`
 	MaxLength        int    `json:"maxLength,omitzero"`
 	Pattern          string `json:"pattern,omitzero"`
@@ -32,12 +44,105 @@ type Schema struct {
 	ContentMediaType string `json:"contentMediaType,omitzero"`
 	Format           string `json:"format,omitzero"`
 
-	// number --
+	// number
 	Maximum          int64 `json:"maximum,omitzero"`
 	Minimum          int64 `json:"minimum,omitzero"`
 	ExclusiveMaximum int64 `json:"exclusiveMaximum,omitzero"`
 	ExclusiveMinimum int64 `json:"exclusiveMinimum,omitzero"`
 	MultipleOf       int64 `json:"multipleOf,omitzero"`
+}
+
+func newSchema(typ types.Type, cfg *config) (Schema, error) {
+	// TODO: empty interface e.g. any is not handled
+	// TODO: some markers make sense to be abel to set even if ref is active.
+	// find those markers. For example maxItems, minItems.
+	switch t := typ.(type) {
+	case *types.Named:
+		return newSchemaFromNamed(t, cfg)
+	case *types.Alias:
+		return newSchema(t.Rhs(), cfg)
+	}
+
+	switch t := typ.Underlying().(type) {
+	case *types.Basic:
+		return newBasicSchema(t)
+	case *types.Slice:
+		return newArraySchemaFromSlice(t, cfg)
+	case *types.Array:
+		return newArraySchemaFromArray(t, cfg)
+	case *types.Map:
+		return newObjectSchemaFromMap(t, cfg)
+	case *types.Pointer:
+		return newSchema(t.Elem(), cfg)
+	}
+	return Schema{}, fmt.Errorf("types is not supported: %s", typ)
+}
+
+func newBasicSchema(t *types.Basic) (Schema, error) {
+	return Schema{
+		Type: jsonTypeOf(t),
+	}, nil
+}
+
+func newArraySchemaFromSlice(t *types.Slice, cfg *config) (Schema, error) {
+	elemSchema, err := newSchema(t.Elem(), cfg)
+	if err != nil {
+		return _schemaz, err
+	}
+	schema := Schema{
+		Type:  arrayType,
+		Items: &elemSchema,
+	}
+	return schema, nil
+}
+
+func newArraySchemaFromArray(t *types.Array, cfg *config) (Schema, error) {
+	elemSchema, err := newSchema(t.Elem(), cfg)
+	if err != nil {
+		return _schemaz, err
+	}
+	schema := Schema{
+		Type:     arrayType,
+		MaxItems: max(t.Len(), 0),
+		Items:    &elemSchema,
+	}
+	return schema, nil
+}
+
+func newObjectSchemaFromMap(t *types.Map, cfg *config) (Schema, error) {
+	basic, isBasic := t.Key().Underlying().(*types.Basic)
+	if !isBasic {
+		return _schemaz, errors.New("map is not indexed with an basic type e.g. int, string etc.")
+	}
+	if basic.Kind() != types.String {
+		return _schemaz, errors.New("map has to be indexed with string")
+	}
+	valueSchema, err := newSchema(t.Elem(), cfg)
+	if err != nil {
+		return _schemaz, err
+	}
+	return Schema{
+		Type:                 objectType,
+		AdditionalProperties: &valueSchema,
+	}, nil
+}
+
+func newObjectSchemaFromStruct(name string, cfg *config) (Schema, error) {
+	id, err := id(name, cfg.Schema.IDBaseURL, cfg.Schema.Formats.Filename)
+	if err != nil {
+		return _schemaz, err
+	}
+	return Schema{
+		Ref: id,
+	}, nil
+}
+
+func newSchemaFromNamed(n *types.Named, cfg *config) (Schema, error) {
+	switch n.Underlying().(type) {
+	case *types.Struct:
+		return newObjectSchemaFromStruct(n.Obj().Name(), cfg)
+	}
+	return _schemaz, nil
 }
 
 type jsonType string
@@ -71,26 +176,17 @@ func jsonTypeOf(typ types.Type) jsonType {
 		default:
 			return invalidType
 		}
-
 	case *types.Slice, *types.Array:
 		return arrayType
-
 	case *types.Map:
 		// JSON only allows maps with string keys
 		if keyType := t.Key(); keyType.Underlying().(*types.Basic).Kind() == types.String {
 			return objectType
 		}
 		return invalidType
-
 	case *types.Struct:
 		return objectType
-
-	case *types.Interface:
-		// Accept interface{} as a valid JSON-compatible value
-		return nullType
-
 	case *types.Pointer:
-		// Dereference and check underlying type
 		return jsonTypeOf(t.Elem())
 	default:
 		return invalidType
