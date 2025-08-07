@@ -20,7 +20,14 @@ type AuthRequest struct {
 	Age int
 
 	// +openapi:schema:dependentRequired=["name"]
-	// +openapi:schema:mutuallyExclusive=["email"]
 	// +openapi:schema:required
 	UserName string
+
+	// +openapi:schema:enum=[3,2,3]
+	NonArr int
+
+	// +openapi:schema:enum=["3", 2, "null"]
+	Any []any
+
+	Iface interface{}
 }

@@ -90,8 +90,7 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 			root.Properties[name] = &fieldSchema
 			continue
 		}
-
-		err = s.applyFieldOpts(&root, &fieldSchema, finfo, cfg)
+		err = s.applyFieldOpts(&root, &fieldSchema, finfo, cfg, obj)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +124,7 @@ func (s schemaResourcer) newRootSchema(info *infov1.StructInfo, cfg *config) (Sc
 	return schema, nil
 }
 
-func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.FieldInfo, cfg *config) error {
+func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.FieldInfo, cfg *config, obj types.Object) error {
 	for ident, opts := range info.Options() {
 		if !isResource(ident, _schemaResource) {
 			continue
@@ -133,6 +132,9 @@ func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {
+			// agnostic
+			case Enum:
+				err = o.apply(fieldSchema, obj)
 			// array
 			case MinItems:
 				err = o.apply(fieldSchema)

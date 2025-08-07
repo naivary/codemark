@@ -57,7 +57,6 @@ type Schema struct {
 }
 
 func newSchema(typ types.Type, cfg *config) (Schema, error) {
-	// TODO: empty interface e.g. any is not handled
 	// TODO: some markers make sense to be abel to set even if ref is active.
 	// find those markers. For example maxItems, minItems.
 	switch t := typ.(type) {
@@ -76,16 +75,25 @@ func newSchema(typ types.Type, cfg *config) (Schema, error) {
 		return newArraySchemaFromArray(t, cfg)
 	case *types.Map:
 		return newObjectSchemaFromMap(t, cfg)
+	case *types.Interface:
+		return newSchemaFromIface(t)
 	case *types.Pointer:
 		return newSchema(t.Elem(), cfg)
 	}
-	return Schema{}, fmt.Errorf("types is not supported: %s", typ)
+	return Schema{}, fmt.Errorf("type is not supported: %s", typ)
 }
 
 func newBasicSchema(t *types.Basic) (Schema, error) {
 	return Schema{
 		Type: jsonTypeOf(t),
 	}, nil
+}
+
+func newSchemaFromIface(t *types.Interface) (Schema, error) {
+	if !t.Empty() {
+		return _schemaz, errors.New("interfaces are not supported as types in struct for JSON Schema beside the expection of any")
+	}
+	return Schema{}, nil
 }
 
 func newArraySchemaFromSlice(t *types.Slice, cfg *config) (Schema, error) {
