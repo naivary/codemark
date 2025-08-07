@@ -40,6 +40,8 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 		mustMakeOpt(_typeName, Deprecated(false), _unique, optionv1.TargetStruct, optionv1.TargetField),
 		mustMakeOpt(_typeName, WriteOnly(false), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, ReadOnly(false), _unique, optionv1.TargetField),
+		// agnostic
+		mustMakeOpt(_typeName, Enum(nil), _unique, optionv1.TargetField),
 		// array
 		mustMakeOpt(_typeName, MinItems(0), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, MaxItems(0), _unique, optionv1.TargetField),

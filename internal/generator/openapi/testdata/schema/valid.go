@@ -20,5 +20,7 @@ type AuthRequest struct {
 	Age int
 
 	// +openapi:schema:dependentRequired=["name"]
+	// +openapi:schema:mutuallyExclusive=["email"]
+	// +openapi:schema:required
 	UserName string
 }

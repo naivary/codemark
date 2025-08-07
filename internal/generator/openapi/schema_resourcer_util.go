@@ -16,6 +16,9 @@ type Schema struct {
 	Ref   string   `json:"$ref,omitzero"`
 	Type  jsonType `json:"type,omitzero"`
 
+	// agnostic
+	Enum []any `json:"enum,omitzero"`
+
 	// annotations
 	Title      string   `json:"title,omitzero"`
 	Desc       string   `json:"description,omitzero"`
