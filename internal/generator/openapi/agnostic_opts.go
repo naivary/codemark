@@ -41,6 +41,9 @@ func (e Enum) apply(schema *Schema, obj types.Object) error {
 }
 
 func (e Enum) assign(schema *Schema) {
+	// this for loop is allowing null to be set in any kind of array and is
+	// mapping it to the native null type of JSON. This is because codemark does
+	// not know the null keyword.
 	for i, elem := range e {
 		if elem == "null" {
 			e[i] = nil

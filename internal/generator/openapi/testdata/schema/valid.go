@@ -23,11 +23,14 @@ type AuthRequest struct {
 	// +openapi:schema:required
 	UserName string
 
-	// +openapi:schema:enum=[3,2,3]
+	// +openapi:schema:enum=[3,2,3, "null"]
 	NonArr int
 
 	// +openapi:schema:enum=["3", 2, "null"]
 	Any []any
 
-	Iface interface{}
+	// +openapi:schema:format="email"
+	Strings []string
+
+	Iface any
 }

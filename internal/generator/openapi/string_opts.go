@@ -101,9 +101,13 @@ func (f Format) Doc() docv1.Option {
 }
 
 func (f Format) apply(schema *Schema) error {
-	if schema.Type != stringType {
-		return errors.New("format can only be applied to string types")
+	if schema.Type == stringType {
+		schema.Format = string(f)
+		return nil
 	}
-	schema.Format = string(f)
-	return nil
+	if schema.Type == arrayType && schema.Items.Type == stringType {
+		schema.Items.Format = string(f)
+		return nil
+	}
+	return errors.New("format can only be applied to string types and string arrays/slices")
 }
