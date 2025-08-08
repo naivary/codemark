@@ -24,13 +24,13 @@ type Schema struct {
 	Enum []any `json:"enum,omitzero"`
 
 	// annotations
-	Title      string   `json:"title,omitzero"`
-	Desc       string   `json:"description,omitzero"`
-	Examples   []string `json:"examples,omitzero"`
-	Deprecated bool     `json:"deprecated,omitzero"`
-	WriteOnly  bool     `json:"writeOnly,omitzero"`
-	ReadOnly   bool     `json:"readOnly,omitzero"`
-	Default    string   `json:"default,omitzero"`
+	Title      string `json:"title,omitzero"`
+	Desc       string `json:"description,omitzero"`
+	Examples   []any  `json:"examples,omitzero"`
+	Deprecated bool   `json:"deprecated,omitzero"`
+	WriteOnly  bool   `json:"writeOnly,omitzero"`
+	ReadOnly   bool   `json:"readOnly,omitzero"`
+	Default    string `json:"default,omitzero"`
 
 	// array
 	MaxItems    int64   `json:"maxItems,omitzero"`
@@ -42,6 +42,7 @@ type Schema struct {
 	Properties           map[string]*Schema  `json:"properties,omitzero"`
 	Required             []string            `json:"required,omitzero"`
 	AdditionalProperties *Schema             `json:"additionalProperties,omitzero"`
+	PatternProperties    map[string]*Schema  `json:"patternProperties,omitzero,omitempty"`
 	DependentRequired    map[string][]string `json:"dependentRequired,omitzero,omitempty"`
 
 	// string

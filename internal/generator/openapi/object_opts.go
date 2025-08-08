@@ -3,6 +3,7 @@ package openapi
 import (
 	"errors"
 	"fmt"
+	"regexp"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
@@ -109,4 +110,32 @@ func (me MutuallyExclusive) newOneOfSchema(field string, cfg *config) []*Schema 
 		oneOf = append(oneOf, s)
 	}
 	return oneOf
+}
+
+type AdditionalProperties bool
+
+func (ap AdditionalProperties) Doc() docv1.Option {
+	return docv1.Option{}
+}
+
+func (ap AdditionalProperties) apply(schema *Schema) error {
+	return nil
+}
+
+type PatternProperty string
+
+func (pp PatternProperty) Doc() docv1.Option {
+	return docv1.Option{}
+}
+
+func (pp PatternProperty) apply(schema *Schema) error {
+	regExp := string(pp)
+	s := schema.AdditionalProperties
+	if _, err := regexp.Compile(regExp); err != nil {
+		return err
+	}
+	if schema.Type == objectType {
+		schema.PatternProperties[regExp] = s
+	}
+	return nil
 }

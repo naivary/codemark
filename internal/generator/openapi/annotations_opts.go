@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"errors"
+	"go/types"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 )
@@ -42,7 +43,7 @@ func (t Title) apply(schema *Schema) error {
 	return nil
 }
 
-type Examples []string
+type Examples []any
 
 func (e Examples) Doc() docv1.Option {
 	return docv1.Option{
@@ -51,12 +52,12 @@ func (e Examples) Doc() docv1.Option {
 	}
 }
 
-func (e Examples) apply(schema *Schema) error {
+func (e Examples) apply(schema *Schema, fieldType types.Type) error {
 	if len(e) == 0 {
 		return errors.New("examples marker cannot be emtpy")
 	}
-	if schema.Type == objectType {
-		return errors.New("examples annotation cannot be set for objects")
+	if schema.Type == objectType || schema.Type == arrayType {
+		return errors.New("examples annotation cannot be set for objects and arrays/slices")
 	}
 	schema.Examples = e
 	return nil

@@ -162,7 +162,7 @@ func (s schemaResourcer) applyFieldOpts(
 			case Description:
 				err = o.apply(fieldSchema)
 			case Examples:
-				err = o.apply(fieldSchema)
+				err = o.apply(fieldSchema, obj.Type())
 			case ReadOnly:
 				err = o.apply(fieldSchema)
 			case WriteOnly:
