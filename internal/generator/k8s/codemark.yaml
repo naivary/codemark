@@ -1,5 +1,4 @@
 k8s:
   namespace: "default"
-
   configMap:
     key_format: "camelCase"
