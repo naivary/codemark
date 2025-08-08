@@ -9,6 +9,7 @@ import (
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
 	k8sgen "github.com/naivary/codemark/internal/generator/k8s"
+	"github.com/naivary/codemark/internal/generator/openapi"
 )
 
 // TODO: make the functions of the commands use codes
@@ -60,6 +61,7 @@ func newGenManager(gens []genv1.Generator) (*generator.Manager, error) {
 	}
 	builtinGens := []genv1.Generator{
 		mustInit(k8sgen.New),
+		mustInit(openapi.New),
 	}
 	for _, gen := range slices.Concat(builtinGens, gens) {
 		if err := mngr.Add(gen); err != nil {

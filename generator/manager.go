@@ -14,6 +14,9 @@ import (
 func readInConfig() (map[string]any, error) {
 	var config map[string]any
 	file, err := os.ReadFile("codemark.yaml")
+	if os.IsNotExist(err) {
+		return map[string]any{}, nil
+	}
 	if err != nil {
 		return nil, err
 	}
