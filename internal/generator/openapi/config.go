@@ -13,7 +13,7 @@ func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
 		Schema: schemaConfig{
 			Draft:     "https://json-schema.org/draft/2020-12/schema",
-			IDBaseURL: "http://codemark.io/schemas",
+			IDBaseURL: "",
 			Formats: schemaFormats{
 				Property: CamelCase,
 				Filename: SnakeCase,

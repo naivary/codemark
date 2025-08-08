@@ -72,7 +72,6 @@ func (s schemaResourcer) CanCreate(info infov1.Info) bool {
 
 func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info infov1.Info, cfg *config) (*genv1.Artifact, error) {
 	structInfo := info.(*infov1.StructInfo)
-	s.setDefaultOpts(structInfo, cfg)
 	root, err := s.newRootSchema(structInfo, cfg)
 	if err != nil {
 		return nil, err
@@ -85,32 +84,37 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 		if !finfo.Ident.IsExported() {
 			continue
 		}
-		fieldSchema, err := newSchema(obj.Type(), cfg)
+		fieldSchema, err := s.buildFieldSchema(&root, structInfo, obj, finfo, cfg)
 		if err != nil {
 			return nil, err
 		}
 		name := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
-		if fieldSchema.Ref != "" {
-			root.Properties[name] = &fieldSchema
-			continue
-		}
-		err = s.applyFieldOpts(&root, &fieldSchema, finfo, cfg, obj, structInfo)
-		if err != nil {
-			return nil, err
-		}
-		root.Properties[name] = &fieldSchema
+		root.Properties[name] = fieldSchema
 	}
+
 	fmt.Println(json.NewEncoder(os.Stdout).Encode(&root))
 	filename := filepath.Base(root.ID)
 	return newArtifact(filename, root)
 }
 
-func (s schemaResourcer) setDefaultOpts(info *infov1.StructInfo, cfg *config) {
-	opts := s.Options()
-	setDefaults(opts, info, cfg, optionv1.TargetStruct, nil)
-	for _, finfo := range info.Fields {
-		setDefaults(opts, finfo, cfg, optionv1.TargetField, nil)
+func (s schemaResourcer) buildFieldSchema(
+	root *Schema,
+	sinfo *infov1.StructInfo,
+	obj types.Object,
+	finfo *infov1.FieldInfo,
+	cfg *config,
+) (*Schema, error) {
+	fieldSchema, err := newSchema(obj.Type(), cfg)
+	if err != nil {
+		return nil, err
 	}
+	// if a reference is set it means that the field schema is another schema
+	// which will be defined and just referenced.
+	if fieldSchema.Ref != "" {
+		return &fieldSchema, nil
+	}
+	err = s.applyFieldOpts(root, &fieldSchema, sinfo, obj, finfo, cfg)
+	return &fieldSchema, err
 }
 
 func (s schemaResourcer) newRootSchema(info *infov1.StructInfo, cfg *config) (Schema, error) {
@@ -130,12 +134,12 @@ func (s schemaResourcer) newRootSchema(info *infov1.StructInfo, cfg *config) (Sc
 
 func (s schemaResourcer) applyFieldOpts(
 	root, fieldSchema *Schema,
-	info *infov1.FieldInfo,
-	cfg *config,
+	sinfo *infov1.StructInfo,
 	obj types.Object,
-	structInfo *infov1.StructInfo,
+	finfo *infov1.FieldInfo,
+	cfg *config,
 ) error {
-	for ident, opts := range info.Options() {
+	for ident, opts := range finfo.Options() {
 		if !isResource(ident, _schemaResource) {
 			continue
 		}
@@ -193,11 +197,11 @@ func (s schemaResourcer) applyFieldOpts(
 				err = o.apply(fieldSchema)
 			// object
 			case Required:
-				err = o.apply(root, info, cfg)
+				err = o.apply(root, finfo, cfg)
 			case DependentRequired:
-				err = o.apply(root, cfg, info, structInfo)
+				err = o.apply(root, cfg, finfo, sinfo)
 			case MutuallyExclusive:
-				err = o.apply(root, info, structInfo, cfg)
+				err = o.apply(root, finfo, sinfo, cfg)
 			}
 			if err != nil {
 				return err
@@ -215,6 +219,8 @@ func (s schemaResourcer) applyStructOpts(schema *Schema, info *infov1.StructInfo
 		for _, opt := range opts {
 			var err error
 			switch o := opt.(type) {
+			case Title:
+				err = o.apply(schema)
 			case Description:
 				err = o.apply(schema)
 			case Deprecated:

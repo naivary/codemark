@@ -34,4 +34,6 @@ type AuthRequest struct {
 	Strings []string
 
 	Iface any
+
+	MapArr map[string][]string
 }

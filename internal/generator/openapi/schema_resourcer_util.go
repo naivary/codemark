@@ -45,8 +45,8 @@ type Schema struct {
 	DependentRequired    map[string][]string `json:"dependentRequired,omitzero,omitempty"`
 
 	// string
-	MinLength        int    `json:"minLength,omitzero"`
-	MaxLength        int    `json:"maxLength,omitzero"`
+	MinLength        int64  `json:"minLength,omitzero"`
+	MaxLength        int64  `json:"maxLength,omitzero"`
 	Pattern          string `json:"pattern,omitzero"`
 	ContentEncoding  string `json:"contentEnconding,omitzero"`
 	ContentMediaType string `json:"contentMediaType,omitzero"`

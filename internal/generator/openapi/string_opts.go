@@ -2,6 +2,8 @@ package openapi
 
 import (
 	"errors"
+	"fmt"
+	"regexp"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 )
@@ -16,14 +18,31 @@ func (p Pattern) Doc() docv1.Option {
 }
 
 func (p Pattern) apply(schema *Schema) error {
-	if schema.Type != stringType {
-		return errors.New("pattern can only be applied to string types")
+	regExp := string(p)
+	if !p.isValidRegExp() {
+		return fmt.Errorf("pattern is not a valid regular expression: %s", regExp)
 	}
-	schema.Pattern = string(p)
-	return nil
+	if schema.Type == stringType {
+		schema.Pattern = regExp
+		return nil
+	}
+	if schema.Items.Type == stringType {
+		schema.Items.Pattern = regExp
+		return nil
+	}
+	if schema.AdditionalProperties.Type == stringType {
+		schema.AdditionalProperties.Pattern = regExp
+		return nil
+	}
+	return errors.New("pattern is only appliable to strings, objects with value of type string and arrays/slices of type string")
 }
 
-type MinLength int
+func (p Pattern) isValidRegExp() bool {
+	_, err := regexp.Compile(string(p))
+	return err == nil
+}
+
+type MinLength int64
 
 func (m MinLength) Doc() docv1.Option {
 	return docv1.Option{
@@ -33,11 +52,23 @@ func (m MinLength) Doc() docv1.Option {
 }
 
 func (m MinLength) apply(schema *Schema) error {
-	if schema.Type != stringType {
-		return errors.New("minLength can only be applied to string types")
+	minLen := int64(m)
+	if minLen < 0 {
+		return fmt.Errorf("minLength cannot be negative: %d", minLen)
 	}
-	schema.MinLength = int(m)
-	return nil
+	if schema.Type == stringType {
+		schema.MinLength = minLen
+		return nil
+	}
+	if schema.Items.Type == stringType {
+		schema.Items.MinLength = minLen
+		return nil
+	}
+	if schema.AdditionalProperties.Type == stringType {
+		schema.AdditionalProperties.MinLength = minLen
+		return nil
+	}
+	return errors.New("minLength is only appliable to strings, objects with value of type string and arrays/slices of type string")
 }
 
 type MaxLength int
@@ -50,11 +81,23 @@ func (m MaxLength) Doc() docv1.Option {
 }
 
 func (m MaxLength) apply(schema *Schema) error {
-	if schema.Type != stringType {
-		return errors.New("maxLength can only be applied to string types")
+	maxLen := int64(m)
+	if maxLen < 0 {
+		return fmt.Errorf("minLength cannot be negative: %d", maxLen)
 	}
-	schema.MaxLength = int(m)
-	return nil
+	if schema.Type == stringType {
+		schema.MaxLength = maxLen
+		return nil
+	}
+	if schema.Items.Type == stringType {
+		schema.Items.MaxLength = maxLen
+		return nil
+	}
+	if schema.AdditionalProperties.Type == stringType {
+		schema.AdditionalProperties.MaxLength = maxLen
+		return nil
+	}
+	return errors.New("maxLength is only appliable to strings, objects with value of type string and arrays/slices of type string")
 }
 
 type ContentEncoding string
@@ -67,11 +110,23 @@ func (c ContentEncoding) Doc() docv1.Option {
 }
 
 func (c ContentEncoding) apply(schema *Schema) error {
-	if schema.Type != stringType {
-		return errors.New("contentEncoding can only be applied to string types")
+	encoding := string(c)
+	if len(c) == 0 {
+		return errors.New("contentEncoding marker cannot be empty")
 	}
-	schema.ContentEncoding = string(c)
-	return nil
+	if schema.Type == stringType {
+		schema.ContentEncoding = encoding
+		return nil
+	}
+	if schema.Items.Type == stringType {
+		schema.Items.ContentEncoding = encoding
+		return nil
+	}
+	if schema.AdditionalProperties.Type == stringType {
+		schema.AdditionalProperties.ContentEncoding = encoding
+		return nil
+	}
+	return errors.New("contentEncoding is only appliable to strings, objects with value of type string and arrays/slices of type string")
 }
 
 type ContentMediaType string
@@ -84,11 +139,23 @@ func (c ContentMediaType) Doc() docv1.Option {
 }
 
 func (c ContentMediaType) apply(schema *Schema) error {
-	if schema.Type != stringType {
-		return errors.New("contentMediaType can only be applied to string types")
+	mediaType := string(c)
+	if len(mediaType) == 0 {
+		return errors.New("contentMediaType cannot be empty")
 	}
-	schema.ContentMediaType = string(c)
-	return nil
+	if schema.Type == stringType {
+		schema.ContentMediaType = mediaType
+		return nil
+	}
+	if schema.Items.Type == stringType {
+		schema.Items.ContentMediaType = mediaType
+		return nil
+	}
+	if schema.AdditionalProperties.Type == stringType {
+		schema.AdditionalProperties.ContentMediaType = mediaType
+		return nil
+	}
+	return errors.New("contentMediaType is only appliable to strings, objects with value of type string and arrays/slices of type string")
 }
 
 type Format string
@@ -101,13 +168,21 @@ func (f Format) Doc() docv1.Option {
 }
 
 func (f Format) apply(schema *Schema) error {
+	format := string(f)
+	if len(format) == 0 {
+		return errors.New("format marker cannot be empty")
+	}
 	if schema.Type == stringType {
-		schema.Format = string(f)
+		schema.Format = format
 		return nil
 	}
-	if schema.Type == arrayType && schema.Items.Type == stringType {
-		schema.Items.Format = string(f)
+	if schema.Items.Type == stringType {
+		schema.Items.Format = format
 		return nil
 	}
-	return errors.New("format can only be applied to string types and string arrays/slices")
+	if schema.AdditionalProperties.Type == stringType {
+		schema.AdditionalProperties.Format = format
+		return nil
+	}
+	return errors.New("format is only appliable to strings, objects with value of type string and arrays/slices of type string")
 }

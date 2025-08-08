@@ -1,7 +1,0 @@
-openapi:
-  schema:
-    formats:
-      key: "camelCase"
-      filename: "snake_case"
-    draft: "https://json-schema.org/draft/2020-12/schema" 
-    idBaseURL: ""

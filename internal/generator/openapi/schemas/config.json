@@ -1,11 +1,1 @@
-{
-  "$id": "config.json",
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "type": "object",
-  "description": "config options for the openapi generator",
-  "properties": {
-    "schema": {
-      "$ref": "schema_config.json"
-    }
-  }
-}
+{"$id":"config.json","$schema":"https://json-schema.org/draft/2020-12/schema","type":"object","description":"config options for the openapi generator","properties":{"schema":{"$ref":"schema_config.json"}}}
