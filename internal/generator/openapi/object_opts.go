@@ -8,6 +8,8 @@ import (
 	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
+// TODO: Pattern Property should be implemented
+
 type Required bool
 
 func (r Required) Doc() docv1.Option {
@@ -29,8 +31,8 @@ func (dr DependentRequired) Doc() docv1.Option {
 	return docv1.Option{}
 }
 
-func (dr DependentRequired) apply(schema *Schema, cfg *config, finfo *infov1.FieldInfo, structInfo *infov1.StructInfo) error {
-	if schema.Type != objectType {
+func (dr DependentRequired) apply(root *Schema, cfg *config, finfo *infov1.FieldInfo, structInfo *infov1.StructInfo) error {
+	if root.Type != objectType {
 		return errors.New("dependentRequired can only be applied to objects")
 	}
 	fieldName := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
@@ -43,7 +45,7 @@ func (dr DependentRequired) apply(schema *Schema, cfg *config, finfo *infov1.Fie
 			)
 		}
 		field := cfg.Schema.Formats.Property.Format(required)
-		schema.DependentRequired[fieldName] = append(schema.DependentRequired[fieldName], field)
+		root.DependentRequired[fieldName] = append(root.DependentRequired[fieldName], field)
 	}
 	return nil
 }
@@ -95,12 +97,12 @@ func (me MutuallyExclusive) newOneOfSchema(field string, cfg *config) []*Schema 
 				AnyOf: make([]*Schema, 0, len(exclusiveFields)-1),
 			},
 		}
-		for _, restField := range exclusiveFields {
-			if field == restField {
+		for _, exclusiveField := range exclusiveFields {
+			if field == exclusiveField {
 				continue
 			}
 			anyOf := &Schema{
-				Required: []string{restField},
+				Required: []string{exclusiveField},
 			}
 			s.Not.AnyOf = append(s.Not.AnyOf, anyOf)
 		}

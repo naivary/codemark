@@ -86,6 +86,9 @@ func (r ReadOnly) Doc() docv1.Option {
 }
 
 func (r ReadOnly) apply(schema *Schema) error {
+	if !r {
+		return errors.New("readOnly is by default already false. Don't set the marker unnecessarily")
+	}
 	schema.ReadOnly = bool(r)
 	return nil
 }
@@ -100,6 +103,9 @@ func (w WriteOnly) Doc() docv1.Option {
 }
 
 func (w WriteOnly) apply(schema *Schema) error {
+	if !w {
+		return errors.New("writeOnly is by default already false. Don't set the marker unnecessarily")
+	}
 	schema.WriteOnly = bool(w)
 	return nil
 }

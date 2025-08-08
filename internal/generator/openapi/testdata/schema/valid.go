@@ -35,5 +35,6 @@ type AuthRequest struct {
 
 	Iface any
 
+	// +openapi:schema:dependentRequired=["UserName"]
 	MapArr map[string][]string
 }

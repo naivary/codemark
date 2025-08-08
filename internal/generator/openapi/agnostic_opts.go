@@ -18,7 +18,7 @@ func (e Enum) apply(schema *Schema, obj types.Object) error {
 	typ := e.typeOf(obj.Type())
 	if typ == nil {
 		return fmt.Errorf(
-			"if this error message appears something is wrong with the decition making intenrally. Open an issue showing the request and your struct with the used markers. struct: `%s`",
+			"if this error message appears something is wrong with the decision making internally. Open an issue showing the request and your struct with the used markers. struct: `%s`",
 			obj.Name(),
 		)
 	}
@@ -57,6 +57,10 @@ func (e Enum) assign(schema *Schema) {
 		schema.Items.Enum = e
 		return
 	}
+	if schema.AdditionalProperties != nil && schema.AdditionalProperties.Type == arrayType {
+		schema.AdditionalProperties.Enum = e
+		return
+	}
 	schema.Enum = e
 }
 
@@ -88,7 +92,7 @@ func isTypeT[T any](s []any) error {
 	for _, el := range s {
 		_, isT := el.(T)
 		if !isT && el != "null" {
-			return errors.New("not the same type")
+			return errors.New("all elements in an array or slice have to be of the same type except for arrays and slices of type any")
 		}
 	}
 	return nil
