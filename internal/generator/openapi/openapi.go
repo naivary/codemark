@@ -1,3 +1,4 @@
+//go:generate codemark gen --domains=openapi --output=schemas ./...
 package openapi
 
 import (

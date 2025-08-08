@@ -147,3 +147,8 @@ func infoCap(info *infov1.Information) int {
 		info.Files,
 	)
 }
+
+func hasOpt(info infov1.Info, ident string) bool {
+	v := info.Options()[ident]
+	return len(v) != 0
+}

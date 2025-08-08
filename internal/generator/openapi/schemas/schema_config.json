@@ -1,0 +1,20 @@
+{
+  "$id": "schema_config.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "description": "config options for the schema model of openapi",
+  "properties": {
+    "draft": {
+      "type": "string",
+      "enum": [
+        "https://json-schema.org/draft/2020-12/schema"
+      ]
+    },
+    "formats": {
+      "$ref": "schema_formats.json"
+    },
+    "idbaseUrl": {
+      "type": "string"
+    }
+  }
+}

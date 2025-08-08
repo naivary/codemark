@@ -16,6 +16,10 @@ type Schema struct {
 	Ref   string   `json:"$ref,omitzero"`
 	Type  jsonType `json:"type,omitzero"`
 
+	OneOf []*Schema `json:"oneOf,omitzero"`
+	AnyOf []*Schema `json:"anyOf,omitzero"`
+	Not   *Schema   `json:"not,omitzero"`
+
 	// agnostic
 	Enum []any `json:"enum,omitzero"`
 
@@ -38,7 +42,7 @@ type Schema struct {
 	Properties           map[string]*Schema  `json:"properties,omitzero"`
 	Required             []string            `json:"required,omitzero"`
 	AdditionalProperties *Schema             `json:"additionalProperties,omitzero"`
-	DependentRequired    map[string][]string `json:"dependentRequired,omitzero"`
+	DependentRequired    map[string][]string `json:"dependentRequired,omitzero,omitempty"`
 
 	// string
 	MinLength        int    `json:"minLength,omitzero"`

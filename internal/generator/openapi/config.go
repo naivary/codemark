@@ -1,10 +1,10 @@
 package openapi
 
 import (
-	"fmt"
-	"net/url"
+	"bytes"
 
 	"github.com/goccy/go-yaml"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/naivary/codemark/optionutil"
 )
@@ -24,28 +24,53 @@ func newConfig(cfg map[string]any) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = yaml.Unmarshal(data, &c)
+	err = validateConfig(data)
 	if err != nil {
 		return nil, err
 	}
-	return &c, c.validate()
+	err = yaml.Unmarshal(data, &c)
+	return &c, err
 }
 
+func validateConfig(data []byte) error {
+	const schemaFilePath = "./schemas/config.json"
+	json, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
+	}
+	r := bytes.NewReader(json)
+	c := jsonschema.NewCompiler()
+	schm, err := c.Compile(schemaFilePath)
+	if err != nil {
+		return err
+	}
+	inst, err := jsonschema.UnmarshalJSON(r)
+	if err != nil {
+		return err
+	}
+	return schm.Validate(inst)
+}
+
+// +openapi:schema:description="config options for the openapi generator"
 type config struct {
 	Schema schemaConfig `yaml:"schema"`
 }
 
+// +openapi:schema:description="config options for the schema model of openapi"
 type schemaConfig struct {
+	// +openapi:schema:enum=["https://json-schema.org/draft/2020-12/schema"]
 	Draft string `yaml:"draft"`
-	// IDBaseURL is the base of the url controlled by you. It follows the following
-	// url convention: http://<domain-controlled-by-you>/schemas
+
 	IDBaseURL string `yaml:"idBaseURL"`
 
 	Formats schemaFormats `yaml:"formats"`
 }
 
+// +openapi:schema:description="available formats for the property and filename"
 type schemaFormats struct {
+	// +openapi:schema:enum=["snake_case", "camelCase", "pascalCase", "kebab-case", "ENV"]
 	Property NamingConvention `yaml:"property"`
+	// +openapi:schema:enum=["snake_case"]
 	Filename NamingConvention `yaml:"filename"`
 }
 
@@ -67,11 +92,4 @@ func (c *config) getSchema(opt string) any {
 	default:
 		return nil
 	}
-}
-
-func (c *config) validate() error {
-	if _, err := url.ParseRequestURI(c.Schema.Draft); err != nil {
-		return fmt.Errorf("the draft you have choosen is not a proper URL: %s", c.Schema.Draft)
-	}
-	return nil
 }

@@ -49,6 +49,7 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 		// object
 		mustMakeOpt(_typeName, Required(false), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, DependentRequired(nil), _unique, optionv1.TargetField),
+		mustMakeOpt(_typeName, MutuallyExclusive(nil), _unique, optionv1.TargetField),
 		// string
 		mustMakeOpt(_typeName, Pattern(""), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, Format(""), _unique, optionv1.TargetField),
@@ -66,7 +67,7 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 
 func (s schemaResourcer) CanCreate(info infov1.Info) bool {
 	_, isStruct := info.(*infov1.StructInfo)
-	return isStruct
+	return (hasOpt(info, "openapi:schema:description") || hasOpt(info, "openapi:schema:title")) && isStruct
 }
 
 func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info infov1.Info, cfg *config) (*genv1.Artifact, error) {
@@ -81,6 +82,9 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 		return nil, err
 	}
 	for obj, finfo := range structInfo.Fields {
+		if !finfo.Ident.IsExported() {
+			continue
+		}
 		fieldSchema, err := newSchema(obj.Type(), cfg)
 		if err != nil {
 			return nil, err
@@ -90,7 +94,7 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 			root.Properties[name] = &fieldSchema
 			continue
 		}
-		err = s.applyFieldOpts(&root, &fieldSchema, finfo, cfg, obj)
+		err = s.applyFieldOpts(&root, &fieldSchema, finfo, cfg, obj, structInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -124,7 +128,13 @@ func (s schemaResourcer) newRootSchema(info *infov1.StructInfo, cfg *config) (Sc
 	return schema, nil
 }
 
-func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.FieldInfo, cfg *config, obj types.Object) error {
+func (s schemaResourcer) applyFieldOpts(
+	root, fieldSchema *Schema,
+	info *infov1.FieldInfo,
+	cfg *config,
+	obj types.Object,
+	structInfo *infov1.StructInfo,
+) error {
 	for ident, opts := range info.Options() {
 		if !isResource(ident, _schemaResource) {
 			continue
@@ -185,7 +195,9 @@ func (s schemaResourcer) applyFieldOpts(root, fieldSchema *Schema, info *infov1.
 			case Required:
 				err = o.apply(root, info, cfg)
 			case DependentRequired:
-				err = o.apply(root, cfg, info)
+				err = o.apply(root, cfg, info, structInfo)
+			case MutuallyExclusive:
+				err = o.apply(root, info, structInfo, cfg)
 			}
 			if err != nil {
 				return err

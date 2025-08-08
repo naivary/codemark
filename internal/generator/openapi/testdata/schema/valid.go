@@ -1,6 +1,7 @@
 package schema
 
 // +openapi:schema:description="authentication request data type"
+// +openapi:schema:title="authentication request"
 type AuthRequest struct {
 	// +openapi:schema:format="email"
 	Email string
@@ -19,8 +20,8 @@ type AuthRequest struct {
 	// +openapi:schema:description="longer desc"
 	Age int
 
-	// +openapi:schema:dependentRequired=["name"]
-	// +openapi:schema:required
+	// +openapi:schema:dependentRequired=["Name"]
+	// +openapi:schema:mutuallyExclusive=["Email", "Name"]
 	UserName string
 
 	// +openapi:schema:enum=[3,2,3, "null"]

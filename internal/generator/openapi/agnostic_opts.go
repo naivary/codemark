@@ -2,6 +2,7 @@ package openapi
 
 import (
 	"errors"
+	"fmt"
 	"go/types"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
@@ -16,8 +17,9 @@ func (e Enum) Doc() docv1.Option {
 func (e Enum) apply(schema *Schema, obj types.Object) error {
 	typ := e.typeOf(obj.Type())
 	if typ == nil {
-		return errors.New(
-			"if this error message appears something is wrong with the decition making intenrally. Open an issue showing the request and your struct with the given marker",
+		return fmt.Errorf(
+			"if this error message appears something is wrong with the decition making intenrally. Open an issue showing the request and your struct with the used markers. struct: `%s`",
+			obj.Name(),
 		)
 	}
 	if _, isIface := typ.(*types.Interface); isIface {
@@ -26,6 +28,8 @@ func (e Enum) apply(schema *Schema, obj types.Object) error {
 	}
 	basic := typ.(*types.Basic)
 	var err error
+	// NOTE: the types (string, int64, float64 and bool) are all the types we
+	// need to check because codemark is only using these types not the others.
 	switch basic.Kind() {
 	case types.String:
 		err = isTypeT[string](e)
@@ -61,23 +65,23 @@ func (e Enum) typeOf(typ types.Type) types.Type {
 	if isIface && iface.Empty() {
 		return iface
 	}
-	alias, isAlias := typ.(*types.Alias)
-	if isAlias {
-		return e.typeOf(alias.Rhs())
-	}
 	basic, isBasic := typ.(*types.Basic)
 	if isBasic {
 		return basic
 	}
-	slice, isSlice := typ.(*types.Slice)
-	if isSlice {
-		return e.typeOf(slice.Elem())
+
+	switch t := typ.(type) {
+	case *types.Alias:
+		return e.typeOf(t.Rhs())
+	case *types.Slice:
+		return e.typeOf(t.Elem())
+	case *types.Array:
+		return e.typeOf(t.Elem())
+	case *types.Named:
+		return e.typeOf(t.Underlying())
+	default:
+		return nil
 	}
-	array, isArray := typ.(*types.Array)
-	if isArray {
-		return e.typeOf(array.Elem())
-	}
-	return nil
 }
 
 func isTypeT[T any](s []any) error {
