@@ -30,6 +30,9 @@ func (s schemaResourcer) Resource() string {
 	return s.resource
 }
 
+// TODO: change apply methods here to applyStringOpts, applyArrayOpts
+// applyAnnotations etc. instead of everything being in one function
+
 func (s schemaResourcer) Options() []*optionv1.Option {
 	return makeOpts(s.resource,
 		// annotations
@@ -224,6 +227,27 @@ func (s schemaResourcer) applyStructOpts(schema *Schema, info *infov1.StructInfo
 			case Description:
 				err = o.apply(schema)
 			case Deprecated:
+				err = o.apply(schema)
+			}
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (s schemaResourcer) applyRefOpts(schema *Schema, finfo *infov1.FieldInfo) error {
+	for ident, opts := range finfo.Options() {
+		if !isResource(ident, _schemaResource) {
+			continue
+		}
+		for _, opt := range opts {
+			var err error
+			switch o := opt.(type) {
+			case MinItems:
+				err = o.apply(schema)
+			case MaxItems:
 				err = o.apply(schema)
 			}
 			if err != nil {
