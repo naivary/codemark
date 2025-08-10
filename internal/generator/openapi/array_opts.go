@@ -27,11 +27,11 @@ func (m MinItems) apply(schema *Schema) error {
 	if minItems < 0 {
 		return errors.New("minItems cannot be negative")
 	}
-	if schema.Type != arrayType {
+	if schema.Type == arrayType {
 		schema.MinItems = minItems
 		return nil
 	}
-	if schema.AdditionalProperties.Type == arrayType {
+	if schema.AdditionalProperties != nil && schema.AdditionalProperties.Type == arrayType {
 		schema.AdditionalProperties.MinItems = minItems
 		return nil
 	}

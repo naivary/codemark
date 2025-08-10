@@ -30,9 +30,6 @@ func (s schemaResourcer) Resource() string {
 	return s.resource
 }
 
-// TODO: change apply methods here to applyStringOpts, applyArrayOpts
-// applyAnnotations etc. instead of everything being in one function
-
 func (s schemaResourcer) Options() []*optionv1.Option {
 	return makeOpts(s.resource,
 		// annotations
@@ -94,7 +91,6 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 		name := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
 		root.Properties[name] = fieldSchema
 	}
-
 	fmt.Println(json.NewEncoder(os.Stdout).Encode(&root))
 	filename := filepath.Base(root.ID)
 	return newArtifact(filename, root)
@@ -114,7 +110,7 @@ func (s schemaResourcer) buildFieldSchema(
 	// if a reference is set it means that the field schema is another schema
 	// which will be defined and just referenced.
 	if fieldSchema.Ref != "" {
-		return &fieldSchema, nil
+		return &fieldSchema, s.applyRefOpts(&fieldSchema, finfo)
 	}
 	err = s.applyFieldOpts(root, &fieldSchema, sinfo, obj, finfo, cfg)
 	return &fieldSchema, err

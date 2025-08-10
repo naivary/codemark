@@ -37,4 +37,9 @@ type AuthRequest struct {
 
 	// +openapi:schema:dependentRequired=["UserName"]
 	MapArr map[string][]string
+
+	// +openapi:schema:minItems=5
+	Args []AuthArgs
 }
+
+type AuthArgs struct{}
