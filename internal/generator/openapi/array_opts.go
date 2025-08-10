@@ -49,7 +49,7 @@ func (m MaxItems) apply(schema *Schema) error {
 	if maxItems < 0 {
 		return errors.New("maxItems cannot be negative")
 	}
-	if schema.Type != arrayType {
+	if schema.Type == arrayType {
 		schema.MaxItems = maxItems
 		return nil
 	}
