@@ -5,6 +5,7 @@ import (
 	"slices"
 
 	optionv1 "github.com/naivary/codemark/api/option/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/marker/markertest"
 	"github.com/naivary/codemark/optionutil"
 	"github.com/naivary/codemark/registry"
@@ -230,7 +231,7 @@ func NewOptsSet() []optionv1.Option {
 	return slices.Concat(opts, aliases)
 }
 
-func NewRegistry(opts []optionv1.Option) (registry.Registry, error) {
+func NewRegistry(opts []optionv1.Option) (regv1.Registry, error) {
 	reg := registry.InMemory()
 	for _, opt := range opts {
 		if err := reg.Define(&opt); err != nil {

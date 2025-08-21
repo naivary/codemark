@@ -7,10 +7,11 @@ import (
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/registry"
 )
 
-func newRegistry(resources ...Resourcer) (registry.Registry, error) {
+func newRegistry(resources ...Resourcer) (regv1.Registry, error) {
 	reg := registry.InMemory()
 	for _, resource := range resources {
 		opts := resource.Options()
@@ -32,10 +33,8 @@ func newRegistry(resources ...Resourcer) (registry.Registry, error) {
 var _ genv1.Generator = (*k8sGenerator)(nil)
 
 type k8sGenerator struct {
-	domain string
-
-	reg registry.Registry
-
+	domain    string
+	reg       regv1.Registry
 	resources map[reflect.Type][]Resourcer
 }
 
@@ -68,7 +67,7 @@ func (g k8sGenerator) Explain(ident string) string {
 	return ""
 }
 
-func (g k8sGenerator) Registry() registry.Registry {
+func (g k8sGenerator) Registry() regv1.Registry {
 	return g.reg
 }
 

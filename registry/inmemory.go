@@ -1,20 +1,26 @@
 package registry
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 )
 
-func InMemory() Registry {
+var ErrRegistryEmpty = errors.New(
+	"the registry contains no definitions. Make sure to add your definitions using the `Define` method",
+)
+
+func InMemory() regv1.Registry {
 	return &inmem{
 		opts: make(map[string]*optionv1.Option),
 	}
 }
 
-var _ Registry = (*inmem)(nil)
+var _ regv1.Registry = (*inmem)(nil)
 
 type inmem struct {
 	mu sync.Mutex

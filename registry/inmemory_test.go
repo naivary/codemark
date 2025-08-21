@@ -7,6 +7,7 @@ import (
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/optionutil"
 )
 
@@ -20,10 +21,10 @@ type registryTestCase struct {
 }
 
 type registryTester struct {
-	reg Registry
+	reg regv1.Registry
 }
 
-func newRegTester(reg Registry) *registryTester {
+func newRegTester(reg regv1.Registry) *registryTester {
 	return &registryTester{
 		reg: reg,
 	}

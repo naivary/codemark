@@ -1,14 +1,8 @@
-package registry
+package v1
 
 import (
-	"errors"
-
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
-)
-
-var ErrRegistryEmpty = errors.New(
-	"the registry contains no definitions. Make sure to add your definitions using the `Define` method",
 )
 
 // TODO: move this under api/

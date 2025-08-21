@@ -7,6 +7,7 @@ import (
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/internal/parser"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry"
@@ -29,11 +30,11 @@ func (o options) add(idn string, value any, isUnique bool) error {
 }
 
 type Manager struct {
-	reg   registry.Registry
+	reg   regv1.Registry
 	convs map[reflect.Type]convv1.Converter
 }
 
-func NewManager(reg registry.Registry, convs ...convv1.Converter) (*Manager, error) {
+func NewManager(reg regv1.Registry, convs ...convv1.Converter) (*Manager, error) {
 	if len(reg.All()) == 0 {
 		return nil, registry.ErrRegistryEmpty
 	}

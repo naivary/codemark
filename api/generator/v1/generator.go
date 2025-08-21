@@ -4,7 +4,7 @@ import (
 	"io"
 
 	infov1 "github.com/naivary/codemark/api/info/v1"
-	"github.com/naivary/codemark/registry"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 )
 
 type Generator interface {
@@ -20,7 +20,7 @@ type Generator interface {
 	Generate(proj infov1.Project, config map[string]any) ([]*Artifact, error)
 
 	// Registry containing all the options.
-	Registry() registry.Registry
+	Registry() regv1.Registry
 }
 
 type Artifact struct {

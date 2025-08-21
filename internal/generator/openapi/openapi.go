@@ -8,10 +8,11 @@ import (
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/registry"
 )
 
-func newRegistry(resources ...Resourcer) (registry.Registry, error) {
+func newRegistry(resources ...Resourcer) (regv1.Registry, error) {
 	reg := registry.InMemory()
 	for _, resource := range resources {
 		opts := resource.Options()
@@ -48,7 +49,7 @@ func New() (genv1.Generator, error) {
 type openAPIGenerator struct {
 	domain string
 
-	reg registry.Registry
+	reg regv1.Registry
 
 	resources map[reflect.Type][]Resourcer
 }
@@ -61,7 +62,7 @@ func (g *openAPIGenerator) Explain(ident string) string {
 	return ""
 }
 
-func (g *openAPIGenerator) Registry() registry.Registry {
+func (g *openAPIGenerator) Registry() regv1.Registry {
 	return g.reg
 }
 

@@ -7,6 +7,7 @@ import (
 	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
+	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/loader"
 	"github.com/naivary/codemark/registry"
 )
@@ -99,7 +100,7 @@ func (m *Manager) all(domains ...string) ([]genv1.Generator, error) {
 
 // merge merges all the registries of the given generators into one.
 // TODO: This should maybe be a util function for the registry
-func (m *Manager) merge(gens ...genv1.Generator) (registry.Registry, error) {
+func (m *Manager) merge(gens ...genv1.Generator) (regv1.Registry, error) {
 	reg := registry.InMemory()
 	for _, gen := range gens {
 		opts := gen.Registry().All()
