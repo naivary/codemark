@@ -50,15 +50,6 @@ func (mem *inmem) DocOf(ident string) (*docv1.Option, error) {
 	return opt.Doc, nil
 }
 
-func (mem *inmem) Merge(reg Registry) error {
-	for _, option := range reg.All() {
-		if err := mem.Define(option); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (mem *inmem) All() map[string]*optionv1.Option {
 	return mem.opts
 }

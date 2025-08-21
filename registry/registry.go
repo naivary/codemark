@@ -11,6 +11,7 @@ var ErrRegistryEmpty = errors.New(
 	"the registry contains no definitions. Make sure to add your definitions using the `Define` method",
 )
 
+// TODO: move this under api/
 type Registry interface {
 	// Define defines the option in the registry. Options must be unique.
 	Define(opt *optionv1.Option) error
@@ -23,6 +24,4 @@ type Registry interface {
 
 	// All returns all Definitions stored in the registry.
 	All() map[string]*optionv1.Option
-
-	Merge(reg Registry) error
 }
