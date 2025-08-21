@@ -1,9 +1,14 @@
 package openapi
 
 import (
+	"encoding/json"
+	"errors"
+
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
 )
+
+var errNoArtifacts = errors.New("no artifacts produced")
 
 func gen(path string) ([]*genv1.Artifact, error) {
 	mngr, err := generator.NewManager()
@@ -19,5 +24,16 @@ func gen(path string) ([]*genv1.Artifact, error) {
 		panic(err)
 	}
 	artifacts, err := mngr.Generate(path, gen.Domain())
+	if len(artifacts) == 0 {
+		return nil, errNoArtifacts
+	}
 	return artifacts[gen.Domain()], err
+}
+
+func mustMarshal(v any) []byte {
+	data, err := json.Marshal(v)
+	if err != nil {
+		panic(err)
+	}
+	return data
 }

@@ -7,6 +7,7 @@ import (
 	"net/url"
 )
 
+// _schemaz is the zero value for a schema
 var _schemaz = Schema{}
 
 type Schema struct {
@@ -62,8 +63,6 @@ type Schema struct {
 }
 
 func newSchema(typ types.Type, cfg *config) (Schema, error) {
-	// TODO: some markers make sense to be abel to set even if ref is active.
-	// find those markers. For example maxItems, minItems.
 	switch t := typ.(type) {
 	case *types.Named:
 		return newSchemaFromNamed(t, cfg)
@@ -155,9 +154,11 @@ func newObjectSchemaFromStruct(name string, cfg *config) (Schema, error) {
 }
 
 func newSchemaFromNamed(n *types.Named, cfg *config) (Schema, error) {
-	switch n.Underlying().(type) {
+	switch t := n.Underlying().(type) {
 	case *types.Struct:
 		return newObjectSchemaFromStruct(n.Obj().Name(), cfg)
+	case *types.Basic:
+		return newBasicSchema(t)
 	}
 	return _schemaz, nil
 }
@@ -176,6 +177,11 @@ const (
 )
 
 func jsonTypeOf(typ types.Type) jsonType {
+	switch t := typ.(type) {
+	case *types.Alias:
+		return jsonTypeOf(t.Rhs())
+	}
+
 	switch t := typ.Underlying().(type) {
 	case *types.Basic:
 		switch t.Kind() {

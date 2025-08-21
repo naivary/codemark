@@ -38,7 +38,7 @@ func (e Enum) apply(schema *Schema, obj types.Object) error {
 	case types.Float32, types.Float64:
 		err = isTypeT[float64](e)
 	case types.Bool:
-		err = isTypeT[bool](e)
+		return errors.New("defining an enum for a boolean type is unnecessary")
 	}
 	e.assign(schema)
 	return err
@@ -49,7 +49,7 @@ func (e Enum) assign(schema *Schema) {
 	// mapping it to the native null type of JSON. This is because codemark does
 	// not know the null keyword.
 	for i, elem := range e {
-		if elem == "null" {
+		if elem == "nil" {
 			e[i] = nil
 		}
 	}
@@ -73,7 +73,6 @@ func (e Enum) typeOf(typ types.Type) types.Type {
 	if isBasic {
 		return basic
 	}
-
 	switch t := typ.(type) {
 	case *types.Alias:
 		return e.typeOf(t.Rhs())

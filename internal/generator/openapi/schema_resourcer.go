@@ -1,10 +1,7 @@
 package openapi
 
 import (
-	"encoding/json"
-	"fmt"
 	"go/types"
-	"os"
 	"path/filepath"
 
 	"golang.org/x/tools/go/packages"
@@ -91,7 +88,6 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 		name := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
 		root.Properties[name] = fieldSchema
 	}
-	fmt.Println(json.NewEncoder(os.Stdout).Encode(&root))
 	filename := filepath.Base(root.ID)
 	return newArtifact(filename, root)
 }
@@ -107,8 +103,7 @@ func (s schemaResourcer) buildFieldSchema(
 	if err != nil {
 		return nil, err
 	}
-	// if a reference is set it means that the field schema is another schema
-	// which will be defined and just referenced.
+	// if a reference is set it means that the field schema is another schema.
 	if fieldSchema.Ref != "" {
 		return &fieldSchema, s.applyRefOpts(&fieldSchema, finfo)
 	}
