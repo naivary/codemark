@@ -8,7 +8,6 @@ import (
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
-	k8sgen "github.com/naivary/codemark/internal/generator/k8s"
 	"github.com/naivary/codemark/internal/generator/openapi"
 )
 
@@ -60,7 +59,6 @@ func newGenManager(gens []genv1.Generator) (*generator.Manager, error) {
 		return nil, err
 	}
 	builtinGens := []genv1.Generator{
-		mustInit(k8sgen.New),
 		mustInit(openapi.New),
 	}
 	for _, gen := range slices.Concat(builtinGens, gens) {
