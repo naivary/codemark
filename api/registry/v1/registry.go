@@ -5,7 +5,6 @@ import (
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 )
 
-// TODO: move this under api/
 type Registry interface {
 	// Define defines the option in the registry. Options must be unique.
 	Define(opt *optionv1.Option) error

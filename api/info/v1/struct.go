@@ -8,13 +8,13 @@ import (
 type StructInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Opts map[string][]any
+	Opts Options
 
 	Fields  map[types.Object]*FieldInfo
 	Methods map[types.Object]*FuncInfo
 }
 
-func (s *StructInfo) Options() map[string][]any {
+func (s *StructInfo) Options() Options {
 	return s.Opts
 }
 
@@ -39,9 +39,9 @@ func (s *StructInfo) GetField(ident string) *FieldInfo {
 type FieldInfo struct {
 	Field *ast.Field
 	Ident *ast.Ident
-	Opts  map[string][]any
+	Opts  Options
 }
 
-func (f *FieldInfo) Options() map[string][]any {
+func (f *FieldInfo) Options() Options {
 	return f.Opts
 }

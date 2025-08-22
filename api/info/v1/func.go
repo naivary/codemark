@@ -4,9 +4,9 @@ import "go/ast"
 
 type FuncInfo struct {
 	Decl *ast.FuncDecl
-	Opts map[string][]any
+	Opts Options
 }
 
-func (f *FuncInfo) Options() map[string][]any {
+func (f *FuncInfo) Options() Options {
 	return f.Opts
 }

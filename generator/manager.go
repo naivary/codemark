@@ -98,17 +98,10 @@ func (m *Manager) all(domains ...string) ([]genv1.Generator, error) {
 	return gens, nil
 }
 
-// merge merges all the registries of the given generators into one.
-// TODO: This should maybe be a util function for the registry
 func (m *Manager) merge(gens ...genv1.Generator) (regv1.Registry, error) {
-	reg := registry.InMemory()
+	regs := make([]regv1.Registry, 0, len(gens))
 	for _, gen := range gens {
-		opts := gen.Registry().All()
-		for _, opt := range opts {
-			if err := reg.Define(opt); err != nil {
-				return nil, err
-			}
-		}
+		regs = append(regs, gen.Registry())
 	}
-	return reg, nil
+	return registry.Merge(regs...)
 }

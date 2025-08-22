@@ -64,7 +64,8 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 
 func (s schemaResourcer) CanCreate(info infov1.Info) bool {
 	_, isStruct := info.(*infov1.StructInfo)
-	return (hasOpt(info, "openapi:schema:description") || hasOpt(info, "openapi:schema:title")) && isStruct
+	opts := info.Options()
+	return opts.IsDefined("openapi:schema:description") || opts.IsDefined("openapi:schema:title") && isStruct
 }
 
 func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info infov1.Info, cfg *config) (*genv1.Artifact, error) {

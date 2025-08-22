@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"go/types"
 	"reflect"
-	"slices"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
@@ -66,23 +65,6 @@ func newArtifact(name string, manifests ...any) (*genv1.Artifact, error) {
 		}
 	}
 	return artifact, nil
-}
-
-func setDefaults(opts []*optionv1.Option, info infov1.Info, cfg *config, target optionv1.Target, defaults map[string]any) {
-	for _, opt := range opts {
-		v := info.Options()[opt.Ident]
-		if len(v) != 0 || !slices.Contains(opt.Targets, target) {
-			continue
-		}
-		// TODO: multi value defaults are not supported rn
-		deflt := cfg.Get(opt.Ident)
-		if deflt == nil && defaults != nil {
-			deflt = defaults[opt.Ident]
-		}
-		if deflt != nil {
-			info.Options()[opt.Ident] = []any{deflt}
-		}
-	}
 }
 
 func flatten[T any](lists [][]T) []T {
@@ -146,9 +128,4 @@ func infoCap(info *infov1.Information) int {
 	) + len(
 		info.Files,
 	)
-}
-
-func hasOpt(info infov1.Info, ident string) bool {
-	v := info.Options()[ident]
-	return len(v) != 0
 }

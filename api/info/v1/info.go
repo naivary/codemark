@@ -7,7 +7,7 @@ import (
 )
 
 type Info interface {
-	Options() map[string][]any
+	Options() Options
 }
 
 type Project = map[*packages.Package]*Information

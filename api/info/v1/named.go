@@ -8,11 +8,11 @@ import (
 type NamedInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.TypeSpec
-	Opts map[string][]any
+	Opts Options
 
 	Methods map[types.Object]*FuncInfo
 }
 
-func (n *NamedInfo) Options() map[string][]any {
+func (n *NamedInfo) Options() Options {
 	return n.Opts
 }

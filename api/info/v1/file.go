@@ -4,9 +4,9 @@ import "go/ast"
 
 type FileInfo struct {
 	File *ast.File
-	Opts map[string][]any
+	Opts Options
 }
 
-func (f *FileInfo) Options() map[string][]any {
+func (f *FileInfo) Options() Options {
 	return f.Opts
 }

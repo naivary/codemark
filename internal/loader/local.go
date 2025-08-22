@@ -15,7 +15,7 @@ import (
 	"github.com/naivary/codemark/converter"
 )
 
-type parseMarkers = func(doc string, target optionv1.Target) (map[string][]any, error)
+type parseMarkers = func(doc string, target optionv1.Target) (infov1.Options, error)
 
 var _ Loader = (*loader)(nil)
 

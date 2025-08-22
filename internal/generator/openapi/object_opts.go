@@ -50,6 +50,7 @@ func (dr DependentRequired) apply(root *Schema, cfg *config, finfo *infov1.Field
 	return nil
 }
 
+// TODO: This code looks like a mess
 type MutuallyExclusive []string
 
 func (me MutuallyExclusive) Doc() docv1.Option {
@@ -60,7 +61,7 @@ func (me MutuallyExclusive) Doc() docv1.Option {
 }
 
 func (me MutuallyExclusive) apply(root *Schema, finfo *infov1.FieldInfo, sinfo *infov1.StructInfo, cfg *config) error {
-	if hasOpt(finfo, "openapi:schema:required") {
+	if finfo.Opts.IsDefined("openapi:schema:required") {
 		return fmt.Errorf(
 			`contradicting logic: mutuallyExclusive and required can never be 
 			fullfilled by a schema. Remove the required marker: %s`,
@@ -76,7 +77,7 @@ func (me MutuallyExclusive) apply(root *Schema, finfo *infov1.FieldInfo, sinfo *
 			)
 		}
 		refFieldInfo := sinfo.GetField(fieldName)
-		if hasOpt(refFieldInfo, "openapi:schema:required") {
+		if refFieldInfo.Opts.IsDefined("openapi:schema:required") {
 			return fmt.Errorf("the reference field in mutuallyExclusive cannot be marked required: %s", fieldName)
 		}
 	}

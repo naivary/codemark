@@ -23,10 +23,10 @@ func TestResourcer_Schema(t *testing.T) {
 				Desc:  "authentication request data type",
 				Type:  objectType,
 				Properties: map[string]*Schema{
-					"email": {
+					"password": {
 						Type: stringType,
 					},
-					"password": {
+					"email": {
 						Type: stringType,
 					},
 				},

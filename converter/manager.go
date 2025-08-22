@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
+	infov1 "github.com/naivary/codemark/api/info/v1"
 	optionv1 "github.com/naivary/codemark/api/option/v1"
 	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/internal/parser"
@@ -13,21 +14,6 @@ import (
 	"github.com/naivary/codemark/registry"
 	"github.com/naivary/codemark/rtypeutil"
 )
-
-type options map[string][]any
-
-func (o options) add(idn string, value any, isUnique bool) error {
-	opts, ok := o[idn]
-	if !ok {
-		o[idn] = []any{value}
-		return nil
-	}
-	if isUnique {
-		return fmt.Errorf("option is unique but was used more than once: %s", idn)
-	}
-	o[idn] = append(opts, value)
-	return nil
-}
 
 type Manager struct {
 	reg   regv1.Registry
@@ -115,12 +101,12 @@ func (m *Manager) Convert(mrk marker.Marker, t optionv1.Target) (any, error) {
 	return out.Interface(), nil
 }
 
-func (m *Manager) ParseMarkers(doc string, t optionv1.Target) (map[string][]any, error) {
+func (m *Manager) ParseMarkers(doc string, t optionv1.Target) (infov1.Options, error) {
 	markers, err := parser.Parse(doc)
 	if err != nil {
 		return nil, err
 	}
-	opts := make(options, len(markers))
+	opts := make(infov1.Options, len(markers))
 	for _, marker := range markers {
 		value, err := m.Convert(marker, t)
 		if err != nil {
@@ -130,7 +116,7 @@ func (m *Manager) ParseMarkers(doc string, t optionv1.Target) (map[string][]any,
 		if err != nil {
 			return nil, err
 		}
-		err = opts.add(marker.Ident, value, opt.IsUnique)
+		err = opts.Add(marker.Ident, value, opt.IsUnique)
 		if err != nil {
 			return nil, err
 		}

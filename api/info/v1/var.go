@@ -5,9 +5,9 @@ import "go/ast"
 type VarInfo struct {
 	Decl *ast.GenDecl
 	Spec *ast.ValueSpec
-	Opts map[string][]any
+	Opts Options
 }
 
-func (v *VarInfo) Options() map[string][]any {
+func (v *VarInfo) Options() Options {
 	return v.Opts
 }
