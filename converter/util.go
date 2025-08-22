@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	optionv1 "github.com/naivary/codemark/api/option/v1"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 const (
@@ -31,7 +31,7 @@ func NewName(proj, conv string) string {
 // ConvertTo converts the value `v` to the Type `typ` handling pointer
 // dereferencing and other inconveniences.
 func ConvertTo(v reflect.Value, to reflect.Type) (reflect.Value, error) {
-	isPtr := typeutil.IsPointer(to)
+	isPtr := rtypeutil.IsPointer(to)
 	outputType := to
 	// need to dereference type to create the correct variable using
 	// `reflect.New`. Otherwise .Set wont work.
@@ -71,6 +71,6 @@ func isValidName(name string) error {
 
 func isTypeT[T any](to reflect.Type) bool {
 	var from T
-	to = typeutil.Deref(to)
+	to = rtypeutil.Deref(to)
 	return to.ConvertibleTo(reflect.TypeOf(from))
 }

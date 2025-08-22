@@ -7,7 +7,7 @@ import (
 
 	"github.com/naivary/codemark/internal/rand"
 	"github.com/naivary/codemark/marker"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 // NewIdent returns a identifier which can be used for both marker and definition.
@@ -30,27 +30,27 @@ func RandMarkerWithIdent(ident string, rtype reflect.Type) (*marker.Marker, erro
 		return nil, fmt.Errorf("no value could be generated for given type: %v", rtype)
 	}
 	value := reflect.ValueOf(v)
-	m := marker.New(ident, marker.KindOf(rtype), value)
+	m := marker.New(ident, marker.KindFromRType(rtype), value)
 	return &m, nil
 }
 
 // RandMarker returns a random marker based on the given rtype. The returned
 // marker is always valid if not error is returned.
 func RandMarker(rtype reflect.Type) (*marker.Marker, error) {
-	name := typeutil.NameFor(rtype)
+	name := rtypeutil.NameFor(rtype)
 	ident := NewIdent(name)
 	return RandMarkerWithIdent(ident, rtype)
 }
 
 // randValue returns a valid marker value for the given rtype.
 func randValue(rtype reflect.Type) any {
-	if !typeutil.IsSupported(rtype) {
+	if !rtypeutil.IsSupported(rtype) {
 		return nil
 	}
-	if typeutil.IsPrimitive(rtype) {
+	if rtypeutil.IsPrimitive(rtype) {
 		return randPrimitiveValue(rtype)
 	}
-	if typeutil.IsValidSlice(rtype) {
+	if rtypeutil.IsValidSlice(rtype) {
 		return randList(rtype.Elem(), rand.RandLen)
 	}
 	return nil
@@ -59,22 +59,22 @@ func randValue(rtype reflect.Type) any {
 // randPrimitiveValue returns a random value for the given rtype iff rtype is a
 // primitive marker type e.g. non LIST.
 func randPrimitiveValue(rtype reflect.Type) any {
-	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
+	if rtypeutil.IsInt(rtype) || rtypeutil.IsUint(rtype) {
 		return rand.IntFromType(rtype)()
 	}
-	if typeutil.IsString(rtype) {
+	if rtypeutil.IsString(rtype) {
 		return rand.String(rand.RandLen)
 	}
-	if typeutil.IsBool(rtype) {
+	if rtypeutil.IsBool(rtype) {
 		return rand.Bool()
 	}
-	if typeutil.IsFloat(rtype) {
+	if rtypeutil.IsFloat(rtype) {
 		return rand.Float64()
 	}
-	if typeutil.IsComplex(rtype) {
+	if rtypeutil.IsComplex(rtype) {
 		return rand.Complex()
 	}
-	if typeutil.IsAny(rtype) {
+	if rtypeutil.IsAny(rtype) {
 		return randPrimitiveValue(randPrimitiveType())
 	}
 	return nil

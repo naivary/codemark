@@ -5,7 +5,8 @@ package marker
 type Kind int
 
 const (
-	STRING Kind = iota + 1
+	INVALID Kind = iota
+	STRING
 	FLOAT
 	INT
 	COMPLEX

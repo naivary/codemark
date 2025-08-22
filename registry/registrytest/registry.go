@@ -9,7 +9,7 @@ import (
 	"github.com/naivary/codemark/marker/markertest"
 	"github.com/naivary/codemark/optionutil"
 	"github.com/naivary/codemark/registry"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 type (
@@ -223,7 +223,7 @@ func NewOptsSet() []optionv1.Option {
 	opts := make([]optionv1.Option, 0, len(types)+len(aliases))
 	for _, typ := range AllTypes() {
 		rtype := reflect.TypeOf(typ)
-		name := typeutil.NameFor(rtype)
+		name := rtypeutil.NameFor(rtype)
 		ident := markertest.NewIdent(name)
 		opt := optionutil.MustMake(ident, rtype, nil, false, optionv1.TargetAny)
 		opts = append(opts, opt)

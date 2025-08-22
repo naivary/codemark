@@ -3,13 +3,12 @@ package openapi
 import (
 	"errors"
 	"fmt"
-	"regexp"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
 )
 
-// TODO: Pattern Property should be implemented
+// TODO: Pattern Property should be implemented und AdditionalProperties
 
 type Required bool
 
@@ -76,7 +75,7 @@ func (me MutuallyExclusive) apply(root *Schema, finfo *infov1.FieldInfo, sinfo *
 				sinfo.Spec.Name.Name,
 			)
 		}
-		refFieldInfo := sinfo.GetFieldByIdent(fieldName)
+		refFieldInfo := sinfo.GetField(fieldName)
 		if hasOpt(refFieldInfo, "openapi:schema:required") {
 			return fmt.Errorf("the reference field in mutuallyExclusive cannot be marked required: %s", fieldName)
 		}
@@ -110,32 +109,4 @@ func (me MutuallyExclusive) newOneOfSchema(field string, cfg *config) []*Schema 
 		oneOf = append(oneOf, s)
 	}
 	return oneOf
-}
-
-type AdditionalProperties bool
-
-func (ap AdditionalProperties) Doc() docv1.Option {
-	return docv1.Option{}
-}
-
-func (ap AdditionalProperties) apply(schema *Schema) error {
-	return nil
-}
-
-type PatternProperty string
-
-func (pp PatternProperty) Doc() docv1.Option {
-	return docv1.Option{}
-}
-
-func (pp PatternProperty) apply(schema *Schema) error {
-	regExp := string(pp)
-	s := schema.AdditionalProperties
-	if _, err := regexp.Compile(regExp); err != nil {
-		return err
-	}
-	if schema.Type == objectType {
-		schema.PatternProperties[regExp] = s
-	}
-	return nil
 }

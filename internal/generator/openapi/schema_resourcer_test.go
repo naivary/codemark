@@ -14,7 +14,7 @@ func TestResourcer_Schema(t *testing.T) {
 		want    Schema
 	}{
 		{
-			path:    "testdata/schema/simple_example.go",
+			path:    "testdata/schema/required.go",
 			isValid: true,
 			want: Schema{
 				ID:    "auth_request.json",
@@ -24,13 +24,10 @@ func TestResourcer_Schema(t *testing.T) {
 				Type:  objectType,
 				Properties: map[string]*Schema{
 					"email": {
-						Type:   stringType,
-						Format: "email",
+						Type: stringType,
 					},
 					"password": {
-						Type:      stringType,
-						MinLength: 12,
-						MaxLength: 32,
+						Type: stringType,
 					},
 				},
 				Required: []string{"email", "password"},
@@ -99,6 +96,11 @@ func TestResourcer_Schema(t *testing.T) {
 				},
 			},
 		},
+		{
+			path:    "testdata/schema/examples_invalid.go",
+			isValid: false,
+			want:    _schemaz,
+		},
 	}
 	for _, tc := range tests {
 		name := filepath.Base(tc.path)
@@ -106,6 +108,10 @@ func TestResourcer_Schema(t *testing.T) {
 			artifacts, err := gen(tc.path)
 			if err != nil && tc.isValid {
 				t.Errorf("unexpected err occured: %s", err)
+			}
+			if err != nil && !tc.isValid {
+				t.Logf("skipping rest of the test because expected error occured: %s", err)
+				t.SkipNow()
 			}
 			artifact := artifacts[0]
 			got := Schema{}

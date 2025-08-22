@@ -24,9 +24,6 @@ func gen(path string) ([]*genv1.Artifact, error) {
 		panic(err)
 	}
 	artifacts, err := mngr.Generate(path, gen.Domain())
-	if len(artifacts) == 0 {
-		return nil, errNoArtifacts
-	}
 	return artifacts[gen.Domain()], err
 }
 

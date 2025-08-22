@@ -14,7 +14,7 @@ something
 
 func valueFor[T any](v T) want {
 	value := reflect.ValueOf(v)
-	mkind := marker.KindOf(value.Type())
+	mkind := marker.KindFromRType(value.Type())
 	return want{kind: mkind, value: value}
 }
 

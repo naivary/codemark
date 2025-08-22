@@ -27,7 +27,7 @@ func (s *StructInfo) HasField(ident string) bool {
 	return false
 }
 
-func (s *StructInfo) GetFieldByIdent(ident string) *FieldInfo {
+func (s *StructInfo) GetField(ident string) *FieldInfo {
 	for _, field := range s.Fields {
 		if field.Ident.Name == ident {
 			return field

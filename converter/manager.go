@@ -11,7 +11,7 @@ import (
 	"github.com/naivary/codemark/internal/parser"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 type options map[string][]any
@@ -142,28 +142,28 @@ func (m *Manager) ParseMarkers(doc string, t optionv1.Target) (map[string][]any,
 // one of the builtin converters. If no converter is found then nil will be
 // returned.
 func (m *Manager) builtin(rtype reflect.Type) convv1.Converter {
-	if !typeutil.IsSupported(rtype) {
+	if !rtypeutil.IsSupported(rtype) {
 		return nil
 	}
-	if typeutil.IsValidSlice(rtype) {
+	if rtypeutil.IsValidSlice(rtype) {
 		return NewList(m)
 	}
-	if typeutil.IsBool(rtype) {
+	if rtypeutil.IsBool(rtype) {
 		return NewBool()
 	}
-	if typeutil.IsString(rtype) {
+	if rtypeutil.IsString(rtype) {
 		return NewString()
 	}
-	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
+	if rtypeutil.IsInt(rtype) || rtypeutil.IsUint(rtype) {
 		return NewInteger()
 	}
-	if typeutil.IsFloat(rtype) {
+	if rtypeutil.IsFloat(rtype) {
 		return NewFloat()
 	}
-	if typeutil.IsComplex(rtype) {
+	if rtypeutil.IsComplex(rtype) {
 		return NewComplex()
 	}
-	if typeutil.IsAny(rtype) {
+	if rtypeutil.IsAny(rtype) {
 		return NewAny()
 	}
 	return nil

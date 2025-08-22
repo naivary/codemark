@@ -5,6 +5,7 @@ import (
 	"go/types"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
+	"github.com/naivary/codemark/marker"
 )
 
 type Description string
@@ -53,8 +54,14 @@ func (e Examples) Doc() docv1.Option {
 }
 
 func (e Examples) apply(schema *Schema, fieldType types.Type) error {
+	// Missing type checking of the field and examples e.g. []string can only
+	// contain string examples not integer too
 	if len(e) == 0 {
 		return errors.New("examples marker cannot be emtpy")
+	}
+	err := marker.IsTypedList(fieldType, e)
+	if err != nil {
+		return err
 	}
 	if schema.Type == objectType || schema.Type == arrayType {
 		return errors.New("examples annotation cannot be set for objects and arrays/slices")

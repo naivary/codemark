@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"unicode"
 
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 const RandLen = -1
@@ -22,7 +22,7 @@ func Int64() int64 {
 // if a type of Int8 is passed the random integer cannot be greater than
 // math.MaxInt8. This allows to assure no overflow will occur.
 func IntFromType(rtype reflect.Type) func() int64 {
-	kind := typeutil.Deref(rtype).Kind()
+	kind := rtypeutil.Deref(rtype).Kind()
 	maximums := map[reflect.Kind]int64{
 		reflect.Int:    math.MaxInt,
 		reflect.Int8:   math.MaxInt8,

@@ -8,7 +8,7 @@ import (
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 var _ convv1.Converter = (*intConverter)(nil)
@@ -68,7 +68,7 @@ func (i *intConverter) SupportedTypes() []reflect.Type {
 
 func (i *intConverter) CanConvert(m marker.Marker, to reflect.Type) error {
 	mkind := m.Kind
-	out := typeutil.Deref(to)
+	out := rtypeutil.Deref(to)
 	if mkind == marker.INT {
 		return nil
 	}
@@ -151,32 +151,32 @@ func (i *intConverter) duration(m marker.Marker, to reflect.Type) (reflect.Value
 }
 
 func (i *intConverter) isOverflowingInt(out reflect.Type, n int64) bool {
-	return typeutil.Deref(out).OverflowInt(n)
+	return rtypeutil.Deref(out).OverflowInt(n)
 }
 
 func (i *intConverter) isOverflowingUint(out reflect.Type, n uint64) bool {
-	return typeutil.Deref(out).OverflowUint(n)
+	return rtypeutil.Deref(out).OverflowUint(n)
 }
 
 func (i *intConverter) isInteger(rtype reflect.Type, mkind marker.Kind) bool {
-	return typeutil.IsInt(rtype) && mkind == marker.INT
+	return rtypeutil.IsInt(rtype) && mkind == marker.INT
 }
 
 func (i *intConverter) isUint(rtype reflect.Type, mkind marker.Kind) bool {
-	return typeutil.IsUint(rtype) && mkind == marker.INT
+	return rtypeutil.IsUint(rtype) && mkind == marker.INT
 }
 
 func (i *intConverter) isByte(rtype reflect.Type, mkind marker.Kind) bool {
-	rtype = typeutil.Deref(rtype)
+	rtype = rtypeutil.Deref(rtype)
 	return rtype.Kind() == _byte && mkind == marker.STRING
 }
 
 func (i *intConverter) isRune(rtype reflect.Type, mkind marker.Kind) bool {
-	rtype = typeutil.Deref(rtype)
+	rtype = rtypeutil.Deref(rtype)
 	return rtype.Kind() == _rune && mkind == marker.STRING
 }
 
 func (i *intConverter) isDuration(rtype reflect.Type, mkind marker.Kind) bool {
-	rtype = typeutil.Deref(rtype)
+	rtype = rtypeutil.Deref(rtype)
 	return rtype.Kind() == _duration && mkind == marker.STRING
 }

@@ -6,7 +6,7 @@ import (
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 var _ convv1.Converter = (*floatConverter)(nil)
@@ -61,5 +61,5 @@ func (f *floatConverter) Convert(m marker.Marker, to reflect.Type) (reflect.Valu
 }
 
 func (f *floatConverter) isOverflowing(out reflect.Type, n float64) bool {
-	return typeutil.Deref(out).OverflowFloat(n)
+	return rtypeutil.Deref(out).OverflowFloat(n)
 }

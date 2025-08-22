@@ -125,7 +125,7 @@ func (l *listConverter) elem(v any, typ reflect.Type) (reflect.Value, error) {
 	if err != nil {
 		return _rvzero, err
 	}
-	mkind := marker.KindOf(rvalue.Type())
+	mkind := marker.KindFromRType(rvalue.Type())
 	fakeMarker := marker.Fake(mkind, rvalue)
 	return conv.Convert(fakeMarker, typ)
 }

@@ -6,38 +6,8 @@ import (
 
 	"github.com/naivary/codemark/internal/equal"
 	"github.com/naivary/codemark/registry/registrytest"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
-
-func equalTime(got, want reflect.Value) bool {
-	t := reflect.TypeOf(time.Time{})
-	gotTime := typeutil.DerefValue(got).Convert(t).Interface().(time.Time)
-	wantTime, err := time.Parse(time.RFC3339, want.String())
-	if err != nil {
-		return false
-	}
-	return gotTime.Equal(wantTime)
-}
-
-func equalDuration(got, want reflect.Value) bool {
-	t := reflect.TypeFor[time.Duration]()
-	gotDuration := typeutil.DerefValue(got).Convert(t).Interface().(time.Duration)
-	wantDuration, err := time.ParseDuration(want.String())
-	if err != nil {
-		return false
-	}
-	return gotDuration == wantDuration
-}
-
-func equalByte(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
-	return want.String() == string(byte(got.Uint()))
-}
-
-func equalRune(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
-	return want.String() == string(rune(got.Int()))
-}
 
 var equalFuncs = map[reflect.Type]func(got, want reflect.Value) bool{
 	reflect.TypeFor[Duration]():             equalDuration,
@@ -56,4 +26,34 @@ func getEqualFunc(t reflect.Type) func(got, want reflect.Value) bool {
 		return equal.GetFunc(t)
 	}
 	return fn
+}
+
+func equalTime(got, want reflect.Value) bool {
+	t := reflect.TypeOf(time.Time{})
+	gotTime := rtypeutil.DerefValue(got).Convert(t).Interface().(time.Time)
+	wantTime, err := time.Parse(time.RFC3339, want.String())
+	if err != nil {
+		return false
+	}
+	return gotTime.Equal(wantTime)
+}
+
+func equalDuration(got, want reflect.Value) bool {
+	t := reflect.TypeFor[time.Duration]()
+	gotDuration := rtypeutil.DerefValue(got).Convert(t).Interface().(time.Duration)
+	wantDuration, err := time.ParseDuration(want.String())
+	if err != nil {
+		return false
+	}
+	return gotDuration == wantDuration
+}
+
+func equalByte(got, want reflect.Value) bool {
+	got = rtypeutil.DerefValue(got)
+	return want.String() == string(byte(got.Uint()))
+}
+
+func equalRune(got, want reflect.Value) bool {
+	got = rtypeutil.DerefValue(got)
+	return want.String() == string(rune(got.Int()))
 }

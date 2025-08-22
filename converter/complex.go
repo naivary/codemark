@@ -6,7 +6,7 @@ import (
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	"github.com/naivary/codemark/marker"
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 var _ convv1.Converter = (*complexConverter)(nil)
@@ -65,5 +65,5 @@ func (c *complexConverter) complexx(m marker.Marker, to reflect.Type) (reflect.V
 }
 
 func (c *complexConverter) isOverflowing(out reflect.Type, n complex128) bool {
-	return typeutil.Deref(out).OverflowComplex(n)
+	return rtypeutil.Deref(out).OverflowComplex(n)
 }

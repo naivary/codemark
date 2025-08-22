@@ -6,3 +6,4 @@
 - outputer interface for different writing options (can it just be a io.Writer?)
 - options has to be a custom Options type with different methods like filter,
   Get, Exists etc.
+- add NIL Token to lexer and parser

@@ -4,7 +4,7 @@ import (
 	"math"
 	"reflect"
 
-	"github.com/naivary/codemark/typeutil"
+	"github.com/naivary/codemark/rtypeutil"
 )
 
 func IsEqual(got, want reflect.Value) bool {
@@ -18,25 +18,25 @@ func IsEqual(got, want reflect.Value) bool {
 // GetFunc returns a function which can be used to compare to values. One
 // being the marker value and the other a value produced by some processing.
 func GetFunc(rtype reflect.Type) func(got, want reflect.Value) bool {
-	if typeutil.IsValidSlice(rtype) {
+	if rtypeutil.IsValidSlice(rtype) {
 		return list
 	}
-	if typeutil.IsInt(rtype) || typeutil.IsUint(rtype) {
+	if rtypeutil.IsInt(rtype) || rtypeutil.IsUint(rtype) {
 		return integer
 	}
-	if typeutil.IsFloat(rtype) {
+	if rtypeutil.IsFloat(rtype) {
 		return float
 	}
-	if typeutil.IsComplex(rtype) {
+	if rtypeutil.IsComplex(rtype) {
 		return complexx
 	}
-	if typeutil.IsBool(rtype) {
+	if rtypeutil.IsBool(rtype) {
 		return boolean
 	}
-	if typeutil.IsString(rtype) {
+	if rtypeutil.IsString(rtype) {
 		return stringg
 	}
-	if typeutil.IsAny(rtype) {
+	if rtypeutil.IsAny(rtype) {
 		return anything
 	}
 	return nil
@@ -58,13 +58,13 @@ func list(got, want reflect.Value) bool {
 }
 
 func anything(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
-	want = typeutil.DerefValue(want)
+	got = rtypeutil.DerefValue(got)
+	want = rtypeutil.DerefValue(want)
 	return reflect.DeepEqual(got.Interface(), want.Interface())
 }
 
 func integer(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
+	got = rtypeutil.DerefValue(got)
 	var i64 int64
 	switch got.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -83,25 +83,25 @@ func integer(got, want reflect.Value) bool {
 }
 
 func float(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
+	got = rtypeutil.DerefValue(got)
 	w := want.Interface().(float64)
 	return almostEqual(got.Float(), w)
 }
 
 func boolean(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
+	got = rtypeutil.DerefValue(got)
 	w := want.Interface().(bool)
 	return got.Bool() == w
 }
 
 func stringg(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
+	got = rtypeutil.DerefValue(got)
 	w := want.Interface().(string)
 	return got.String() == w
 }
 
 func complexx(got, want reflect.Value) bool {
-	got = typeutil.DerefValue(got)
+	got = rtypeutil.DerefValue(got)
 	w := want.Interface().(complex128)
 	return got.Complex() == w
 }

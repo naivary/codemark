@@ -1,4 +1,4 @@
-package typeutil
+package rtypeutil
 
 import (
 	"reflect"
