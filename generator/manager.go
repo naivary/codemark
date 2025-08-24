@@ -2,38 +2,32 @@ package generator
 
 import (
 	"fmt"
-	"os"
-
-	"github.com/goccy/go-yaml"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	regv1 "github.com/naivary/codemark/api/registry/v1"
+	"github.com/naivary/codemark/internal/config"
 	"github.com/naivary/codemark/loader"
 	"github.com/naivary/codemark/registry"
 )
-
-func readInConfig() (map[string]any, error) {
-	var config map[string]any
-	file, err := os.ReadFile("codemark.yaml")
-	if os.IsNotExist(err) {
-		return map[string]any{}, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return config, yaml.Unmarshal(file, &config)
-}
 
 type domain = string
 
 type Manager struct {
 	gens map[domain]genv1.Generator
+
+	cfg map[string]any
 }
 
-func NewManager() (*Manager, error) {
+func NewManager(configPath string) (*Manager, error) {
+	const configSection = "gens"
 	mngr := &Manager{
 		gens: make(map[domain]genv1.Generator),
 	}
+	cfg, err := config.ReadIn(configPath, configSection)
+	if err != nil {
+		return nil, err
+	}
+	mngr.cfg = cfg
 	return mngr, nil
 }
 
@@ -50,13 +44,9 @@ func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*gen
 	if err != nil {
 		return nil, err
 	}
-	config, err := readInConfig()
-	if err != nil {
-		return nil, err
-	}
 	output := make(map[domain][]*genv1.Artifact)
 	for _, gen := range gens {
-		genCfg, isMap := config[gen.Domain()].(map[string]any)
+		genCfg, isMap := m.cfg[gen.Domain()].(map[string]any)
 		if !isMap {
 			genCfg = make(map[string]any)
 		}

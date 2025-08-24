@@ -11,7 +11,7 @@ import (
 var errNoArtifacts = errors.New("no artifacts produced")
 
 func gen(path string) ([]*genv1.Artifact, error) {
-	mngr, err := generator.NewManager()
+	mngr, err := generator.NewManager("codemark.yaml")
 	if err != nil {
 		panic(err)
 	}

@@ -11,6 +11,8 @@ import (
 	"github.com/naivary/codemark/internal/generator/openapi"
 )
 
+var configPath string
+
 // TODO: make the functions of the commands use codes
 const (
 	Success = iota
@@ -19,7 +21,7 @@ const (
 )
 
 func Exec(convs []convv1.Converter, gens []genv1.Generator) (int, error) {
-	mngr, err := newGenManager(gens)
+	mngr, err := newGenManager(configPath, gens)
 	if err != nil {
 		return InternalErr, err
 	}
@@ -50,11 +52,12 @@ func makeRootCmd() *cobra.Command {
 		Long:         ``,
 		SilenceUsage: true,
 	}
+	cmd.PersistentFlags().StringVar(&configPath, "config", "codemark.yaml", "path of codemark.yaml config file to use")
 	return cmd
 }
 
-func newGenManager(gens []genv1.Generator) (*generator.Manager, error) {
-	mngr, err := generator.NewManager()
+func newGenManager(configPath string, gens []genv1.Generator) (*generator.Manager, error) {
+	mngr, err := generator.NewManager(configPath)
 	if err != nil {
 		return nil, err
 	}
