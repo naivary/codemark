@@ -2,12 +2,16 @@ package openapi
 
 import (
 	"bytes"
+	"embed"
 
 	"github.com/goccy/go-yaml"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/naivary/codemark/optionutil"
 )
+
+//go:embed schemas/*
+var _fs embed.FS
 
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{

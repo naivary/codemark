@@ -9,6 +9,7 @@ import (
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
 	"github.com/naivary/codemark/internal/generator/openapi"
+	"github.com/naivary/codemark/outputer"
 )
 
 var configPath string
@@ -21,14 +22,18 @@ const (
 )
 
 func Exec(convs []convv1.Converter, gens []genv1.Generator) (int, error) {
-	mngr, err := newGenManager(configPath, gens)
+	genMngr, err := newGenManager(configPath, gens)
+	if err != nil {
+		return InternalErr, err
+	}
+	outMngr, err := outputer.NewManager(configPath)
 	if err != nil {
 		return InternalErr, err
 	}
 	rootCmd := makeRootCmd()
 	rootCmd.AddCommand(
-		makeGenCmd(mngr),
-		makeExplainCmd(mngr),
+		makeGenCmd(genMngr, outMngr),
+		makeExplainCmd(genMngr),
 	)
 	err = rootCmd.Execute()
 	if err != nil {

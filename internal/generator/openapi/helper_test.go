@@ -23,7 +23,7 @@ func gen(path string) ([]*genv1.Artifact, error) {
 	if err != nil {
 		panic(err)
 	}
-	artifacts, err := mngr.Generate(path, gen.Domain())
+	artifacts, err := mngr.Generate(path)
 	return artifacts[gen.Domain()], err
 }
 

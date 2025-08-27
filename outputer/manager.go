@@ -1,43 +1,31 @@
-package generator
+package outputer
 
 import (
 	"fmt"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	outv1 "github.com/naivary/codemark/api/outputer/v1"
-	"github.com/naivary/codemark/internal/config"
 )
 
 type name = string
 
 type Manager struct {
 	outputers map[name]outv1.Outputer
-	cfg       map[string]any
 }
 
 func NewManager(configPath string) (*Manager, error) {
-	const configSection = "outputer"
 	mngr := &Manager{
 		outputers: make(map[name]outv1.Outputer),
 	}
-	cfg, err := config.ReadIn(configPath, configSection)
-	if err != nil {
-		return nil, err
-	}
-	mngr.cfg = cfg
 	return mngr, nil
 }
 
-func (m *Manager) Output(outputerName string, artifacts ...*genv1.Artifact) error {
+func (m *Manager) Output(outputerName string, args []string, artifacts ...*genv1.Artifact) error {
 	out, err := m.Get(outputerName)
 	if err != nil {
 		return err
 	}
-	cfg, isMap := m.cfg[outputerName].(map[string]any)
-	if !isMap {
-		cfg = make(map[string]any)
-	}
-	return out.Output(artifacts, cfg)
+	return out.Output(artifacts, args...)
 }
 
 func (m *Manager) Get(name string) (outv1.Outputer, error) {

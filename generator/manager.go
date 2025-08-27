@@ -2,6 +2,8 @@ package generator
 
 import (
 	"fmt"
+	"maps"
+	"slices"
 
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	regv1 "github.com/naivary/codemark/api/registry/v1"
@@ -31,12 +33,8 @@ func NewManager(configPath string) (*Manager, error) {
 	return mngr, nil
 }
 
-func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*genv1.Artifact, error) {
-	gens, err := m.all(domains...)
-	if err != nil {
-		return nil, err
-	}
-	reg, err := m.merge(gens...)
+func (m *Manager) Generate(pattern string) (map[domain][]*genv1.Artifact, error) {
+	reg, err := m.merge(slices.Collect(maps.Values(m.gens)))
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +43,7 @@ func (m *Manager) Generate(pattern string, domains ...string) (map[domain][]*gen
 		return nil, err
 	}
 	output := make(map[domain][]*genv1.Artifact)
-	for _, gen := range gens {
+	for _, gen := range m.gens {
 		genCfg, isMap := m.cfg[gen.Domain()].(map[string]any)
 		if !isMap {
 			genCfg = make(map[string]any)
@@ -76,19 +74,7 @@ func (m *Manager) Add(gen genv1.Generator) error {
 	return nil
 }
 
-func (m *Manager) all(domains ...string) ([]genv1.Generator, error) {
-	gens := make([]genv1.Generator, 0, len(domains))
-	for _, domain := range domains {
-		gen, err := m.Get(domain)
-		if err != nil {
-			return nil, err
-		}
-		gens = append(gens, gen)
-	}
-	return gens, nil
-}
-
-func (m *Manager) merge(gens ...genv1.Generator) (regv1.Registry, error) {
+func (m *Manager) merge(gens []genv1.Generator) (regv1.Registry, error) {
 	regs := make([]regv1.Registry, 0, len(gens))
 	for _, gen := range gens {
 		regs = append(regs, gen.Registry())
