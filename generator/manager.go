@@ -21,12 +21,12 @@ type Manager struct {
 	cfg map[string]any
 }
 
-func NewManager(configPath string, gens ...genv1.Generator) (*Manager, error) {
+func NewManager(cfgFile string, gens ...genv1.Generator) (*Manager, error) {
 	const configSection = "gens"
 	mngr := &Manager{
 		gens: make(map[domain]genv1.Generator),
 	}
-	cfg, err := config.ReadIn(configPath, configSection)
+	cfg, err := config.ReadIn(cfgFile, configSection)
 	if err != nil {
 		return nil, err
 	}

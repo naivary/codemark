@@ -35,8 +35,8 @@ func newGenManager(cfgFile string, gens []genv1.Generator) (*generator.Manager, 
 	return mngr, nil
 }
 
-func newOutManager(cfgFile string, outs []outv1.Outputer) (*outputer.Manager, error) {
-	mngr, err := outputer.NewManager(cfgFile)
+func newOutManager(outs []outv1.Outputer) (*outputer.Manager, error) {
+	mngr, err := outputer.NewManager(outs...)
 	if err != nil {
 		return nil, err
 	}

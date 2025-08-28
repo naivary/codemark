@@ -13,7 +13,7 @@ type Manager struct {
 	outputers map[name]outv1.Outputer
 }
 
-func NewManager(configPath string, outputers ...outv1.Outputer) (*Manager, error) {
+func NewManager(outputers ...outv1.Outputer) (*Manager, error) {
 	mngr := &Manager{
 		outputers: make(map[name]outv1.Outputer),
 	}
