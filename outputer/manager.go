@@ -13,9 +13,15 @@ type Manager struct {
 	outputers map[name]outv1.Outputer
 }
 
-func NewManager(configPath string) (*Manager, error) {
+func NewManager(configPath string, outputers ...outv1.Outputer) (*Manager, error) {
 	mngr := &Manager{
 		outputers: make(map[name]outv1.Outputer),
+	}
+	for _, outputer := range outputers {
+		err := mngr.Add(outputer)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return mngr, nil
 }

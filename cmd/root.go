@@ -1,18 +1,16 @@
 package cmd
 
 import (
-	"slices"
+	"os"
 
 	"github.com/spf13/cobra"
 
 	convv1 "github.com/naivary/codemark/api/converter/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
+	outv1 "github.com/naivary/codemark/api/outputer/v1"
 	"github.com/naivary/codemark/generator"
-	"github.com/naivary/codemark/internal/generator/openapi"
 	"github.com/naivary/codemark/outputer"
 )
-
-var configPath string
 
 // TODO: make the functions of the commands use codes
 const (
@@ -21,19 +19,26 @@ const (
 	BadRequest
 )
 
-func Exec(convs []convv1.Converter, gens []genv1.Generator) (int, error) {
-	genMngr, err := newGenManager(configPath, gens)
-	if err != nil {
-		return InternalErr, err
-	}
-	outMngr, err := outputer.NewManager(configPath)
-	if err != nil {
-		return InternalErr, err
-	}
+func Exec(gens []genv1.Generator, outs []outv1.Outputer, convs []convv1.Converter) (int, error) {
 	rootCmd := makeRootCmd()
+	err := rootCmd.ParseFlags(os.Args)
+	if err != nil {
+		return InternalErr, err
+	}
+	cfgFile, err := rootCmd.Flags().GetString("config")
+	if err != nil {
+		return InternalErr, err
+	}
+	cfg, err := newConfig(cfgFile)
+	if err != nil {
+		return InternalErr, err
+	}
+	genMngr, outMngr, err := makeManager(cfgFile, gens, outs)
+	if err != nil {
+		return InternalErr, err
+	}
 	rootCmd.AddCommand(
-		makeGenCmd(genMngr, outMngr),
-		makeExplainCmd(genMngr),
+		makeGenCmd(cfg, genMngr, outMngr, convs),
 	)
 	err = rootCmd.Execute()
 	if err != nil {
@@ -42,37 +47,30 @@ func Exec(convs []convv1.Converter, gens []genv1.Generator) (int, error) {
 	return Success, nil
 }
 
-func mustInit(fn func() (genv1.Generator, error)) genv1.Generator {
-	gen, err := fn()
-	if err != nil {
-		panic(err)
-	}
-	return gen
+type rootCmd struct {
+	cfgFile string
 }
 
 func makeRootCmd() *cobra.Command {
+	r := &rootCmd{}
 	cmd := &cobra.Command{
 		Use:          "codemark",
-		Short:        "codemark is a annotation library for go allowing you to generate any kind of artifats.",
-		Long:         ``,
+		Short:        "annotation library allowing you to generate anything.",
 		SilenceUsage: true,
 	}
-	cmd.PersistentFlags().StringVar(&configPath, "config", "codemark.yaml", "path of codemark.yaml config file to use")
+	cmd.PersistentFlags().StringVar(&r.cfgFile, "config", "", "path of codemark.yaml config file to use")
 	return cmd
 }
 
-func newGenManager(configPath string, gens []genv1.Generator) (*generator.Manager, error) {
-	mngr, err := generator.NewManager(configPath)
+func makeManager(
+	cfgFile string,
+	gens []genv1.Generator,
+	outs []outv1.Outputer,
+) (*generator.Manager, *outputer.Manager, error) {
+	genMngr, err := generator.NewManager(cfgFile, gens...)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	builtinGens := []genv1.Generator{
-		mustInit(openapi.New),
-	}
-	for _, gen := range slices.Concat(builtinGens, gens) {
-		if err := mngr.Add(gen); err != nil {
-			return nil, err
-		}
-	}
-	return mngr, nil
+	outMngr, err := outputer.NewManager(cfgFile, outs...)
+	return genMngr, outMngr, err
 }

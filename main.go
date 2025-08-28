@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	code, err := cmd.Exec(nil, nil)
+	code, err := cmd.Exec(nil, nil, nil)
 	if err != nil {
 		os.Exit(code)
 	}

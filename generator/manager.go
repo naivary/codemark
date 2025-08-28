@@ -5,6 +5,7 @@ import (
 	"maps"
 	"slices"
 
+	convv1 "github.com/naivary/codemark/api/converter/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/internal/config"
@@ -20,7 +21,7 @@ type Manager struct {
 	cfg map[string]any
 }
 
-func NewManager(configPath string) (*Manager, error) {
+func NewManager(configPath string, gens ...genv1.Generator) (*Manager, error) {
 	const configSection = "gens"
 	mngr := &Manager{
 		gens: make(map[domain]genv1.Generator),
@@ -30,25 +31,28 @@ func NewManager(configPath string) (*Manager, error) {
 		return nil, err
 	}
 	mngr.cfg = cfg
+
+	for _, gen := range gens {
+		err := mngr.Add(gen)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return mngr, nil
 }
 
-func (m *Manager) Generate(pattern string) (map[domain][]*genv1.Artifact, error) {
-	reg, err := m.merge(slices.Collect(maps.Values(m.gens)))
+func (m *Manager) Generate(convs []convv1.Converter, pattern string) (map[domain][]*genv1.Artifact, error) {
+	reg, err := m.merge(m.allGens())
 	if err != nil {
 		return nil, err
 	}
-	info, err := loader.Load(reg, pattern)
+	info, err := loader.Load(reg, convs, pattern)
 	if err != nil {
 		return nil, err
 	}
 	output := make(map[domain][]*genv1.Artifact)
 	for _, gen := range m.gens {
-		genCfg, isMap := m.cfg[gen.Domain()].(map[string]any)
-		if !isMap {
-			genCfg = make(map[string]any)
-		}
-		artifacts, err := gen.Generate(info, genCfg)
+		artifacts, err := gen.Generate(info, m.configFor(gen))
 		if err != nil {
 			return nil, err
 		}
@@ -80,4 +84,16 @@ func (m *Manager) merge(gens []genv1.Generator) (regv1.Registry, error) {
 		regs = append(regs, gen.Registry())
 	}
 	return registry.Merge(regs...)
+}
+
+func (m *Manager) allGens() []genv1.Generator {
+	return slices.Collect(maps.Values(m.gens))
+}
+
+func (m *Manager) configFor(gen genv1.Generator) map[string]any {
+	genCfg, isMap := m.cfg[gen.Domain()].(map[string]any)
+	if isMap {
+		return genCfg
+	}
+	return make(map[string]any)
 }
