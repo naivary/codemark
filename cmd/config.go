@@ -13,7 +13,7 @@ type cliConfig struct {
 func newConfig(cfgFile string) (*cliConfig, error) {
 	const configSection = "cli"
 	c := cliConfig{
-		DefaultOutputer: "fs",
+		DefaultOutputer: "stdout",
 	}
 	cfg, err := config.ReadIn(cfgFile, configSection)
 	if err != nil {

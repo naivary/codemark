@@ -21,7 +21,9 @@ const (
 
 func Exec(gens []genv1.Generator, outs []outv1.Outputer, convs []convv1.Converter) (int, error) {
 	rootCmd := makeRootCmd()
-	err := rootCmd.ParseFlags(os.Args)
+	args := make([]string, 0, len(os.Args))
+	copy(args, os.Args)
+	err := rootCmd.ParseFlags(args)
 	if err != nil {
 		return InternalErr, err
 	}

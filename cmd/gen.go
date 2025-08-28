@@ -22,6 +22,8 @@ func makeGenCmd(cfg *cliConfig, genMngr *generator.Manager, outMngr *outputer.Ma
 		Aliases: []string{"gen"},
 		RunE:    g.runE(cfg, genMngr, outMngr, convs),
 	}
+	cmd.Flags().
+		StringSliceVarP(&g.outputers, "out", "o", nil, "define one or multiple ouptuter for each domain in the syntax of `domain:outputerName` e.g. `openapi:stdout`")
 	return cmd
 }
 

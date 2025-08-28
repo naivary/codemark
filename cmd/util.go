@@ -42,6 +42,7 @@ func newOutManager(outs []outv1.Outputer) (*outputer.Manager, error) {
 	}
 	builtinOuts := []outv1.Outputer{
 		mustInit(outimpl.NewFsOutputer),
+		mustInit(outimpl.NewStdoutOutputer),
 	}
 	for _, gen := range slices.Concat(builtinOuts, outs) {
 		if err := mngr.Add(gen); err != nil {
