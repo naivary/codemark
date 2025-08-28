@@ -34,7 +34,8 @@ func (o *fsOutputer) Output(artifacts []*genv1.Artifact, args ...string) error {
 }
 
 func (o *fsOutputer) flags() *pflag.FlagSet {
-	flagSet := pflag.NewFlagSet("fs", pflag.ExitOnError)
+	flagSet := pflag.NewFlagSet("fs", pflag.ContinueOnError)
+	flagSet.ParseErrorsWhitelist.UnknownFlags = true
 	flagSet.StringVar(&o.path, "fs.path", "", "path of the location to store the generated artifacts")
 	return flagSet
 }
@@ -43,6 +44,10 @@ func (o *fsOutputer) output(artifact *genv1.Artifact, args ...string) error {
 	err := o.flags().Parse(args)
 	if err != nil {
 		return err
+	}
+	if o.path == "" {
+		o.path, _ = os.Getwd()
+		o.path = filepath.Join(o.path, "codemark")
 	}
 	err = os.MkdirAll(o.path, os.ModePerm)
 	if err != nil {

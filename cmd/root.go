@@ -71,6 +71,6 @@ func makeManager(
 	if err != nil {
 		return nil, nil, err
 	}
-	outMngr, err := newOutManager(cfgFile, outs)
+	outMngr, err := newOutManager(outs)
 	return genMngr, outMngr, err
 }
