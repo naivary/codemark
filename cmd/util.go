@@ -3,25 +3,24 @@ package cmd
 import (
 	"slices"
 
-	"github.com/spf13/cobra"
-
 	genv1 "github.com/naivary/codemark/api/generator/v1"
+	outv1 "github.com/naivary/codemark/api/outputer/v1"
 	"github.com/naivary/codemark/generator"
 	"github.com/naivary/codemark/internal/generator/openapi"
+	outimpl "github.com/naivary/codemark/internal/outputer"
+	"github.com/naivary/codemark/outputer"
 )
 
-type run = func(cmd *cobra.Command, args []string) error
-
-func mustInit(fn func() (genv1.Generator, error)) genv1.Generator {
-	gen, err := fn()
+func mustInit[T any](fn func() (T, error)) T {
+	r, err := fn()
 	if err != nil {
 		panic(err)
 	}
-	return gen
+	return r
 }
 
-func newGenManager(configPath string, gens []genv1.Generator) (*generator.Manager, error) {
-	mngr, err := generator.NewManager(configPath)
+func newGenManager(cfgFile string, gens []genv1.Generator) (*generator.Manager, error) {
+	mngr, err := generator.NewManager(cfgFile)
 	if err != nil {
 		return nil, err
 	}
@@ -29,6 +28,22 @@ func newGenManager(configPath string, gens []genv1.Generator) (*generator.Manage
 		mustInit(openapi.New),
 	}
 	for _, gen := range slices.Concat(builtinGens, gens) {
+		if err := mngr.Add(gen); err != nil {
+			return nil, err
+		}
+	}
+	return mngr, nil
+}
+
+func newOutManager(cfgFile string, outs []outv1.Outputer) (*outputer.Manager, error) {
+	mngr, err := outputer.NewManager(cfgFile)
+	if err != nil {
+		return nil, err
+	}
+	builtinOuts := []outv1.Outputer{
+		mustInit(outimpl.NewFsOutputer),
+	}
+	for _, gen := range slices.Concat(builtinOuts, outs) {
 		if err := mngr.Add(gen); err != nil {
 			return nil, err
 		}

@@ -19,11 +19,9 @@ func makeGenCmd(cfg *cliConfig, genMngr *generator.Manager, outMngr *outputer.Ma
 	cmd := &cobra.Command{
 		Use:     "generate [pattern]",
 		Short:   "generate the artifacts for the given pattern",
-		Args:    cobra.ExactArgs(1),
 		Aliases: []string{"gen"},
 		RunE:    g.runE(cfg, genMngr, outMngr, convs),
 	}
-
 	return cmd
 }
 
@@ -39,9 +37,9 @@ func (g *genCmd) runE(
 		if err != nil {
 			return err
 		}
-		outMap := g.outputerMap(cfg)
+		outMap := g.outputerMap(cfg, genMngr.Domains())
 		for domain, artifacts := range artifacts {
-			err := outMngr.Output(outMap[domain], args, artifacts...)
+			err := outMngr.Output(outMap[domain], args[1:], artifacts...)
 			if err != nil {
 				return err
 			}
@@ -50,14 +48,15 @@ func (g *genCmd) runE(
 	}
 }
 
-func (g *genCmd) outputerMap(cfg *cliConfig) map[string]string {
+func (g *genCmd) outputerMap(cfg *cliConfig, domains []string) map[string]string {
 	const sep = ":"
 	res := make(map[string]string, len(g.outputers))
+	for _, domain := range domains {
+		res[domain] = cfg.DefaultOutputer
+	}
 	for _, outputer := range g.outputers {
 		domain, outputerName, found := strings.Cut(outputer, sep)
 		if !found {
-			// TODO: use the config for the default to be set
-			res[domain] = cfg.DefaultOutputer
 			continue
 		}
 		res[domain] = outputerName

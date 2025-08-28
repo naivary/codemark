@@ -1,10 +1,7 @@
 package openapi
 
 import (
-	"bytes"
-
 	"github.com/goccy/go-yaml"
-	"github.com/santhosh-tekuri/jsonschema/v6"
 
 	"github.com/naivary/codemark/optionutil"
 )
@@ -24,32 +21,32 @@ func newConfig(cfg map[string]any) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = validateConfig(data)
-	if err != nil {
-		return nil, err
-	}
+	// err = validateConfig(data)
+	// if err != nil {
+	// 	return nil, err
+	// }
 	err = yaml.Unmarshal(data, &c)
 	return &c, err
 }
 
-func validateConfig(data []byte) error {
-	const schemaFilePath = "./schemas/config.json"
-	json, err := yaml.YAMLToJSON(data)
-	if err != nil {
-		return err
-	}
-	r := bytes.NewReader(json)
-	c := jsonschema.NewCompiler()
-	schm, err := c.Compile(schemaFilePath)
-	if err != nil {
-		return err
-	}
-	inst, err := jsonschema.UnmarshalJSON(r)
-	if err != nil {
-		return err
-	}
-	return schm.Validate(inst)
-}
+// func validateConfig(data []byte) error {
+// 	const schemaFilePath = "./schemas/config.json"
+// 	json, err := yaml.YAMLToJSON(data)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	r := bytes.NewReader(json)
+// 	c := jsonschema.NewCompiler()
+// 	schm, err := c.Compile(schemaFilePath)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	inst, err := jsonschema.UnmarshalJSON(r)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	return schm.Validate(inst)
+// }
 
 // +openapi:schema:description="config options for the openapi generator"
 type config struct {

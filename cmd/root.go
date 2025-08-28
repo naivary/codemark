@@ -67,10 +67,10 @@ func makeManager(
 	gens []genv1.Generator,
 	outs []outv1.Outputer,
 ) (*generator.Manager, *outputer.Manager, error) {
-	genMngr, err := generator.NewManager(cfgFile, gens...)
+	genMngr, err := newGenManager(cfgFile, gens)
 	if err != nil {
 		return nil, nil, err
 	}
-	outMngr, err := outputer.NewManager(cfgFile, outs...)
+	outMngr, err := newOutManager(cfgFile, outs)
 	return genMngr, outMngr, err
 }

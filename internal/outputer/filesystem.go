@@ -1,4 +1,4 @@
-package filesystem
+package outputer
 
 import (
 	"os"
@@ -10,17 +10,21 @@ import (
 	outv1 "github.com/naivary/codemark/api/outputer/v1"
 )
 
-var _ outv1.Outputer = (*outputer)(nil)
+var _ outv1.Outputer = (*fsOutputer)(nil)
 
-type outputer struct {
+type fsOutputer struct {
 	path string
 }
 
-func (o *outputer) Name() string {
+func NewFsOutputer() (outv1.Outputer, error) {
+	return &fsOutputer{}, nil
+}
+
+func (o *fsOutputer) Name() string {
 	return "fs"
 }
 
-func (o *outputer) Output(artifacts []*genv1.Artifact, args ...string) error {
+func (o *fsOutputer) Output(artifacts []*genv1.Artifact, args ...string) error {
 	for _, artifact := range artifacts {
 		if err := o.output(artifact, args...); err != nil {
 			return err
@@ -29,18 +33,18 @@ func (o *outputer) Output(artifacts []*genv1.Artifact, args ...string) error {
 	return nil
 }
 
-func (o *outputer) flags() *pflag.FlagSet {
+func (o *fsOutputer) flags() *pflag.FlagSet {
 	flagSet := pflag.NewFlagSet("fs", pflag.ExitOnError)
-	flagSet.StringVar(&o.path, "path", "", "path of the location to store the generated artifacts")
+	flagSet.StringVar(&o.path, "fs.path", "", "path of the location to store the generated artifacts")
 	return flagSet
 }
 
-func (o *outputer) output(artifact *genv1.Artifact, args ...string) error {
+func (o *fsOutputer) output(artifact *genv1.Artifact, args ...string) error {
 	err := o.flags().Parse(args)
 	if err != nil {
 		return err
 	}
-	err = os.MkdirAll(o.path, os.ModeDir)
+	err = os.MkdirAll(o.path, os.ModePerm)
 	if err != nil {
 		return err
 	}

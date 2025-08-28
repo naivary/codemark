@@ -7,12 +7,12 @@ import (
 )
 
 type cliConfig struct {
-	DefaultOutputer string
+	DefaultOutputer string `yaml:"defaultOutputer"`
 }
 
 func newConfig(cfgFile string) (*cliConfig, error) {
 	const configSection = "cli"
-	c := &cliConfig{
+	c := cliConfig{
 		DefaultOutputer: "fs",
 	}
 	cfg, err := config.ReadIn(cfgFile, configSection)
@@ -24,5 +24,5 @@ func newConfig(cfgFile string) (*cliConfig, error) {
 		return nil, err
 	}
 	err = yaml.Unmarshal(data, &c)
-	return c, err
+	return &c, err
 }

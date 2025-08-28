@@ -48,7 +48,7 @@ func (m *Manager) Get(rtype reflect.Type) (convv1.Converter, error) {
 	return conv, nil
 }
 
-// addis exactly the same as AddConverter but does not include any
+// add is exactly the same as AddConverter but does not include any
 // assertions to be able to use it for internal usage.
 func (m *Manager) add(conv convv1.Converter) error {
 	for _, rtype := range conv.SupportedTypes() {

@@ -86,6 +86,14 @@ func (m *Manager) merge(gens []genv1.Generator) (regv1.Registry, error) {
 	return registry.Merge(regs...)
 }
 
+func (m *Manager) Domains() []string {
+	return slices.Collect(maps.Keys(m.gens))
+}
+
+func (m *Manager) All() map[domain]genv1.Generator {
+	return m.gens
+}
+
 func (m *Manager) allGens() []genv1.Generator {
 	return slices.Collect(maps.Values(m.gens))
 }
