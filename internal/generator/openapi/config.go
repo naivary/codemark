@@ -1,10 +1,37 @@
 package openapi
 
 import (
-	"github.com/goccy/go-yaml"
+	"bytes"
+	"embed"
+	"fmt"
+	"os"
+	"strings"
 
-	"github.com/naivary/codemark/optionutil"
+	"github.com/goccy/go-yaml"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
+
+//go:embed schemas/*
+var schemaFs embed.FS
+
+type embedLoader struct{}
+
+func (e *embedLoader) Load(url string) (any, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	// remove the absolute path using TrimPrefix.
+	// after removing the absolute path it is still and absolute path e.g.
+	// /schemas/* so removing the first character will resolve that too e.g.
+	// /schemas/config.json -> schemas/config.json
+	url = strings.TrimPrefix(url, fmt.Sprintf("file://%s", wd))[1:]
+	data, err := schemaFs.ReadFile(url)
+	if err != nil {
+		return nil, err
+	}
+	return jsonschema.UnmarshalJSON(bytes.NewReader(data))
+}
 
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
@@ -21,32 +48,35 @@ func newConfig(cfg map[string]any) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
-	// err = validateConfig(data)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	err = validateConfig(data)
+	if err != nil {
+		return nil, err
+	}
 	err = yaml.Unmarshal(data, &c)
 	return &c, err
 }
 
-// func validateConfig(data []byte) error {
-// 	const schemaFilePath = "./schemas/config.json"
-// 	json, err := yaml.YAMLToJSON(data)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	r := bytes.NewReader(json)
-// 	c := jsonschema.NewCompiler()
-// 	schm, err := c.Compile(schemaFilePath)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	inst, err := jsonschema.UnmarshalJSON(r)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	return schm.Validate(inst)
-// }
+func validateConfig(data []byte) error {
+	json, err := yaml.YAMLToJSON(data)
+	if err != nil {
+		return err
+	}
+	r := bytes.NewReader(json)
+	c := jsonschema.NewCompiler()
+	c.UseLoader(jsonschema.SchemeURLLoader{
+		"file": &embedLoader{},
+	})
+	const schemaFilePath = "schemas/config.json"
+	schm, err := c.Compile(schemaFilePath)
+	if err != nil {
+		return err
+	}
+	inst, err := jsonschema.UnmarshalJSON(r)
+	if err != nil {
+		return err
+	}
+	return schm.Validate(inst)
+}
 
 // +openapi:schema:description="config options for the openapi generator"
 type config struct {
@@ -69,24 +99,4 @@ type schemaFormats struct {
 	Property NamingConvention `yaml:"property"`
 	// +openapi:schema:enum=["snake_case"]
 	Filename NamingConvention `yaml:"filename"`
-}
-
-// Get is returning the default value of the identifier. If no default value is
-// available nil will be returned.
-func (c *config) Get(ident string) any {
-	resource := optionutil.ResourceOf(ident)
-	option := optionutil.OptionOf(ident)
-	switch resource {
-	case _schemaResource:
-		return c.getSchema(option)
-	default:
-		return nil
-	}
-}
-
-func (c *config) getSchema(opt string) any {
-	switch opt {
-	default:
-		return nil
-	}
 }
