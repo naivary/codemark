@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"os"
+	"net/url"
 	"strings"
 
 	"github.com/goccy/go-yaml"
@@ -16,17 +16,19 @@ var schemaFs embed.FS
 
 type embedLoader struct{}
 
-func (e *embedLoader) Load(url string) (any, error) {
-	wd, err := os.Getwd()
+func (e *embedLoader) Load(urll string) (any, error) {
+	u, err := url.Parse(urll)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	// remove the absolute path using TrimPrefix.
-	// after removing the absolute path it is still and absolute path e.g.
-	// /schemas/* so removing the first character will resolve that too e.g.
-	// /schemas/config.json -> schemas/config.json
-	url = strings.TrimPrefix(url, fmt.Sprintf("file://%s", wd))[1:]
-	data, err := schemaFs.ReadFile(url)
+	// Find where "schemas/" starts
+	idx := strings.Index(u.Path, "schemas/")
+	if idx == -1 {
+		return "", fmt.Errorf(`"schemas/" not found in path`)
+	}
+	// Return everything from schemas/ onward
+	urll = u.Path[idx:]
+	data, err := schemaFs.ReadFile(urll)
 	if err != nil {
 		return nil, err
 	}
