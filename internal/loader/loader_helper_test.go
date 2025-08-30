@@ -81,6 +81,8 @@ func (p *project) randomize() {
 	for range numOfImports {
 		imp := randImportDecl()
 		p.Imports[imp.PackagePath] = imp
+		// TODO: check if this line is solving the counting problem
+		p.Vars[imp.Use.Ident] = imp.Use
 	}
 	for range numOfAliases {
 		const randomRhs = ""
