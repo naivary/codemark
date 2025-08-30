@@ -135,9 +135,14 @@ func randAliasDecl(rhs string) AliasDecl {
 }
 
 func randImportDecl() ImportDecl {
+	pkgPath, use := randStdPkgPath()
 	return ImportDecl{
 		Markers:     randMarkers(_defaultNum),
-		PackagePath: randStdPkgPath(),
+		PackagePath: pkgPath,
+		Use: VarDecl{
+			Ident: "_",
+			Value: use,
+		},
 	}
 }
 
@@ -180,6 +185,8 @@ func randStructDecl() StructDecl {
 	s := StructDecl{
 		Ident:   rand.GoIdent(),
 		Markers: randMarkers(_defaultNum),
+		Fields:  make(map[string]FieldDecl, numOfFields),
+		Methods: make(map[string]FuncDecl, numOfMethods),
 	}
 	for range randv2.IntN(numOfFields) {
 		field := FieldDecl{
@@ -202,6 +209,7 @@ func randNamedDecl() NamedDecl {
 		Ident:   rand.GoIdent(),
 		Type:    randType().Name(),
 		Markers: randMarkers(_defaultNum),
+		Methods: make(map[string]FuncDecl, numOfMethods),
 	}
 	for range randv2.IntN(numOfMethods) {
 		method := randFuncDecl()
@@ -213,8 +221,9 @@ func randNamedDecl() NamedDecl {
 func randIfaceDecl() IfaceDecl {
 	const numOfSigs = 5
 	iface := IfaceDecl{
-		Ident:   rand.GoIdent(),
-		Markers: randMarkers(_defaultNum),
+		Ident:      rand.GoIdent(),
+		Markers:    randMarkers(_defaultNum),
+		Signatures: make(map[string]FuncDecl, numOfSigs),
 	}
 	for range randv2.IntN(numOfSigs) {
 		sig := FuncDecl{
@@ -242,7 +251,7 @@ func randMarkers(n int) []marker.Marker {
 }
 
 func randType() reflect.Type {
-	i := randv2.IntN(11)
+	i := randv2.IntN(11) + 1
 	switch i {
 	case 1:
 		return reflect.TypeFor[string]()
@@ -270,49 +279,55 @@ func randType() reflect.Type {
 	return nil
 }
 
-func randStdPkgPath() string {
+// randStdPkgPath randomly selects a Go standard library package and returns two values:
+//  1. The package import path as a string.
+//  2. A reference to a symbol (function, variable, constant, or type) from that package.
+//
+// The second return value ensures that the imported package is actually "used",
+// preventing the compiler from raising an UnusedImportError.
+func randStdPkgPath() (string, string) {
 	switch randv2.IntN(20) {
 	case 0:
-		return "fmt"
+		return "fmt", "fmt.Println"
 	case 1:
-		return "math"
+		return "math", "math.Abs"
 	case 2:
-		return "strings"
+		return "strings", "strings.ToUpper"
 	case 3:
-		return "time"
+		return "time", "time.Now"
 	case 4:
-		return "os"
+		return "os", "os.Open"
 	case 5:
-		return "io"
+		return "io", "io.Copy"
 	case 6:
-		return "bytes"
+		return "bytes", "bytes.NewBuffer"
 	case 7:
-		return "bufio"
+		return "bufio", "bufio.NewReader"
 	case 8:
-		return "crypto/md5"
+		return "crypto/md5", "md5.New"
 	case 9:
-		return "crypto/sha256"
+		return "crypto/sha256", "sha256.New"
 	case 10:
-		return "net/http"
+		return "net/http", "http.Get"
 	case 11:
-		return "net"
+		return "net", "net.Dial"
 	case 12:
-		return "encoding/json"
+		return "encoding/json", "json.Marshal"
 	case 13:
-		return "encoding/base64"
+		return "encoding/base64", "base64.StdEncoding"
 	case 14:
-		return "sort"
+		return "sort", "sort.Ints"
 	case 15:
-		return "strconv"
+		return "strconv", "strconv.Itoa"
 	case 16:
-		return "context"
+		return "context", "context.Background"
 	case 17:
-		return "errors"
+		return "errors", "errors.New"
 	case 18:
-		return "regexp"
+		return "regexp", "regexp.MustCompile"
 	case 19:
-		return "path/filepath"
+		return "path/filepath", "filepath.Join"
 	default:
-		return ""
+		return "", ""
 	}
 }

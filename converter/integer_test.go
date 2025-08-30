@@ -39,8 +39,8 @@ func TestIntConverter_Duration(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	cases := []convertertest.Case{
-		makeCase(Duration(0), markertest.NewMarker("duration", marker.STRING, "10h"), true),
-		makeCase(PtrDuration(nil), markertest.NewMarker("ptr.duration", marker.STRING, "10h"), true),
+		makeCase(Duration(0), markertest.New("duration", marker.STRING, "10h"), true),
+		makeCase(PtrDuration(nil), markertest.New("ptr.duration", marker.STRING, "10h"), true),
 	}
 	for _, tc := range cases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -56,10 +56,10 @@ func TestIntConverter_Byte(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	cases := []convertertest.Case{
-		makeCase(registrytest.Byte(0), markertest.NewMarker("byte", marker.STRING, "b"), true),
+		makeCase(registrytest.Byte(0), markertest.New("byte", marker.STRING, "b"), true),
 		makeCase(
 			registrytest.PtrByte(nil),
-			markertest.NewMarker("ptr.byte", marker.STRING, "b"),
+			markertest.New("ptr.byte", marker.STRING, "b"),
 			true,
 		),
 	}
@@ -77,10 +77,10 @@ func TestIntConverter_Rune(t *testing.T) {
 		t.Errorf("err occured: %s\n", err)
 	}
 	cases := []convertertest.Case{
-		makeCase(registrytest.Rune(0), markertest.NewMarker("rune", marker.STRING, "r"), true),
+		makeCase(registrytest.Rune(0), markertest.New("rune", marker.STRING, "r"), true),
 		makeCase(
 			registrytest.PtrRune(nil),
-			markertest.NewMarker("ptr.rune", marker.STRING, "r"),
+			markertest.New("ptr.rune", marker.STRING, "r"),
 			true,
 		),
 	}

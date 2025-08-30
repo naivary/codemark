@@ -85,7 +85,7 @@ func TestRandMarker(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			rtype := reflect.TypeOf(tc.typ)
-			marker, err := RandMarker(rtype)
+			marker, err := Rand(rtype)
 			if marker == nil && tc.isValidCase {
 				t.Errorf("err: no marker produced")
 			}

@@ -40,12 +40,12 @@ func TestStringConverter_Time(t *testing.T) {
 	cases := []convertertest.Case{
 		makeCase(
 			Time(time.Time{}),
-			markertest.NewMarker("time", marker.STRING, "2006-01-02T15:04:05Z"),
+			markertest.New("time", marker.STRING, "2006-01-02T15:04:05Z"),
 			true,
 		),
 		makeCase(
 			PtrTime(nil),
-			markertest.NewMarker("ptr.time", marker.STRING, "2006-01-02T15:04:05Z"),
+			markertest.New("ptr.time", marker.STRING, "2006-01-02T15:04:05Z"),
 			true,
 		),
 	}

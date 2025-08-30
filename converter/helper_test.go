@@ -38,7 +38,7 @@ func validCasesFor(conv convv1.Converter) ([]convertertest.Case, error) {
 	cases := make([]convertertest.Case, 0, len(types))
 	for _, typ := range types {
 		rtype := reflect.TypeOf(typ)
-		marker, err := markertest.RandMarker(rtype)
+		marker, err := markertest.Rand(rtype)
 		if err != nil {
 			return nil, err
 		}

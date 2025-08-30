@@ -76,7 +76,7 @@ func Complex() complex128 {
 
 // GoIdent returns a random string which can be used as a go identifier.
 func GoIdent() string {
-	name := String(-1)
+	name := String(RandLen)
 	for {
 		firstLetter := rune(name[0])
 		if !unicode.IsDigit(firstLetter) {

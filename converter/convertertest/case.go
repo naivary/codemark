@@ -31,7 +31,7 @@ func NewCase(
 ) (Case, error) {
 	var err error
 	if m == nil {
-		m, err = markertest.RandMarker(to)
+		m, err = markertest.Rand(to)
 	}
 	if err != nil {
 		return _casez, err

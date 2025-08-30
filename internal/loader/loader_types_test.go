@@ -61,7 +61,10 @@ func (n NamedDecl) markers() []marker.Marker {
 type ImportDecl struct {
 	Alias       string
 	PackagePath string
-	Markers     []marker.Marker
+	// Usage is a VarDecl which is using the imported packages so no
+	// UnusedImportError occurs while loading the package.
+	Use     VarDecl
+	Markers []marker.Marker
 }
 
 func (i ImportDecl) markers() []marker.Marker {

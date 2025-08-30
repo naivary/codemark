@@ -10,21 +10,22 @@ import (
 	"github.com/naivary/codemark/rtypeutil"
 )
 
-// NewIdent returns a identifier which can be used for both marker and definition.
+// NewIdent returns a identifier which can be used for both marker and option.
 // This function should only be used for test purposes. The produced marker is in
-// the codemark:testing:* namespace. For custom identifier naming it's recommneded
+// the codemark:testing:* domain. For custom identifier naming it's recommneded
 // to create your own function.
 func NewIdent(name string) string {
 	return fmt.Sprintf("codemark:testing:%s", name)
 }
 
-func NewMarker(option string, kind marker.Kind, value any) marker.Marker {
+// New returns a random marker for testing.
+func New(option string, kind marker.Kind, value any) marker.Marker {
 	return marker.New(NewIdent(option), kind, reflect.ValueOf(value))
 }
 
 // RandMarkerWithIdent is the same as RandMarker but allows to set a custom
 // identifier for the marker.
-func RandMarkerWithIdent(ident string, rtype reflect.Type) (*marker.Marker, error) {
+func RandWithIdent(ident string, rtype reflect.Type) (*marker.Marker, error) {
 	v := randValue(rtype)
 	if v == nil {
 		return nil, fmt.Errorf("no value could be generated for given type: %v", rtype)
@@ -34,12 +35,12 @@ func RandMarkerWithIdent(ident string, rtype reflect.Type) (*marker.Marker, erro
 	return &m, nil
 }
 
-// RandMarker returns a random marker based on the given rtype. The returned
+// Rand returns a random marker based on the given rtype. The returned
 // marker is always valid if not error is returned.
-func RandMarker(rtype reflect.Type) (*marker.Marker, error) {
+func Rand(rtype reflect.Type) (*marker.Marker, error) {
 	name := rtypeutil.NameFor(rtype)
 	ident := NewIdent(name)
-	return RandMarkerWithIdent(ident, rtype)
+	return RandWithIdent(ident, rtype)
 }
 
 // randValue returns a valid marker value for the given rtype.
@@ -84,7 +85,7 @@ func randPrimitiveType() reflect.Type {
 	i := randv2.IntN(5)
 	switch i {
 	case 0:
-		return reflect.TypeFor[int]()
+		return reflect.TypeFor[int64]()
 	case 1:
 		return reflect.TypeFor[string]()
 	case 2:
@@ -97,7 +98,7 @@ func randPrimitiveType() reflect.Type {
 	return nil
 }
 
-// randList returns a list of length `n` for rtype. For example if rtype is string
+// randList returns a list of length `n` of type `rtype`. For example if rtype is string
 // and n is 10 a list of type any will be returned containing 10 random strings.
 // If n is <= 0 then the length of the list will be choosen randomly.
 func randList(rtype reflect.Type, n int) []any {
