@@ -16,7 +16,7 @@ import (
 
 const _defaultNum = 0
 
-type proj struct {
+type project struct {
 	Structs map[string]StructDecl
 	Funcs   map[string]FuncDecl
 	Vars    map[string]VarDecl
@@ -28,8 +28,8 @@ type proj struct {
 	Files   map[string]File
 }
 
-func newProj() *proj {
-	p := &proj{
+func newProject() *project {
+	p := &project{
 		Structs: make(map[string]StructDecl),
 		Funcs:   make(map[string]FuncDecl),
 		Consts:  make(map[string]ConstDecl),
@@ -44,7 +44,7 @@ func newProj() *proj {
 	return p
 }
 
-func (p *proj) randomize() {
+func (p *project) randomize() {
 	const n = 10
 	var (
 		numOfStructs = randv2.IntN(n)
@@ -93,8 +93,8 @@ func (p *proj) randomize() {
 	}
 }
 
-func (p *proj) parse() (string, error) {
-	tmpl, err := template.ParseGlob("tmpl/*")
+func (p *project) parse(glob string) (string, error) {
+	tmpl, err := template.ParseGlob(glob)
 	if err != nil {
 		return "", err
 	}
@@ -286,9 +286,7 @@ func randType() reflect.Type {
 // The second return value ensures that the imported package is actually "used",
 // preventing the compiler from raising an UnusedImportError.
 func randStdPkgPath() (string, string) {
-	switch randv2.IntN(20) {
-	case 0:
-		return "fmt", "fmt.Println"
+	switch randv2.IntN(19) + 1 {
 	case 1:
 		return "math", "math.Abs"
 	case 2:

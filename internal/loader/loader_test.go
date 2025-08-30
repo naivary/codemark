@@ -14,9 +14,10 @@ import (
 )
 
 // TODO: add unamed and named imports in the generated files
-func TestLoaderLocal(t *testing.T) {
-	proj := newProj()
-	dir, err := proj.parse()
+func TestLoader_Local(t *testing.T) {
+	proj := newProject()
+	addSpecialDecls(proj)
+	dir, err := proj.parse("tmpl/*")
 	if err != nil {
 		t.Errorf("unexpected error occured: %s", err)
 	}
@@ -43,31 +44,7 @@ func TestLoaderLocal(t *testing.T) {
 	}
 }
 
-func validateMarker(want []marker.Marker, got map[string][]any) error {
-	for _, marker := range want {
-		ident := marker.Ident
-		_, found := got[ident]
-		if !found {
-			return fmt.Errorf("marker not found: %s\n", ident)
-		}
-	}
-	return nil
-}
-
-func validate[T markers, V infov1.Info](typ string, want map[string]T, got map[types.Object]V) error {
-	if len(got) != len(want) {
-		return fmt.Errorf("quantity not equal for %s. got: %d; want: %d\n", typ, len(got), len(want))
-	}
-	for typ, info := range got {
-		m := want[typ.Name()].markers()
-		if err := validateMarker(m, info.Options()); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func isValid(p *proj, info *infov1.Information) error {
+func isValid(p *project, info *infov1.Information) error {
 	// check struct
 	if err := validate("structs", p.Structs, info.Structs); err != nil {
 		return err
@@ -127,4 +104,48 @@ func isValid(p *proj, info *infov1.Information) error {
 		}
 	}
 	return nil
+}
+
+func validate[T markers, V infov1.Info](typ string, want map[string]T, got map[types.Object]V) error {
+	if len(got) != len(want) {
+		return fmt.Errorf("quantity not equal for %s. got: %d; want: %d\n", typ, len(got), len(want))
+	}
+	for typ, info := range got {
+		m := want[typ.Name()].markers()
+		if err := validateMarker(m, info.Options()); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateMarker(want []marker.Marker, got map[string][]any) error {
+	for _, marker := range want {
+		ident := marker.Ident
+		_, found := got[ident]
+		if !found {
+			return fmt.Errorf("marker not found: %s\n", ident)
+		}
+	}
+	return nil
+}
+
+func addSpecialDecls(proj *project) {
+	for _, imp := range importSpecial() {
+		proj.Imports[imp.PackagePath] = imp
+	}
+}
+
+func importSpecial() []ImportDecl {
+	return []ImportDecl{
+		// aliased import
+		{
+			PackagePath: "fmt",
+			Alias:       "format",
+			Use: VarDecl{
+				Ident: "_",
+				Value: "format.Println",
+			},
+		},
+	}
 }
