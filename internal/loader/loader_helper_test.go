@@ -1,9 +1,11 @@
 package loader
 
 import (
+	randv2 "math/rand/v2"
 	"os"
 	"path"
 	"reflect"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -12,311 +14,225 @@ import (
 	"github.com/naivary/codemark/marker/markertest"
 )
 
-// randloaderTestCase returns a random LaoderTestCase which can be used to test
-// the local loader against randomized markers on any types.
-func randLoaderTestCase() (loaderTestCase, error) {
-	tc := newloaderTestCase()
-	tc.randomize()
-	return tc, randProj("tmpl/*", &tc)
+const _defaultNum = 0
+
+type proj struct {
+	Structs map[string]StructDecl
+	Funcs   map[string]FuncDecl
+	Vars    map[string]VarDecl
+	Consts  map[string]ConstDecl
+	Ifaces  map[string]IfaceDecl
+	Aliases map[string]AliasDecl
+	Named   map[string]NamedDecl
+	Imports map[string]ImportDecl
+	Files   map[string]File
 }
 
-func randProj(glob string, tc *loaderTestCase) error {
-	tmpl, err := template.ParseGlob(glob)
+func newProj() *proj {
+	p := &proj{
+		Structs: make(map[string]StructDecl),
+		Funcs:   make(map[string]FuncDecl),
+		Consts:  make(map[string]ConstDecl),
+		Vars:    make(map[string]VarDecl),
+		Ifaces:  make(map[string]IfaceDecl),
+		Aliases: make(map[string]AliasDecl),
+		Named:   make(map[string]NamedDecl),
+		Imports: make(map[string]ImportDecl),
+		Files:   make(map[string]File),
+	}
+	p.randomize()
+	return p
+}
+
+func (p *proj) randomize() {
+	const n = 10
+	var (
+		numOfStructs = randv2.IntN(n)
+		numOfIfaces  = randv2.IntN(n)
+		numOfFuncs   = randv2.IntN(n)
+		numOfVars    = randv2.IntN(n)
+		numOfConsts  = randv2.IntN(n)
+		numOfImports = randv2.IntN(n)
+		numOfAliases = randv2.IntN(n)
+		numOfNamed   = randv2.IntN(n)
+	)
+	for range numOfStructs {
+		s := randStructDecl()
+		p.Structs[s.Ident] = s
+	}
+	for range numOfIfaces {
+		iface := randIfaceDecl()
+		p.Ifaces[iface.Ident] = iface
+	}
+	for range numOfFuncs {
+		fn := randFuncDecl()
+		p.Funcs[fn.Ident] = fn
+	}
+	for range numOfVars {
+		const randomValue = ""
+		v := randVarDecl(randomValue)
+		p.Vars[v.Ident] = v
+	}
+	for range numOfConsts {
+		const randomValue = ""
+		c := randConstDecl(randomValue)
+		p.Consts[c.Ident] = c
+	}
+	for range numOfImports {
+		imp := randImportDecl()
+		p.Imports[imp.PackagePath] = imp
+	}
+	for range numOfAliases {
+		const randomRhs = ""
+		alias := randAliasDecl(randomRhs)
+		p.Aliases[alias.Ident] = alias
+	}
+	for range numOfNamed {
+		named := randNamedDecl()
+		p.Named[named.Ident] = named
+	}
+}
+
+func (p *proj) parse() (string, error) {
+	tmpl, err := template.ParseGlob("tmpl/*")
 	if err != nil {
-		return err
+		return "", err
 	}
 	tmpDir := os.TempDir()
 	dir, err := os.MkdirTemp(tmpDir, "cm-project")
 	if err != nil {
-		return err
+		return "", err
 	}
-	tc.Dir = dir
 	for _, t := range tmpl.Templates() {
 		filename, _ := strings.CutSuffix(t.Name(), ".tmpl")
 		if filename == "go.mod" {
 			continue
 		}
-		tc.Files[filename] = File{Markers: randMarkers()}
+		p.Files[filename] = File{Markers: randMarkers(_defaultNum)}
 	}
 	for _, t := range tmpl.Templates() {
 		filename, _ := strings.CutSuffix(t.Name(), ".tmpl")
 		path := path.Join(dir, filename)
 		file, err := os.Create(path)
 		if err != nil {
-			return err
+			return "", err
 		}
-		if err := t.Execute(file, &tc); err != nil {
-			return err
+		if err := t.Execute(file, p); err != nil {
+			return "", err
 		}
 	}
-	return err
+	return dir, nil
 }
 
-type loaderTestCase struct {
-	// Absolute Path to a directory containing all the randomly generated files
-	// for testing.
-	Dir string
-
-	Structs map[string]Struct
-	Funcs   map[string]Func
-	Consts  map[string]Const
-	Vars    map[string]Var
-	Ifaces  map[string]Iface
-	Aliases map[string]Alias
-	Named   map[string]Named
-	Imports map[string]Import
-	Files   map[string]File
-}
-
-func newloaderTestCase() loaderTestCase {
-	return loaderTestCase{
-		Structs: make(map[string]Struct),
-		Funcs:   make(map[string]Func),
-		Consts:  make(map[string]Const),
-		Vars:    make(map[string]Var),
-		Ifaces:  make(map[string]Iface),
-		Aliases: make(map[string]Alias),
-		Named:   make(map[string]Named),
-		Imports: make(map[string]Import),
-		Files:   make(map[string]File),
+func randAliasDecl(rhs string) AliasDecl {
+	if rhs == "" {
+		rhs = randType().Name()
+	}
+	return AliasDecl{
+		Ident: rand.GoIdent(),
+		Rhs:   rhs,
 	}
 }
 
-func (l loaderTestCase) randomize() {
-	l.randStructs(rand.RandLen)
-	l.randFuncs(rand.RandLen)
-	l.randAliases(rand.RandLen)
-	l.randVars(rand.RandLen)
-	l.randConsts(rand.RandLen)
-	l.randIfaces(rand.RandLen)
-	l.randImports(rand.RandLen)
-	l.randNameds(rand.RandLen)
-}
-
-func (l *loaderTestCase) randStructs(n int) {
-	if n <= 0 {
-		n = 10
-	}
-	q := quantity(n)
-	for range q {
-		s := randStruct()
-		l.Structs[s.Name] = s
+func randImportDecl() ImportDecl {
+	return ImportDecl{
+		Markers:     randMarkers(_defaultNum),
+		PackagePath: randStdPkgPath(),
 	}
 }
 
-func (l *loaderTestCase) randFuncs(n int) {
-	if n <= 0 {
-		n = 6
-	}
-	q := quantity(n)
-	for range q {
-		fn := randFunc()
-		l.Funcs[fn.Name] = fn
+func randFuncDecl() FuncDecl {
+	return FuncDecl{
+		Ident:   rand.GoIdent(),
+		Markers: randMarkers(_defaultNum),
 	}
 }
 
-func (l *loaderTestCase) randConsts(n int) {
-	if n <= 0 {
-		n = 10
+func randVarDecl(value string) VarDecl {
+	if value == "" {
+		value = strconv.Itoa(int(rand.Int64()))
 	}
-	q := quantity(n)
-	for range q {
-		c := randConst()
-		l.Consts[c.Name] = c
+	v := VarDecl{
+		Ident:   rand.GoIdent(),
+		Markers: randMarkers(_defaultNum),
+		Value:   value,
 	}
+	return v
 }
 
-func (l *loaderTestCase) randIfaces(n int) {
-	if n <= 0 {
-		n = 6
+func randConstDecl(value string) ConstDecl {
+	if value == "" {
+		value = strconv.Itoa(int(rand.Int64()))
 	}
-	q := quantity(n)
-	for range q {
-		iface := randIface()
-		l.Ifaces[iface.Name] = iface
+	c := ConstDecl{
+		Ident:   rand.GoIdent(),
+		Markers: randMarkers(_defaultNum),
+		Value:   value,
 	}
+	return c
 }
 
-func (l *loaderTestCase) randAliases(n int) {
-	if n <= 0 {
-		n = 10
+func randStructDecl() StructDecl {
+	const (
+		numOfFields  = 5
+		numOfMethods = 5
+	)
+	s := StructDecl{
+		Ident:   rand.GoIdent(),
+		Markers: randMarkers(_defaultNum),
 	}
-	q := quantity(n)
-	for range q {
-		alias := randAlias()
-		l.Aliases[alias.Name] = alias
-	}
-}
-
-func (l *loaderTestCase) randVars(n int) {
-	if n <= 0 {
-		n = 10
-	}
-	q := quantity(n)
-	for range q {
-		v := randVar()
-		l.Vars[v.Name] = v
-	}
-}
-
-func (l *loaderTestCase) randImports(n int) {
-	if n <= 0 {
-		n = 4
-	}
-	q := quantity(n)
-	for range q {
-		imported := randImport()
-		for {
-			_, found := l.Imports[imported.Name]
-			if found {
-				imported = randImport()
-				continue
-			}
-			break
+	for range randv2.IntN(numOfFields) {
+		field := FieldDecl{
+			Ident:   rand.GoIdent(),
+			Type:    randType().Name(),
+			Markers: randMarkers(_defaultNum),
 		}
-		l.Imports[imported.Name] = imported
+		s.Fields[field.Ident] = field
 	}
-}
-
-func (l *loaderTestCase) randNameds(n int) {
-	if n <= 0 {
-		n = 8
-	}
-	q := quantity(n)
-	for range q {
-		named := randNamed()
-		l.Named[named.Name] = named
-	}
-}
-
-func randImport() Import {
-	return Import{
-		Name:    randStdPkg(),
-		Markers: randMarkers(),
-	}
-}
-
-func randNamed() Named {
-	n := Named{
-		Name:    rand.GoIdent(),
-		Markers: randMarkers(),
-		Type:    randType(),
-		Methods: make(map[string]Func),
-	}
-	methodQuantity := quantity(2)
-	for range methodQuantity {
-		method := randFunc()
-		n.Methods[method.Name] = method
-	}
-	return n
-}
-
-func randAlias() Alias {
-	return Alias{
-		Name:    rand.GoIdent(),
-		Markers: randMarkers(),
-		Type:    randType(),
-	}
-}
-
-func randIface() Iface {
-	sigQuantity := quantity(5)
-	iface := Iface{
-		Name:       rand.GoIdent(),
-		Markers:    randMarkers(),
-		Signatures: make(map[string]Func),
-	}
-	for range sigQuantity {
-		fn := randFunc()
-		iface.Signatures[fn.Name] = fn
-	}
-	return iface
-}
-
-func randStruct() Struct {
-	fieldQuantity := quantity(6)
-	methodQuantity := quantity(2)
-	fields := make(map[string]Field, fieldQuantity)
-	methods := make(map[string]Func, methodQuantity)
-	for range fieldQuantity {
-		f := randField()
-		fields[f.F.Name] = f
-	}
-	for range methodQuantity {
-		m := randFunc()
-		methods[m.Name] = m
-	}
-	s := Struct{
-		Name:    rand.GoIdent(),
-		Fields:  fields,
-		Markers: randMarkers(),
-		Methods: methods,
+	for range randv2.IntN(numOfMethods) {
+		method := randFuncDecl()
+		s.Methods[method.Ident] = method
 	}
 	return s
 }
 
-func randField() Field {
-	return Field{
-		F: reflect.StructField{
-			Name: rand.GoIdent(),
-			Type: randType(),
-		},
-		Markers: randMarkers(),
+func randNamedDecl() NamedDecl {
+	const numOfMethods = 5
+	n := NamedDecl{
+		Ident:   rand.GoIdent(),
+		Type:    randType().Name(),
+		Markers: randMarkers(_defaultNum),
 	}
+	for range randv2.IntN(numOfMethods) {
+		method := randFuncDecl()
+		n.Methods[method.Ident] = method
+	}
+	return n
 }
 
-func randFunc() Func {
-	fn := reflect.FuncOf([]reflect.Type{}, []reflect.Type{}, false)
-	return Func{
-		Name:    rand.GoIdent(),
-		Fn:      fn,
-		Markers: randMarkers(),
+func randIfaceDecl() IfaceDecl {
+	const numOfSigs = 5
+	iface := IfaceDecl{
+		Ident:   rand.GoIdent(),
+		Markers: randMarkers(_defaultNum),
 	}
+	for range randv2.IntN(numOfSigs) {
+		sig := FuncDecl{
+			Ident:   rand.GoIdent(),
+			Markers: randMarkers(_defaultNum),
+		}
+		iface.Signatures[sig.Ident] = sig
+	}
+	return iface
 }
 
-func randConst() Const {
-	return Const{
-		Name:    rand.GoIdent(),
-		Markers: randMarkers(),
-		Value:   rand.Int64(),
+func randMarkers(n int) []marker.Marker {
+	if n == 0 {
+		n = 5
 	}
-}
-
-func randVar() Var {
-	return Var{
-		Name:    rand.GoIdent(),
-		Markers: randMarkers(),
-		Value:   rand.Int64(),
-	}
-}
-
-func randStdPkg() string {
-	i := quantity(7)
-	switch i {
-	case 1:
-		return "os"
-	case 2:
-		return "log/slog"
-	case 3:
-		return "fmt"
-	case 4:
-		return "io"
-	case 5:
-		return "bytes"
-	case 6:
-		return "flag"
-	case 7:
-		return "net/http"
-	default:
-		return "slices"
-	}
-}
-
-func randMarkers() []marker.Marker {
-	q := quantity(5)
-	markers := make([]marker.Marker, 0, q)
-	for range q {
-		m, err := markertest.RandMarker(randType())
+	markers := make([]marker.Marker, 0, n)
+	for range n {
+		m, err := markertest.Rand(randType())
 		if err != nil {
 			panic(err)
 		}
@@ -326,7 +242,7 @@ func randMarkers() []marker.Marker {
 }
 
 func randType() reflect.Type {
-	i := quantity(11)
+	i := randv2.IntN(11)
 	switch i {
 	case 1:
 		return reflect.TypeFor[string]()
@@ -354,8 +270,49 @@ func randType() reflect.Type {
 	return nil
 }
 
-// quantity returns a random number from [1, n)
-func quantity(mx int) int {
-	q := (rand.Int64() % int64(mx)) + 1
-	return int(q)
+func randStdPkgPath() string {
+	switch randv2.IntN(20) {
+	case 0:
+		return "fmt"
+	case 1:
+		return "math"
+	case 2:
+		return "strings"
+	case 3:
+		return "time"
+	case 4:
+		return "os"
+	case 5:
+		return "io"
+	case 6:
+		return "bytes"
+	case 7:
+		return "bufio"
+	case 8:
+		return "crypto/md5"
+	case 9:
+		return "crypto/sha256"
+	case 10:
+		return "net/http"
+	case 11:
+		return "net"
+	case 12:
+		return "encoding/json"
+	case 13:
+		return "encoding/base64"
+	case 14:
+		return "sort"
+	case 15:
+		return "strconv"
+	case 16:
+		return "context"
+	case 17:
+		return "errors"
+	case 18:
+		return "regexp"
+	case 19:
+		return "path/filepath"
+	default:
+		return ""
+	}
 }

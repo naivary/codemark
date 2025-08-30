@@ -15,12 +15,13 @@ import (
 
 // TODO: add unamed and named imports in the generated files
 func TestLoaderLocal(t *testing.T) {
-	tc, err := randLoaderTestCase()
+	proj := newProj()
+	dir, err := proj.parse()
 	if err != nil {
-		t.Errorf("err occured: %s", err)
+		t.Errorf("unexpected error occured: %s", err)
 	}
 	cfg := &packages.Config{
-		Dir: tc.Dir,
+		Dir: dir,
 	}
 	reg, err := registrytest.NewRegistry(registrytest.NewOptsSet())
 	if err != nil {
@@ -31,13 +32,13 @@ func TestLoaderLocal(t *testing.T) {
 		t.Errorf("err occured: %s", err)
 	}
 	l := New(mngr, cfg)
-	projs, err := l.Load(".")
+	information, err := l.Load(".")
 	if err != nil {
 		t.Errorf("err occured: %s", err)
 	}
-	for _, proj := range projs {
-		if err := isValid(tc, proj); err != nil {
-			t.Errorf("err occured while reading %s: %s", tc.Dir, err)
+	for _, info := range information {
+		if err := isValid(proj, info); err != nil {
+			t.Errorf("err occured while reading %s: %s", dir, err)
 		}
 	}
 }
@@ -66,61 +67,61 @@ func validate[T markers, V infov1.Info](typ string, want map[string]T, got map[t
 	return nil
 }
 
-func isValid(tc loaderTestCase, proj *infov1.Information) error {
+func isValid(p *proj, info *infov1.Information) error {
 	// check struct
-	if err := validate("structs", tc.Structs, proj.Structs); err != nil {
+	if err := validate("structs", p.Structs, info.Structs); err != nil {
 		return err
 	}
-	for typ, s := range proj.Structs {
+	for typ, s := range info.Structs {
 		name := typ.Name()
-		if err := validate("struct.fields", tc.Structs[name].Fields, s.Fields); err != nil {
+		if err := validate("struct.fields", p.Structs[name].Fields, s.Fields); err != nil {
 			return err
 		}
-		if err := validate("struct.methods", tc.Structs[name].Methods, s.Methods); err != nil {
+		if err := validate("struct.methods", p.Structs[name].Methods, s.Methods); err != nil {
 			return err
 		}
 	}
 	// check iface
-	if err := validate("interfaces", tc.Ifaces, proj.Ifaces); err != nil {
+	if err := validate("interfaces", p.Ifaces, info.Ifaces); err != nil {
 		return err
 	}
-	for typ, iface := range proj.Ifaces {
+	for typ, iface := range info.Ifaces {
 		name := typ.Name()
-		if err := validate("interfaces.signature", tc.Ifaces[name].Signatures, iface.Signatures); err != nil {
+		if err := validate("interfaces.signature", p.Ifaces[name].Signatures, iface.Signatures); err != nil {
 			return err
 		}
 	}
-	if err := validate("named", tc.Named, proj.Named); err != nil {
+	if err := validate("named", p.Named, info.Named); err != nil {
 		return err
 	}
-	for typ, named := range proj.Named {
+	for typ, named := range info.Named {
 		name := typ.Name()
-		if err := validate("named.methods", tc.Named[name].Methods, named.Methods); err != nil {
+		if err := validate("named.methods", p.Named[name].Methods, named.Methods); err != nil {
 			return err
 		}
 	}
 	// check rest
-	if err := validate("consts", tc.Consts, proj.Consts); err != nil {
+	if err := validate("consts", p.Consts, info.Consts); err != nil {
 		return err
 	}
-	if err := validate("vars", tc.Vars, proj.Vars); err != nil {
+	if err := validate("vars", p.Vars, info.Vars); err != nil {
 		return err
 	}
-	if err := validate("imports", tc.Imports, proj.Imports); err != nil {
+	if err := validate("imports", p.Imports, info.Imports); err != nil {
 		return err
 	}
-	if err := validate("aliases", tc.Aliases, proj.Aliases); err != nil {
+	if err := validate("aliases", p.Aliases, info.Aliases); err != nil {
 		return err
 	}
-	if err := validate("funcs", tc.Funcs, proj.Funcs); err != nil {
+	if err := validate("funcs", p.Funcs, info.Funcs); err != nil {
 		return err
 	}
 	// check file because its a special case because of the missing types.Object
-	if len(tc.Files) != len(proj.Files) {
-		return fmt.Errorf("quantity not equal for files. got: %d; want: %d\n", len(proj.Files), len(tc.Files))
+	if len(p.Files) != len(info.Files) {
+		return fmt.Errorf("quantity not equal for files. got: %d; want: %d\n", len(info.Files), len(p.Files))
 	}
-	for filename, info := range proj.Files {
-		markers := tc.Files[filename].markers()
+	for filename, info := range info.Files {
+		markers := p.Files[filename].markers()
 		if err := validateMarker(markers, info.Opts); err != nil {
 			return err
 		}
