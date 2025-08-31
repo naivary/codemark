@@ -17,7 +17,7 @@ import (
 // TODO: add unamed and named imports in the generated files
 func TestLoader_Local(t *testing.T) {
 	proj := newProject()
-	// addCustomDecls(proj)
+	addCustomDecls(proj)
 	dir, err := proj.parse("tmpl/*")
 	if err != nil {
 		t.Errorf("unexpected error occured: %s", err)
