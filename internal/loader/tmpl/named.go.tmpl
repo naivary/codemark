@@ -18,6 +18,6 @@ type {{ $named.Ident }} {{ $named.Type }}
         {{range $mmarker := $method.Markers}}
 // +{{$mmarker.String -}}
         {{end}}
-func (_ {{ $named.Ident -}}) {{ $method.Ident -}}() {}
+func ({{ $named.Ident -}}) {{ $method.Ident -}}() {}
     {{end}}
 {{end}}

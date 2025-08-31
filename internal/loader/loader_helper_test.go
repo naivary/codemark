@@ -80,6 +80,12 @@ func (p *project) randomize() {
 	}
 	for range numOfImports {
 		imp := randImportDecl()
+		for {
+			_, found := p.Imports[imp.PackagePath]
+			if !found {
+				break
+			}
+		}
 		p.Imports[imp.PackagePath] = imp
 		p.Vars[imp.Use.Ident] = imp.Use
 	}
@@ -164,8 +170,8 @@ func randVarDecl(value string) VarDecl {
 	}
 	v := VarDecl{
 		Ident:   rand.GoIdent(),
-		Markers: randMarkers(_defaultNum),
 		Value:   value,
+		Markers: randMarkers(_defaultNum),
 	}
 	return v
 }
@@ -176,8 +182,8 @@ func randConstDecl(value string) ConstDecl {
 	}
 	c := ConstDecl{
 		Ident:   rand.GoIdent(),
-		Markers: randMarkers(_defaultNum),
 		Value:   value,
+		Markers: randMarkers(_defaultNum),
 	}
 	return c
 }

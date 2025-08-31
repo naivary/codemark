@@ -9,6 +9,7 @@ import (
 
 	infov1 "github.com/naivary/codemark/api/info/v1"
 	"github.com/naivary/codemark/converter"
+	"github.com/naivary/codemark/internal/rand"
 	"github.com/naivary/codemark/marker"
 	"github.com/naivary/codemark/registry/registrytest"
 )
@@ -16,7 +17,7 @@ import (
 // TODO: add unamed and named imports in the generated files
 func TestLoader_Local(t *testing.T) {
 	proj := newProject()
-	addCustomDecls(proj)
+	// addCustomDecls(proj)
 	dir, err := proj.parse("tmpl/*")
 	if err != nil {
 		t.Errorf("unexpected error occured: %s", err)
@@ -144,8 +145,8 @@ func importSpecial() []ImportDecl {
 			PackagePath: "fmt",
 			Alias:       "format",
 			Use: VarDecl{
-				Ident: "_",
-				Value: "format.Println",
+				Ident:       rand.GoExpIdent(),
+				Value:       "format.Println",
 				IsImportUse: true,
 			},
 		},

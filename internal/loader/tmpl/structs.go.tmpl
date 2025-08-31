@@ -25,6 +25,6 @@ type {{$struct.Ident}} struct {
         {{range $mmarker := $method.Markers}}
 // +{{$mmarker.String -}}
         {{end}}
-func (_ {{$struct.Ident -}}) {{ $method.Ident -}}() {}
+func ({{$struct.Ident -}}) {{ $method.Ident -}}() {}
     {{end}}
 {{end}}
