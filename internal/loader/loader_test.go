@@ -14,7 +14,7 @@ import (
 	"github.com/naivary/codemark/registry/registrytest"
 )
 
-// TODO: add unamed and named imports in the generated files
+// TODO: add methods over multiple files in same package
 func TestLoader_Local(t *testing.T) {
 	proj := newProject()
 	addCustomDecls(proj)
