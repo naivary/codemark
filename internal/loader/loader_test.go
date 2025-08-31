@@ -16,7 +16,7 @@ import (
 // TODO: add unamed and named imports in the generated files
 func TestLoader_Local(t *testing.T) {
 	proj := newProject()
-	addSpecialDecls(proj)
+	addCustomDecls(proj)
 	dir, err := proj.parse("tmpl/*")
 	if err != nil {
 		t.Errorf("unexpected error occured: %s", err)
@@ -130,9 +130,10 @@ func validateMarker(want []marker.Marker, got map[string][]any) error {
 	return nil
 }
 
-func addSpecialDecls(proj *project) {
+func addCustomDecls(proj *project) {
 	for _, imp := range importSpecial() {
 		proj.Imports[imp.PackagePath] = imp
+		proj.Vars[imp.Use.Ident] = imp.Use
 	}
 }
 
@@ -145,6 +146,7 @@ func importSpecial() []ImportDecl {
 			Use: VarDecl{
 				Ident: "_",
 				Value: "format.Println",
+				IsImportUse: true,
 			},
 		},
 	}

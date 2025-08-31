@@ -36,6 +36,7 @@ func IsValid(opt optionv1.Option) error {
 		return err
 	}
 	if opt.Type == nil {
+		// TODO: check if type is valid too e.g. not map
 		return fmt.Errorf("type cannot be nil: %s", opt.Ident)
 	}
 	if len(opt.Targets) == 0 {

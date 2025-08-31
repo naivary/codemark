@@ -12,12 +12,12 @@ package codemark
     {{range $marker := $struct.Markers}}
 // +{{ $marker.String -}}
     {{end}}
-type {{$struct.Name}} struct {
+type {{$struct.Ident}} struct {
     {{- range $field := $struct.Fields -}}
         {{range $fmarker := $field.Markers}}
     // +{{$fmarker.String -}}
         {{end}}
-    {{$field.F.Name}} {{$field.F.Type -}}
+    {{$field.Ident}} {{$field.Type -}}
     {{end}}
 }
 
@@ -25,6 +25,6 @@ type {{$struct.Name}} struct {
         {{range $mmarker := $method.Markers}}
 // +{{$mmarker.String -}}
         {{end}}
-func (x {{$struct.Name -}}) {{ $method.Name -}}() {}
+func (_ {{$struct.Ident -}}) {{ $method.Ident -}}() {}
     {{end}}
 {{end}}

@@ -86,3 +86,17 @@ func GoIdent() string {
 	}
 	return name
 }
+
+// GoExpIdent returns a random exported identifier e.g. first letter is always
+// uppercase
+func GoExpIdent() string {
+	name := String(RandLen)
+	for {
+		firstLetter := rune(name[0])
+		if !unicode.IsDigit(firstLetter) && unicode.IsUpper(firstLetter) {
+			break
+		}
+		name = String(RandLen)
+	}
+	return name
+}

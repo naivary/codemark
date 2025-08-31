@@ -17,9 +17,10 @@ func (f File) markers() []marker.Marker {
 }
 
 type VarDecl struct {
-	Ident   string
-	Value   string
-	Markers []marker.Marker
+	Ident       string
+	Value       string
+	IsImportUse bool
+	Markers     []marker.Marker
 }
 
 func (v VarDecl) markers() []marker.Marker {
@@ -37,10 +38,10 @@ func (c ConstDecl) markers() []marker.Marker {
 }
 
 type FuncDecl struct {
-	Ident       string
-	ReturnTypes []string
-	Params      []string
-	Markers     []marker.Marker
+	Ident   string
+	Returns []string
+	Params  []string
+	Markers []marker.Marker
 }
 
 func (fn FuncDecl) markers() []marker.Marker {

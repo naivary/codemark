@@ -12,6 +12,6 @@ package codemark
     {{range $marker := $alias.Markers}}
 // +{{ $marker.String -}}
     {{end}}
-type {{ $name }} = {{ $alias.Type }}
+type {{ $alias.Ident }} = {{ $alias.Rhs }}
 {{end}}
 

@@ -9,11 +9,13 @@
 package codemark
 
 var (
-{{- range $name, $var := .Vars}}
+{{- range $var := .Vars}}
+{{ if eq $var.IsImportUse false }}
     {{range $marker := $var.Markers}}
     // +{{ $marker.String -}}
     {{end}}
-    {{ $name }} = {{ $var.Value }}
+    {{ $var.Ident }} = {{ $var.Value }}
     {{end}}
+{{ end }}
 )
 

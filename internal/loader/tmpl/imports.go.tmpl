@@ -13,6 +13,10 @@ import (
     {{range $marker := $import.Markers}}
     // +{{ $marker.String -}}
     {{end}}
-    _ "{{ $name }}"
+    {{ if $import.Alias -}} {{ $import.Alias }} {{- end }} "{{ $import.PackagePath }}"
     {{end}}
 )
+
+{{- range $name, $import := .Imports}}
+var {{ $import.Use.Ident }} = {{ $import.Use.Value }}
+{{end}}

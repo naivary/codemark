@@ -81,7 +81,6 @@ func (p *project) randomize() {
 	for range numOfImports {
 		imp := randImportDecl()
 		p.Imports[imp.PackagePath] = imp
-		// TODO: check if this line is solving the counting problem
 		p.Vars[imp.Use.Ident] = imp.Use
 	}
 	for range numOfAliases {
@@ -96,7 +95,10 @@ func (p *project) randomize() {
 }
 
 func (p *project) parse(glob string) (string, error) {
-	tmpl, err := template.ParseGlob(glob)
+	funcs := template.FuncMap{
+		"join": strings.Join,
+	}
+	tmpl, err := template.New("").Funcs(funcs).ParseGlob(glob)
 	if err != nil {
 		return "", err
 	}
@@ -128,7 +130,7 @@ func (p *project) parse(glob string) (string, error) {
 
 func randAliasDecl(rhs string) AliasDecl {
 	if rhs == "" {
-		rhs = randType().Name()
+		rhs = randType().String()
 	}
 	return AliasDecl{
 		Ident: rand.GoIdent(),
@@ -142,8 +144,9 @@ func randImportDecl() ImportDecl {
 		Markers:     randMarkers(_defaultNum),
 		PackagePath: pkgPath,
 		Use: VarDecl{
-			Ident: "_",
-			Value: use,
+			Ident:       rand.GoExpIdent(),
+			Value:       use,
+			IsImportUse: true,
 		},
 	}
 }
@@ -193,7 +196,7 @@ func randStructDecl() StructDecl {
 	for range randv2.IntN(numOfFields) {
 		field := FieldDecl{
 			Ident:   rand.GoIdent(),
-			Type:    randType().Name(),
+			Type:    randType().String(),
 			Markers: randMarkers(_defaultNum),
 		}
 		s.Fields[field.Ident] = field
@@ -209,7 +212,7 @@ func randNamedDecl() NamedDecl {
 	const numOfMethods = 5
 	n := NamedDecl{
 		Ident:   rand.GoIdent(),
-		Type:    randType().Name(),
+		Type:    randType().String(),
 		Markers: randMarkers(_defaultNum),
 		Methods: make(map[string]FuncDecl, numOfMethods),
 	}

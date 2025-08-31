@@ -12,6 +12,6 @@ package codemark
     {{range $marker := $func.Markers}}
 // +{{ $marker.String -}}
     {{end}}
-func {{ $func.Name -}}() {}
+func {{ $func.Ident -}}({{ join $func.Params "," }}) {{ join $func.Returns "," }}{}
 {{end}}
 
