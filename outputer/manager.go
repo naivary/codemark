@@ -26,8 +26,8 @@ func NewManager(outputers ...outv1.Outputer) (*Manager, error) {
 	return mngr, nil
 }
 
-func (m *Manager) Output(outputerName string, args []string, artifacts ...*genv1.Artifact) error {
-	out, err := m.Get(outputerName)
+func (m *Manager) Output(name string, args []string, artifacts ...*genv1.Artifact) error {
+	out, err := m.Get(name)
 	if err != nil {
 		return err
 	}
