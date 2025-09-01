@@ -11,6 +11,7 @@ func TestResourcer_Schema(t *testing.T) {
 	tests := []struct {
 		path    string
 		isValid bool
+		cfgFile string
 		want    Schema
 	}{
 		{
@@ -105,7 +106,7 @@ func TestResourcer_Schema(t *testing.T) {
 	for _, tc := range tests {
 		name := filepath.Base(tc.path)
 		t.Run(name, func(t *testing.T) {
-			artifacts, err := gen(tc.path)
+			artifacts, err := gen(tc.path, tc.cfgFile)
 			if err != nil && tc.isValid {
 				t.Errorf("unexpected err occured: %s", err)
 			}

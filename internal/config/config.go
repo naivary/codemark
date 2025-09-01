@@ -15,11 +15,11 @@ const _configFileName = "codemark.yaml"
 // found at all then
 func ReadIn(path, section string) (map[string]any, error) {
 	precedenceOrder := []string{path}
-	defaultOrder, err := defaultPrecedenceOrder()
+	defaultPaths, err := defaultPrecedenceOrder()
 	if err != nil {
 		return nil, err
 	}
-	precedenceOrder = append(precedenceOrder, defaultOrder...)
+	precedenceOrder = append(precedenceOrder, defaultPaths...)
 	var config map[string]any
 	for _, path := range precedenceOrder {
 		file, err := os.ReadFile(path)
