@@ -1,6 +1,8 @@
 package v1
 
-import genv1 "github.com/naivary/codemark/api/generator/v1"
+import (
+	genv1 "github.com/naivary/codemark/api/generator/v1"
+)
 
 type Outputer interface {
 	Name() string
