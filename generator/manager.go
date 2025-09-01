@@ -31,7 +31,6 @@ func NewManager(cfgFile string, gens ...genv1.Generator) (*Manager, error) {
 		return nil, err
 	}
 	mngr.cfg = cfg
-
 	for _, gen := range gens {
 		err := mngr.Add(gen)
 		if err != nil {

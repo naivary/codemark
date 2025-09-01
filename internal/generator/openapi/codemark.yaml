@@ -1,0 +1,4 @@
+gens:
+  openapi:
+    schema:
+      idBaseURL: "https://raw.githubusercontent.com/naivary/codemark/refs/heads/main/internal/generator/openapi/schemas"

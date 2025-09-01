@@ -2,38 +2,10 @@ package openapi
 
 import (
 	"bytes"
-	"embed"
-	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/goccy/go-yaml"
 	"github.com/santhosh-tekuri/jsonschema/v6"
 )
-
-//go:embed schemas/*
-var schemaFs embed.FS
-
-type embedLoader struct{}
-
-func (e *embedLoader) Load(urll string) (any, error) {
-	u, err := url.Parse(urll)
-	if err != nil {
-		return "", err
-	}
-	// Find where "schemas/" starts
-	idx := strings.Index(u.Path, "schemas/")
-	if idx == -1 {
-		return "", fmt.Errorf(`"schemas/" not found in path`)
-	}
-	// Return everything from schemas/ onward
-	urll = u.Path[idx:]
-	data, err := schemaFs.ReadFile(urll)
-	if err != nil {
-		return nil, err
-	}
-	return jsonschema.UnmarshalJSON(bytes.NewReader(data))
-}
 
 func newConfig(cfg map[string]any) (*config, error) {
 	c := config{
@@ -66,10 +38,10 @@ func validateConfig(data []byte) error {
 	r := bytes.NewReader(json)
 	c := jsonschema.NewCompiler()
 	c.UseLoader(jsonschema.SchemeURLLoader{
-		"file": &embedLoader{},
+		"https": newHTTPURLLoader(false),
 	})
-	const schemaFilePath = "schemas/config.json"
-	schm, err := c.Compile(schemaFilePath)
+	const schemaFileURL = "https://raw.githubusercontent.com/naivary/codemark/refs/heads/main/internal/generator/openapi/schemas/config.json"
+	schm, err := c.Compile(schemaFileURL)
 	if err != nil {
 		return err
 	}
