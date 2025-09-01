@@ -10,7 +10,7 @@ specifications** from annotated code. By embedding lightweight markers directly
 in your comments, you can keep specifications synchronized with your source
 while reducing repetitive manual work.
 
-### Key Features
+### Key features
 
 - Define your own **markers** to represent custom annotations.
 - Map markers to **custom definitions** that Codemark can interpret.
@@ -24,7 +24,7 @@ while reducing repetitive manual work.
 go install github.com/naivary/codemark@latest
 ```
 
-## Simple Usage
+## Simple usage
 
 Codemark integrates seamlessly with Go’s go generate directive, allowing you to
 embed markers directly in your code comments. These markers are interpreted by
@@ -35,6 +35,9 @@ Schemas.
 //go:generate codemark gen ./...
 package main
 
+// Make sure to have title or description set. Otherwise the struct will be ignored.
+// 
+// +openapi:schema:title="Authentication request data structure"
 type AuthRequest struct {
     // +openapi:schema:required
     // +openapi:schema:format="email"
