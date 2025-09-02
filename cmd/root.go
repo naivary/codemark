@@ -41,6 +41,7 @@ func Exec(gens []genv1.Generator, outs []outv1.Outputer, convs []convv1.Converte
 	}
 	rootCmd.AddCommand(
 		makeGenCmd(cfg, genMngr, outMngr, convs),
+		makeExplainCmd(genMngr, outMngr),
 	)
 	err = rootCmd.Execute()
 	if err != nil {

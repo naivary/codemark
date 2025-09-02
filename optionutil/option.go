@@ -15,6 +15,7 @@ func Make(ident string, typ reflect.Type, doc *docv1.Option, isUnique bool, targ
 		Ident:   ident,
 		Targets: targets,
 		Type:    typ,
+		Doc:     doc,
 	}
 	return opt, IsValid(opt)
 }
@@ -24,6 +25,7 @@ func MustMake(ident string, output reflect.Type, doc *docv1.Option, isUnique boo
 		Ident:   ident,
 		Targets: targets,
 		Type:    output,
+		Doc:     doc,
 	}
 	if err := IsValid(opt); err != nil {
 		panic(err)

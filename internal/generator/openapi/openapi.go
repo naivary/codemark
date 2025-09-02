@@ -59,7 +59,11 @@ func (g *openAPIGenerator) Domain() string {
 }
 
 func (g *openAPIGenerator) Explain(ident string) string {
-	return ""
+	doc, err := g.reg.DocOf(ident)
+	if err != nil {
+		return "not found"
+	}
+	return doc.Desc
 }
 
 func (g *openAPIGenerator) Registry() regv1.Registry {

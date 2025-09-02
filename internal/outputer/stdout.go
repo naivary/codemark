@@ -29,6 +29,10 @@ func (o *stdoutOutputer) Output(artifacts []*genv1.Artifact, args ...string) err
 	return nil
 }
 
+func (o *stdoutOutputer) Explain(name string) string {
+	return "stdout has not flags and is primarly designed for debugging purposes"
+}
+
 func (o *stdoutOutputer) output(artifact *genv1.Artifact) error {
 	_, err := io.Copy(os.Stdout, artifact.Data)
 	return err
