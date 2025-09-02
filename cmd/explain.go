@@ -1,23 +1,34 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/spf13/cobra"
 
 	"github.com/naivary/codemark/generator"
-	"github.com/naivary/codemark/optionutil"
 	"github.com/naivary/codemark/outputer"
 )
 
-type explainCmd struct{}
+// TODO: Explain is a custom function now really the resposnibilty of the
+// generator to have a explainf unction. its more they provide the doc and we
+// have to retrieve it correctly.
+//
+// codemark explain --type outputer fs
+
+type ExplainKind string
+
+var (
+	ExplainKindMarker   ExplainKind = "marker"
+	ExplainKindOutputer ExplainKind = "outputer"
+)
+
+type explainCmd struct {
+	kind ExplainKind
+}
 
 func makeExplainCmd(genMngr *generator.Manager, outMngr *outputer.Manager) *cobra.Command {
 	e := &explainCmd{}
 	cmd := &cobra.Command{
 		Use:   "explain",
-		Short: "generate the artifacts for the given pattern",
+		Short: "get the documentation about outputer or marker",
 		RunE:  e.runE(genMngr, outMngr),
 		Args:  cobra.ExactArgs(2),
 	}
@@ -26,36 +37,6 @@ func makeExplainCmd(genMngr *generator.Manager, outMngr *outputer.Manager) *cobr
 
 func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		typ := args[0]
-		name := args[1]
-		switch typ {
-		case "marker":
-			return e.explainMarker(name, genMngr)
-		case "outputer":
-			return e.explainOutputer(name, outMngr)
-		default:
-			return errors.New("explanations can only be provided for outputer and marker")
-		}
+		return nil
 	}
-}
-
-func (e *explainCmd) explainMarker(ident string, genMngr *generator.Manager) error {
-	domain := optionutil.DomainOf(ident)
-	gen, err := genMngr.Get(domain)
-	if err != nil {
-		return err
-	}
-	explanation := gen.Explain(ident)
-	fmt.Println(explanation)
-	return nil
-}
-
-func (e *explainCmd) explainOutputer(name string, outMngr *outputer.Manager) error {
-	outputer, err := outMngr.Get(name)
-	if err != nil {
-		return err
-	}
-	explanation := outputer.Explain()
-	fmt.Println(explanation)
-	return nil
 }

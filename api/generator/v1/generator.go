@@ -11,11 +11,6 @@ type Generator interface {
 	// Domain for which the generator is responsible
 	Domain() string
 
-	// Explain returns the documentation for an identifier. The identifier can
-	// be fully qualified e.g. domain:resource:option or it may be given
-	// partially e.g. domain:resource or domain.
-	Explain(ident string) string
-
 	// Generate the artificats based on the given information.
 	Generate(proj infov1.Project, config map[string]any) ([]*Artifact, error)
 
