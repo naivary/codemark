@@ -55,7 +55,7 @@ func (e *explainCmd) explainOutputer(name string, outMngr *outputer.Manager) err
 	if err != nil {
 		return err
 	}
-	explanation := outputer.Explain(name)
+	explanation := outputer.Explain()
 	fmt.Println(explanation)
 	return nil
 }

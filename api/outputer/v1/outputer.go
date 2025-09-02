@@ -9,5 +9,5 @@ type Outputer interface {
 
 	Output(artifacts []*genv1.Artifact, args ...string) error
 
-	Explain(flag string) string
+	Explain() string
 }

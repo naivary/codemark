@@ -1,7 +1,6 @@
 package outputer
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 
@@ -34,12 +33,8 @@ func (o *fsOutputer) Output(artifacts []*genv1.Artifact, args ...string) error {
 	return nil
 }
 
-func (o *fsOutputer) Explain(name string) string {
-	flag := o.flags().Lookup(name)
-	if flag == nil {
-		return fmt.Sprintf("flag does not exist: %s", name)
-	}
-	return flag.Usage
+func (o *fsOutputer) Explain() string {
+	return o.flags().FlagUsages()
 }
 
 func (o *fsOutputer) flags() *pflag.FlagSet {

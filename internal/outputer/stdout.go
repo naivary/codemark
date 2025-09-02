@@ -29,7 +29,7 @@ func (o *stdoutOutputer) Output(artifacts []*genv1.Artifact, args ...string) err
 	return nil
 }
 
-func (o *stdoutOutputer) Explain(name string) string {
+func (o *stdoutOutputer) Explain() string {
 	return "stdout has not flags and is primarly designed for debugging purposes"
 }
 
