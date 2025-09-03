@@ -55,7 +55,7 @@ func (m *Manager) Generate(convs []convv1.Converter, pattern string) (map[domain
 		if err != nil {
 			return nil, err
 		}
-		output[gen.Domain()] = artifacts
+		output[gen.Domain().Name] = artifacts
 	}
 	return output, nil
 }
@@ -69,7 +69,7 @@ func (m *Manager) Get(domain string) (genv1.Generator, error) {
 }
 
 func (m *Manager) Add(gen genv1.Generator) error {
-	domain := gen.Domain()
+	domain := gen.Domain().Name
 	if _, found := m.gens[domain]; found {
 		return fmt.Errorf("generator for domain already exists: %s", domain)
 	}
@@ -98,7 +98,7 @@ func (m *Manager) allGens() []genv1.Generator {
 }
 
 func (m *Manager) configFor(gen genv1.Generator) map[string]any {
-	genCfg, isMap := m.cfg[gen.Domain()].(map[string]any)
+	genCfg, isMap := m.cfg[gen.Domain().Name].(map[string]any)
 	if isMap {
 		return genCfg
 	}

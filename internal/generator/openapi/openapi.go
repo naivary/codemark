@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"slices"
 
+	docv1 "github.com/naivary/codemark/api/doc/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
 	regv1 "github.com/naivary/codemark/api/registry/v1"
@@ -32,7 +33,6 @@ var _ genv1.Generator = (*openAPIGenerator)(nil)
 
 func New() (genv1.Generator, error) {
 	gen := &openAPIGenerator{
-		domain: _domain,
 		resources: map[reflect.Type][]Resourcer{
 			reflect.TypeFor[*infov1.StructInfo](): {NewSchemaResourcer()},
 		},
@@ -47,15 +47,16 @@ func New() (genv1.Generator, error) {
 }
 
 type openAPIGenerator struct {
-	domain string
-
 	reg regv1.Registry
 
 	resources map[reflect.Type][]Resourcer
 }
 
-func (g *openAPIGenerator) Domain() string {
-	return g.domain
+func (g *openAPIGenerator) Domain() docv1.Domain {
+	return docv1.Domain{
+		Name: _domain,
+		Desc: "",
+	}
 }
 
 func (g *openAPIGenerator) Explain(ident string) string {

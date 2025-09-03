@@ -3,13 +3,14 @@ package v1
 import (
 	"io"
 
+	docv1 "github.com/naivary/codemark/api/doc/v1"
 	infov1 "github.com/naivary/codemark/api/info/v1"
 	regv1 "github.com/naivary/codemark/api/registry/v1"
 )
 
 type Generator interface {
 	// Domain for which the generator is responsible
-	Domain() string
+	Domain() docv1.Domain
 
 	// Generate the artificats based on the given information.
 	Generate(proj infov1.Project, config map[string]any) ([]*Artifact, error)
@@ -23,5 +24,6 @@ type Artifact struct {
 	// because it might be written to the filesystem (including the extension).
 	Name string
 
+	// The actual data of the artifact created by interpreting the markers.
 	Data io.ReadWriter
 }
