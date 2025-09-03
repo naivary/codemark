@@ -49,7 +49,7 @@ func IsValid(opt optionv1.Option) error {
 // TODO: These three functions should be here... Need abetter solution for this
 func DomainOf(ident string) string {
 	s := strings.Split(ident, ":")
-	if len(s) != 3 {
+	if len(s) == 0 {
 		return ""
 	}
 	return s[0]
@@ -57,7 +57,7 @@ func DomainOf(ident string) string {
 
 func ResourceOf(ident string) string {
 	s := strings.Split(ident, ":")
-	if len(s) != 3 {
+	if len(s) < 2 {
 		return ""
 	}
 	return s[1]
@@ -65,8 +65,12 @@ func ResourceOf(ident string) string {
 
 func OptionOf(ident string) string {
 	s := strings.Split(ident, ":")
-	if len(s) != 3 {
+	if len(s) < 3 {
 		return ""
 	}
 	return s[2]
+}
+
+func IsFQIdent(ident string) bool {
+	return len(strings.Split(ident, ":")) == 3
 }
