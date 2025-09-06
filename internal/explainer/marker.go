@@ -9,7 +9,6 @@ import (
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	"github.com/naivary/codemark/generator"
-	"github.com/naivary/codemark/internal/console"
 	"github.com/naivary/codemark/optionutil"
 )
 
@@ -54,13 +53,50 @@ func (m markerExplainer) Explain(w io.Writer, args ...string) error {
 	return m.explainDomain(w, gen)
 }
 
+func ExplainDomain(w io.Writer, gen genv1.Generator) error {
+	const (
+		minWidth = 0
+		tabWidth = 0
+		padding  = 2
+		padChar  = ' '
+		flags    = 0
+	)
+	tw := tabwriter.NewWriter(w, minWidth, tabWidth, padding, padChar, flags)
+	domainDesc := trunc(gen.Domain().Desc, 75)
+	fmt.Fprintln(tw, domainDesc)
+	// show the available resources of the domain
+	resources := gen.Resources()
+	for _, resource := range resources {
+		desc := trunc(resource.Desc, 75)
+		name := fmt.Sprintf("%s:%s", gen.Domain().Name, resource.Name)
+		fmt.Fprintf(tw, "%s\t%s\t\n", name, strings.Split(desc, "\n")[0])
+		writeLinesInCol(w, desc, 2)
+	}
+	return nil
+}
+
+func writeLinesInCol(w io.Writer, s string, colNum int) {
+	var format string
+	for range colNum {
+		format += "%s\t"
+	}
+	emptyColsNum := colNum - 1
+	emptyCols := make([]any, 0, emptyColsNum)
+	for range emptyColsNum {
+		emptyCols = append(emptyCols, "")
+	}
+	for line := range strings.Split(s, "\n")[1:] {
+		fmt.Fprintf(w, format, line)
+	}
+}
+
 func (m markerExplainer) explainDomain(w io.Writer, gen genv1.Generator) error {
 	resources := gen.Resources()
 	tw := m.newTabWriter(w)
-	fmt.Fprintf(tw, "%s\n\n", console.Trunc(gen.Domain().Desc, m.truncLen))
+	fmt.Fprintf(tw, "%s\n\n", trunc(gen.Domain().Desc, m.truncLen))
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
 	for _, resource := range resources {
-		desc := console.Trunc(resource.Desc, m.truncLen)
+		desc := trunc(resource.Desc, m.truncLen)
 		lines := strings.Split(desc, "\n")
 		name := fmt.Sprintf("%s:%s", gen.Domain().Name, resource.Name)
 		fmt.Fprintf(tw, "%s\t%s\t\n", name, lines[0])
@@ -76,7 +112,7 @@ func (m markerExplainer) explainResource(w io.Writer, gen genv1.Generator, resou
 		if resource.Name != resourceName {
 			continue
 		}
-		desc := console.Trunc(resource.Desc, m.truncLen)
+		desc := trunc(resource.Desc, m.truncLen)
 		fmt.Println("DESCRIPTION")
 		fmt.Printf("%s\n\n", desc)
 	}
@@ -90,7 +126,7 @@ func (m markerExplainer) explainResource(w io.Writer, gen genv1.Generator, resou
 	fmt.Fprintln(tw, "IDENT\tDEFAULT\tTYPE\tDESCRIPTION")
 	for fqi, optDoc := range optionsOfResource {
 		prepareOptDoc(optDoc)
-		desc := console.Trunc(optDoc.Desc, m.truncLen)
+		desc := trunc(optDoc.Desc, m.truncLen)
 		lines := strings.Split(desc, "\n")
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", fqi, optDoc.Default, optDoc.Type, lines[0])
 		for _, line := range lines[1:] {
@@ -115,7 +151,7 @@ func (m markerExplainer) explainOption(w io.Writer, gen genv1.Generator, ident s
 	fmt.Fprintf(tw, "DEFAULT: %s\n", doc.Default)
 	fmt.Fprintf(tw, "TYPE: <%s>\n", doc.Type)
 	fmt.Println("DESCRIPTION:")
-	for line := range strings.SplitSeq(console.Trunc(doc.Desc, m.truncLen), "\n") {
+	for line := range strings.SplitSeq(trunc(doc.Desc, m.truncLen), "\n") {
 		fmt.Fprintf(tw, "  %s\n", line)
 	}
 	return tw.Flush()
@@ -131,5 +167,4 @@ func prepareOptDoc(optDoc *docv1.Option) {
 	if optDoc.Desc == "" {
 		optDoc.Desc = "<none>"
 	}
-
 }
