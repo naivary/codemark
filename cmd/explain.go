@@ -1,18 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
-	"strings"
-	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 
-	optv1 "github.com/naivary/codemark/api/option/v1"
-	regv1 "github.com/naivary/codemark/api/registry/v1"
 	"github.com/naivary/codemark/generator"
-	"github.com/naivary/codemark/internal/console"
-	"github.com/naivary/codemark/optionutil"
 	"github.com/naivary/codemark/outputer"
 )
 
@@ -50,43 +43,5 @@ func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager)
 }
 
 func (e *explainCmd) explainMarker(ident string, mngr *generator.Manager) error {
-	domain := optionutil.DomainOf(ident)
-	gen, err := mngr.Get(domain)
-	if err != nil {
-		return err
-	}
-	if optionutil.IsFQIdent(ident) {
-		return e.explainOpt(ident, gen.Registry())
-	}
-	return nil
-}
-
-func (e *explainCmd) explainOpt(ident string, reg regv1.Registry) error {
-	doc, err := reg.DocOf(ident)
-	if err != nil {
-		return err
-	}
-	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	if doc.Default == "" {
-		doc.Default = "<none>"
-	}
-	_, err = fmt.Fprintf(w, "DEFAULT: %s\n", doc.Default)
-	fmt.Fprintf(w, "TYPE: <%s>\n", doc.Type)
-	fmt.Println("DESC:")
-	trunced := console.Trunc(doc.Desc, 70)
-	for line := range strings.SplitSeq(trunced, "\n") {
-		fmt.Fprintf(w, "\t\t%s\n", line)
-	}
-	return w.Flush()
-}
-
-func (e *explainCmd) explainResource(ident string, reg regv1.Registry) error {
-	resource := optionutil.ResourceOf(ident)
-	resources := make(map[string]*optv1.Option)
-	for ident, opt := range reg.All() {
-		if optionutil.ResourceOf(ident) == resource {
-			resources[ident] = opt
-		}
-	}
-	return nil
+	return mngr.Explain(os.Stdout, ident)
 }

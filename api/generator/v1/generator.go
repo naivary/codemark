@@ -17,6 +17,10 @@ type Generator interface {
 
 	// Registry containing all the options.
 	Registry() regv1.Registry
+
+	// List of resources which are supported by the generator with appropiate
+	// documentation.
+	Resources() []docv1.Resource
 }
 
 type Artifact struct {

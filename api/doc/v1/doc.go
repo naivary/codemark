@@ -5,6 +5,11 @@ type Domain struct {
 	Desc string
 }
 
+type Resource struct {
+	Name string
+	Desc string
+}
+
 type Option struct {
 	Desc    string
 	Default string

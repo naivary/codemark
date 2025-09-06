@@ -55,16 +55,14 @@ type openAPIGenerator struct {
 func (g *openAPIGenerator) Domain() docv1.Domain {
 	return docv1.Domain{
 		Name: _domain,
-		Desc: "",
+		Desc: "Generate OpenAPI Specifications",
 	}
 }
 
-func (g *openAPIGenerator) Explain(ident string) string {
-	doc, err := g.reg.DocOf(ident)
-	if err != nil {
-		return "not found"
+func (g *openAPIGenerator) Resources() []docv1.Resource {
+	return []docv1.Resource{
+		{Name: _schemaResource, Desc: "Generate an OpenAPI compatible JSON Schema"},
 	}
-	return doc.Desc
 }
 
 func (g *openAPIGenerator) Registry() regv1.Registry {
