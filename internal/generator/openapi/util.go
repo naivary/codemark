@@ -25,6 +25,7 @@ type Docer[T any] interface {
 	Doc() T
 }
 
+// TODO: automatically assign the type to doc
 func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
 	format := CamelCase
 	rtype := reflect.TypeOf(output)

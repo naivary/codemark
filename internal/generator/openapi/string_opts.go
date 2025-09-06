@@ -12,9 +12,7 @@ type Pattern string
 
 func (p Pattern) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "Pattern which the given string must fullfill",
-		Default: "",
-		Type:    "string",
+		Desc: "Pattern which the given string must fullfill",
 	}
 }
 

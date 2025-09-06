@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/naivary/codemark/generator"
+	"github.com/naivary/codemark/internal/explainer"
 	"github.com/naivary/codemark/outputer"
 )
 
@@ -43,5 +44,6 @@ func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager)
 }
 
 func (e *explainCmd) explainMarker(ident string, mngr *generator.Manager) error {
-	return mngr.Explain(os.Stdout, ident)
+	expl := explainer.NewMarkerExplainer(mngr)
+	return expl.Explain(os.Stdout, ident)
 }
