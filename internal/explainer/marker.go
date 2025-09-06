@@ -72,12 +72,13 @@ func (m markerExplainer) explainDomain(w io.Writer, gen genv1.Generator) error {
 }
 
 func (m markerExplainer) explainResource(w io.Writer, gen genv1.Generator, resourceName string) error {
-	var resource docv1.Resource
-	for _, res := range gen.Resources() {
-		if resource.Name == resourceName {
-			resource = res
-			break
+	for _, resource := range gen.Resources() {
+		if resource.Name != resourceName {
+			continue
 		}
+		desc := console.Trunc(resource.Desc, m.truncLen)
+		fmt.Println("DESCRIPTION")
+		fmt.Printf("%s\n\n", desc)
 	}
 	optionsOfResource := make(map[string]*docv1.Option, 0)
 	for fqi, opt := range gen.Registry().All() {
@@ -86,9 +87,9 @@ func (m markerExplainer) explainResource(w io.Writer, gen genv1.Generator, resou
 		}
 	}
 	tw := m.newTabWriter(w)
-	fmt.Fprintf(tw, "%s\n\n", console.Trunc(resource.Desc, m.truncLen))
-	fmt.Fprintln(tw, "IDENT\tDEFAULT\tTYPE\tDESC")
+	fmt.Fprintln(tw, "IDENT\tDEFAULT\tTYPE\tDESCRIPTION")
 	for fqi, optDoc := range optionsOfResource {
+		prepareOptDoc(optDoc)
 		desc := console.Trunc(optDoc.Desc, m.truncLen)
 		lines := strings.Split(desc, "\n")
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", fqi, optDoc.Default, optDoc.Type, lines[0])
@@ -109,6 +110,7 @@ func (m markerExplainer) explainOption(w io.Writer, gen genv1.Generator, ident s
 	if err != nil {
 		return err
 	}
+	prepareOptDoc(doc)
 	tw := m.newTabWriter(w)
 	fmt.Fprintf(tw, "DEFAULT: %s\n", doc.Default)
 	fmt.Fprintf(tw, "TYPE: <%s>\n", doc.Type)
@@ -117,4 +119,17 @@ func (m markerExplainer) explainOption(w io.Writer, gen genv1.Generator, ident s
 		fmt.Fprintf(tw, "  %s\n", line)
 	}
 	return tw.Flush()
+}
+
+func prepareOptDoc(optDoc *docv1.Option) {
+	if optDoc.Default == "" {
+		optDoc.Default = "<none>"
+	}
+	if optDoc.Type == "" {
+		optDoc.Type = "unknown"
+	}
+	if optDoc.Desc == "" {
+		optDoc.Desc = "<none>"
+	}
+
 }
