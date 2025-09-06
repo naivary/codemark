@@ -3,6 +3,7 @@ package explainer
 import (
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 	"text/tabwriter"
 
@@ -53,40 +54,18 @@ func (m markerExplainer) Explain(w io.Writer, args ...string) error {
 	return m.explainDomain(w, gen)
 }
 
-func ExplainDomain(w io.Writer, gen genv1.Generator) error {
-	const (
-		minWidth = 0
-		tabWidth = 0
-		padding  = 2
-		padChar  = ' '
-		flags    = 0
-	)
-	tw := tabwriter.NewWriter(w, minWidth, tabWidth, padding, padChar, flags)
-	domainDesc := trunc(gen.Domain().Desc, 75)
-	fmt.Fprintln(tw, domainDesc)
-	// show the available resources of the domain
-	resources := gen.Resources()
-	for _, resource := range resources {
-		desc := trunc(resource.Desc, 75)
-		name := fmt.Sprintf("%s:%s", gen.Domain().Name, resource.Name)
-		fmt.Fprintf(tw, "%s\t%s\t\n", name, strings.Split(desc, "\n")[0])
-		writeLinesInCol(w, desc, 2)
+func writeLinesInCol(w io.Writer, format, s string, firstLine []any) {
+	lines := strings.Split(s, "\n")
+	firstLine = append(firstLine, lines[0])
+	fmt.Fprintf(w, format, firstLine...)
+	numOfEmptyLines := strings.Count(format, "\t")
+	emptyLines := []any{}
+	for range numOfEmptyLines {
+		emptyLines = append(emptyLines, "")
 	}
-	return nil
-}
-
-func writeLinesInCol(w io.Writer, s string, colNum int) {
-	var format string
-	for range colNum {
-		format += "%s\t"
-	}
-	emptyColsNum := colNum - 1
-	emptyCols := make([]any, 0, emptyColsNum)
-	for range emptyColsNum {
-		emptyCols = append(emptyCols, "")
-	}
-	for line := range strings.Split(s, "\n")[1:] {
-		fmt.Fprintf(w, format, line)
+	for _, line := range lines[1:] {
+		row := slices.Concat(emptyLines, []any{line})
+		fmt.Fprintf(w, format, row...)
 	}
 }
 
@@ -97,12 +76,8 @@ func (m markerExplainer) explainDomain(w io.Writer, gen genv1.Generator) error {
 	fmt.Fprintln(tw, "NAME\tDESCRIPTION")
 	for _, resource := range resources {
 		desc := trunc(resource.Desc, m.truncLen)
-		lines := strings.Split(desc, "\n")
 		name := fmt.Sprintf("%s:%s", gen.Domain().Name, resource.Name)
-		fmt.Fprintf(tw, "%s\t%s\t\n", name, lines[0])
-		for _, line := range lines[1:] {
-			fmt.Fprintf(tw, "%s\t%s\n", "", line)
-		}
+		writeLinesInCol(tw, "%s\t%s\n", desc, []any{name})
 	}
 	return tw.Flush()
 }
@@ -127,11 +102,7 @@ func (m markerExplainer) explainResource(w io.Writer, gen genv1.Generator, resou
 	for fqi, optDoc := range optionsOfResource {
 		prepareOptDoc(optDoc)
 		desc := trunc(optDoc.Desc, m.truncLen)
-		lines := strings.Split(desc, "\n")
-		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", fqi, optDoc.Default, optDoc.Type, lines[0])
-		for _, line := range lines[1:] {
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", "", "", "", line)
-		}
+		writeLinesInCol(tw, "%s\t%s\t%s\t%s\n", desc, []any{fqi, optDoc.Default, optDoc.Type})
 	}
 	return tw.Flush()
 }
