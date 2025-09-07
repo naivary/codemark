@@ -13,6 +13,9 @@ import (
 	"github.com/naivary/codemark/optionutil"
 )
 
+// trunc truncates teh string `s` to the length of `n` while respecting
+// punctuactions and newlines. This means that there will be longer lines than
+// `n` because a sentence isn't finished yet.
 func trunc(s string, n int) string {
 	var b bytes.Buffer
 	pos := 1
@@ -48,13 +51,13 @@ func writeLinesInCol(w io.Writer, format, s string, firstLine []any) {
 	}
 }
 
-func resourceDocOf(resources []docv1.Resource, name string) docv1.Resource {
+func resourceDocOf(resources []docv1.Resource, name string) *docv1.Resource {
 	for _, resource := range resources {
 		if resource.Name == name {
-			return resource
+			return &resource
 		}
 	}
-	return docv1.Resource{}
+	return nil
 }
 
 func optDocsOf(opts map[string]*optv1.Option, resourceName string) map[string]docv1.Option {

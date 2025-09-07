@@ -25,8 +25,11 @@ func Ident(w io.Writer, gen genv1.Generator, ident string) error {
 	}
 	if resourceName := optionutil.ResourceOf(ident); resourceName != "" {
 		res := resourceDocOf(gen.Resources(), resourceName)
+		if res == nil {
+			return fmt.Errorf("resource not found: %s", resourceName)
+		}
 		optDocs := optDocsOf(gen.Registry().All(), resourceName)
-		return resource(w, res, optDocs)
+		return resource(w, *res, optDocs)
 	}
 	return domain(w, gen.Domain(), gen.Resources())
 }
