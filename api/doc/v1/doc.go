@@ -13,7 +13,6 @@ type Resource struct {
 type Option struct {
 	Desc    string
 	Default string
-	Type    string
 }
 
 type Outputer struct {

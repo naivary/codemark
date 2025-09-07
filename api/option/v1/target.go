@@ -1,5 +1,3 @@
-//go:generate stringer -type=Target
-
 package v1
 
 // Target defines to which type of
@@ -21,3 +19,36 @@ const (
 	TargetStruct
 	TargetAny
 )
+
+func (t Target) String() string {
+	switch t {
+	case TargetField:
+		return "Field"
+	case TargetNamed:
+		return "Named"
+	case TargetPkg:
+		return "Pkg"
+	case TargetFunc:
+		return "Func"
+	case TargetConst:
+		return "Const"
+	case TargetVar:
+		return "Var"
+	case TargetMethod:
+		return "Method"
+	case TargetIface:
+		return "Iface"
+	case TargetImport:
+		return "Import"
+	case TargetAlias:
+		return "Alias"
+	case TargetIfaceSig:
+		return "IfaceSig"
+	case TargetStruct:
+		return "Struct"
+	case TargetAny:
+		return "Any"
+	default:
+		return "Unknown"
+	}
+}

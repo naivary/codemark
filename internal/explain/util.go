@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"reflect"
 	"slices"
 	"strings"
 	"text/tabwriter"
@@ -16,6 +17,50 @@ import (
 const (
 	_none = "<none>"
 )
+
+func TypeOf(rtype reflect.Type) string {
+	var b bytes.Buffer
+	return typeOf(rtype, &b)
+}
+
+// typeOf is returning the string representation of the type
+func typeOf(rtype reflect.Type, b *bytes.Buffer) string {
+	if rtype == nil {
+		return b.String()
+	}
+	switch kind := rtype.Kind(); kind {
+	case reflect.Int,
+		reflect.Int8,
+		reflect.Int16,
+		reflect.Int32,
+		reflect.Int64,
+		reflect.Uint,
+		reflect.Uint8,
+		reflect.Uint16,
+		reflect.Uint32,
+		reflect.Uint64,
+		reflect.Float32,
+		reflect.Float64,
+		reflect.Bool,
+		reflect.String:
+		b.WriteString(kind.String())
+		return typeOf(nil, b)
+	case reflect.Slice:
+		b.WriteString("[]")
+		return typeOf(rtype.Elem(), b)
+	case reflect.Array:
+		fmt.Fprintf(b, "[%d]", rtype.Len())
+		return typeOf(rtype.Elem(), b)
+	case reflect.Struct:
+		b.WriteString(rtype.String())
+		return typeOf(nil, b)
+	case reflect.Interface:
+		b.WriteString("any")
+		return typeOf(nil, b)
+	default:
+		return "INVALID"
+	}
+}
 
 // trunc truncates teh string `s` to the length of `n` while respecting
 // punctuactions and newlines. This means that there will be longer lines than
@@ -64,14 +109,26 @@ func resourceDocOf(resources []docv1.Resource, name string) *docv1.Resource {
 	return nil
 }
 
-func optDocsOf(opts map[string]*optv1.Option, resourceName string) map[string]docv1.Option {
-	docs := make(map[string]docv1.Option, len(opts))
+func optsOf(opts map[string]*optv1.Option, resourceName string) map[string]*optv1.Option {
+	res := make(map[string]*optv1.Option, len(opts))
 	for ident, opt := range opts {
 		if optionutil.ResourceOf(ident) == resourceName {
-			docs[ident] = *opt.Doc
+			res[ident] = opt
 		}
 	}
-	return docs
+	return res
+}
+
+func targetsToString(targets []optv1.Target) string {
+	slices.Sort(targets)
+	s := ""
+	for i, target := range targets {
+		if i > 0 {
+			s += ","
+		}
+		s += target.String()
+	}
+	return s
 }
 
 func newTabWriter(w io.Writer) *tabwriter.Writer {
