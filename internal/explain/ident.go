@@ -66,13 +66,13 @@ func resource(w io.Writer, resource docv1.Resource, opts map[string]docv1.Option
 
 func option(w io.Writer, opt *docv1.Option) error {
 	if opt.Default == "" {
-		opt.Default = "<none>"
+		opt.Default = _none
 	}
 	if opt.Type == "" {
 		opt.Type = "unknown"
 	}
 	if opt.Desc == "" {
-		opt.Desc = "<none>"
+		opt.Desc = _none
 	}
 	tw := newTabWriter(w)
 	fmt.Fprintf(tw, "DEFAULT: %s\n", opt.Default)

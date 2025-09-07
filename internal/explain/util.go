@@ -13,6 +13,10 @@ import (
 	"github.com/naivary/codemark/optionutil"
 )
 
+const (
+	_none = "<none>"
+)
+
 // trunc truncates teh string `s` to the length of `n` while respecting
 // punctuactions and newlines. This means that there will be longer lines than
 // `n` because a sentence isn't finished yet.

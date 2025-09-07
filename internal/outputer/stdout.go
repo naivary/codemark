@@ -4,11 +4,14 @@ import (
 	"io"
 	"os"
 
+	"github.com/spf13/pflag"
+
+	dov1 "github.com/naivary/codemark/api/doc/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	outv1 "github.com/naivary/codemark/api/outputer/v1"
 )
 
-var _ outv1.Outputer = (*fsOutputer)(nil)
+var _ outv1.Outputer = (*stdoutOutputer)(nil)
 
 type stdoutOutputer struct{}
 
@@ -16,8 +19,15 @@ func NewStdoutOutputer() (outv1.Outputer, error) {
 	return &stdoutOutputer{}, nil
 }
 
-func (o *stdoutOutputer) Name() string {
-	return "stdout"
+func (o *stdoutOutputer) Doc() dov1.Outputer {
+	return dov1.Outputer{
+		Name: "stdout",
+		Desc: "",
+	}
+}
+
+func (o *stdoutOutputer) Flags() *pflag.FlagSet {
+	return nil
 }
 
 func (o *stdoutOutputer) Output(artifacts []*genv1.Artifact, args ...string) error {
@@ -27,10 +37,6 @@ func (o *stdoutOutputer) Output(artifacts []*genv1.Artifact, args ...string) err
 		}
 	}
 	return nil
-}
-
-func (o *stdoutOutputer) Explain() string {
-	return "stdout has not flags and is primarly designed for debugging purposes"
 }
 
 func (o *stdoutOutputer) output(artifact *genv1.Artifact) error {

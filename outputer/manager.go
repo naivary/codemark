@@ -43,7 +43,7 @@ func (m *Manager) Get(name string) (outv1.Outputer, error) {
 }
 
 func (m *Manager) Add(out outv1.Outputer) error {
-	name := out.Name()
+	name := out.Doc().Name
 	if _, found := m.outputers[name]; found {
 		return fmt.Errorf("outputer already exists: %s", name)
 	}

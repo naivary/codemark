@@ -15,3 +15,8 @@ type Option struct {
 	Default string
 	Type    string
 }
+
+type Outputer struct {
+	Name string
+	Desc string
+}

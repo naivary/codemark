@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/pflag"
 
+	docv1 "github.com/naivary/codemark/api/doc/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
 	outv1 "github.com/naivary/codemark/api/outputer/v1"
 )
@@ -20,8 +21,11 @@ func NewFsOutputer() (outv1.Outputer, error) {
 	return &fsOutputer{}, nil
 }
 
-func (o *fsOutputer) Name() string {
-	return "fs"
+func (o *fsOutputer) Doc() docv1.Outputer {
+	return docv1.Outputer{
+		Name: "fs",
+		Desc: "",
+	}
 }
 
 func (o *fsOutputer) Output(artifacts []*genv1.Artifact, args ...string) error {
@@ -33,11 +37,7 @@ func (o *fsOutputer) Output(artifacts []*genv1.Artifact, args ...string) error {
 	return nil
 }
 
-func (o *fsOutputer) Explain() string {
-	return o.flags().FlagUsages()
-}
-
-func (o *fsOutputer) flags() *pflag.FlagSet {
+func (o *fsOutputer) Flags() *pflag.FlagSet {
 	flagSet := pflag.NewFlagSet("fs", pflag.ContinueOnError)
 	flagSet.ParseErrorsWhitelist.UnknownFlags = true
 	flagSet.StringVar(&o.path, "fs.path", "", "path of the location to store the generated artifacts")
@@ -45,7 +45,7 @@ func (o *fsOutputer) flags() *pflag.FlagSet {
 }
 
 func (o *fsOutputer) output(artifact *genv1.Artifact, args ...string) error {
-	err := o.flags().Parse(args)
+	err := o.Flags().Parse(args)
 	if err != nil {
 		return err
 	}

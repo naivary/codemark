@@ -11,13 +11,6 @@ import (
 	"github.com/naivary/codemark/outputer"
 )
 
-// TODO: Explain is a custom function now really the resposnibilty of the
-// generator to have a explainf unction. its more they provide the doc and we
-// have to retrieve it correctly.
-//
-// codemark explain --kind outputer fs
-// codemark explain --kind marker <domain>:<resource>
-
 type explainCmd struct {
 	kind string
 }
@@ -36,9 +29,12 @@ func makeExplainCmd(genMngr *generator.Manager, outMngr *outputer.Manager) *cobr
 
 func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager) func(cmd *cobra.Command, args []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if e.kind == "marker" {
-			ident := args[0]
-			return e.explainMarker(ident, genMngr)
+		name := args[0]
+		switch e.kind {
+		case "marker":
+			return e.explainMarker(name, genMngr)
+		case "outputer":
+			return e.explainOutputer(name, outMngr)
 		}
 		return nil
 	}
@@ -50,4 +46,12 @@ func (e *explainCmd) explainMarker(ident string, mngr *generator.Manager) error 
 		return err
 	}
 	return explain.Ident(os.Stdout, gen, ident)
+}
+
+func (e *explainCmd) explainOutputer(name string, mngr *outputer.Manager) error {
+	out, err := mngr.Get(name)
+	if err != nil {
+		return err
+	}
+	return explain.Outputer(os.Stdout, out)
 }
