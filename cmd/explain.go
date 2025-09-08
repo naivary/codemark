@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -35,8 +36,9 @@ func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager)
 			return e.explainMarker(name, genMngr)
 		case "outputer":
 			return e.explainOutputer(name, outMngr)
+		default:
+			return fmt.Errorf("unknown kind: %s", e.kind)
 		}
-		return nil
 	}
 }
 
