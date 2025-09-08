@@ -46,7 +46,6 @@ func IsValid(opt optionv1.Option) error {
 	return nil
 }
 
-// TODO: These three functions should be here... Need abetter solution for this
 func DomainOf(ident string) string {
 	s := strings.Split(ident, ":")
 	if len(s) == 0 {

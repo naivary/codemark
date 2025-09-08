@@ -46,7 +46,6 @@ func (s schemaResourcer) Options() []*optionv1.Option {
 		// object
 		mustMakeOpt(_typeName, Required(false), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, DependentRequired(nil), _unique, optionv1.TargetField),
-		mustMakeOpt(_typeName, MutuallyExclusive(nil), _unique, optionv1.TargetField),
 		// string
 		mustMakeOpt(_typeName, Pattern(""), _unique, optionv1.TargetField),
 		mustMakeOpt(_typeName, Format(""), _unique, optionv1.TargetField),
@@ -195,8 +194,6 @@ func (s schemaResourcer) applyFieldOpts(
 				err = o.apply(root, finfo, cfg)
 			case DependentRequired:
 				err = o.apply(root, cfg, finfo, sinfo)
-			case MutuallyExclusive:
-				err = o.apply(root, finfo, sinfo, cfg)
 			}
 			if err != nil {
 				return err
