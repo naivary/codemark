@@ -6,7 +6,6 @@ type Domain struct {
 }
 
 type Resource struct {
-	Name string
 	Desc string
 }
 

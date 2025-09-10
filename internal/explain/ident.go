@@ -25,24 +25,24 @@ func Ident(w io.Writer, gen genv1.Generator, ident string) error {
 		return option(w, opt)
 	}
 	if resourceName := optionutil.ResourceOf(ident); resourceName != "" {
-		res := resourceDocOf(gen.Resources(), resourceName)
-		if res == nil {
+		resc := gen.Resources()[resourceName]
+		if resc == nil {
 			return fmt.Errorf("resource not found: %s", resourceName)
 		}
 		opts := optsOf(gen.Registry().All(), resourceName)
-		return resource(w, *res, opts)
+		return resource(w, *resc, opts)
 	}
 	return domain(w, gen.Domain(), gen.Resources())
 }
 
-func domain(w io.Writer, domain docv1.Domain, resources []docv1.Resource) error {
+func domain(w io.Writer, domain docv1.Domain, resources map[string]*docv1.Resource) error {
 	const cols = "NAME\tDESCRIPTION\n"
 	tw := newTabWriter(w)
 	fmt.Fprintf(tw, "%s\n\n", trunc(domain.Desc, _truncLen))
 	fmt.Fprintf(tw, cols)
-	for _, resource := range resources {
+	for name, resource := range resources {
 		desc := trunc(resource.Desc, _truncLen)
-		name := fmt.Sprintf("%s:%s", domain.Name, resource.Name)
+		name := fmt.Sprintf("%s:%s", domain.Name, name)
 		writeLinesInCol(tw, "%s\t%s\n", desc, []any{name})
 	}
 	return tw.Flush()

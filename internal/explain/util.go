@@ -9,7 +9,6 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	docv1 "github.com/naivary/codemark/api/doc/v1"
 	optv1 "github.com/naivary/codemark/api/option/v1"
 	"github.com/naivary/codemark/optionutil"
 )
@@ -98,15 +97,6 @@ func writeLinesInCol(w io.Writer, format, s string, firstLine []any) {
 		row := slices.Concat(emptyLines, []any{line})
 		fmt.Fprintf(w, format, row...)
 	}
-}
-
-func resourceDocOf(resources []docv1.Resource, name string) *docv1.Resource {
-	for _, resource := range resources {
-		if resource.Name == name {
-			return &resource
-		}
-	}
-	return nil
 }
 
 func optsOf(opts map[string]*optv1.Option, resourceName string) map[string]*optv1.Option {

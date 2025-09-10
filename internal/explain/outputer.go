@@ -23,3 +23,15 @@ func Outputer(w io.Writer, out outv1.Outputer) error {
 	fmt.Fprintf(w, "  %s\n", usage)
 	return nil
 }
+
+func AllOutputer(w io.Writer, outs []outv1.Outputer) error {
+	const cols = "NAME\tDESCRIPTION\n"
+	tw := newTabWriter(w)
+	fmt.Fprintf(tw, cols)
+	for _, out := range outs {
+		doc := out.Doc()
+		desc := trunc(doc.Desc, _truncLen)
+		writeLinesInCol(tw, "%s\t%s\n", desc, []any{doc.Name})
+	}
+	return tw.Flush()
+}

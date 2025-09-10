@@ -50,3 +50,7 @@ func (m *Manager) Add(out outv1.Outputer) error {
 	m.outputers[name] = out
 	return nil
 }
+
+func (m *Manager) All() map[string]outv1.Outputer {
+	return m.outputers
+}

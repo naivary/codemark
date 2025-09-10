@@ -59,9 +59,9 @@ func (g *openAPIGenerator) Domain() docv1.Domain {
 	}
 }
 
-func (g *openAPIGenerator) Resources() []docv1.Resource {
-	return []docv1.Resource{
-		{Name: _schemaResource, Desc: "Generate an OpenAPI compatible JSON Schema"},
+func (g *openAPIGenerator) Resources() map[string]*docv1.Resource {
+	return map[string]*docv1.Resource{
+		_schemaResource: {Desc: "Generate an OpenAPI compatible JSON Schema"},
 	}
 }
 

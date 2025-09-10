@@ -2,7 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 
 	"github.com/spf13/cobra"
 
@@ -36,6 +38,8 @@ func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager)
 			return e.explainMarker(name, genMngr)
 		case "outputer":
 			return e.explainOutputer(name, outMngr)
+		case "all":
+			return e.explainOutputer(name, outMngr)
 		default:
 			return fmt.Errorf("unknown kind: %s", e.kind)
 		}
@@ -51,6 +55,10 @@ func (e *explainCmd) explainMarker(ident string, mngr *generator.Manager) error 
 }
 
 func (e *explainCmd) explainOutputer(name string, mngr *outputer.Manager) error {
+	if name == "all" {
+		all := slices.Collect(maps.Values(mngr.All()))
+		return explain.AllOutputer(os.Stdout, all)
+	}
 	out, err := mngr.Get(name)
 	if err != nil {
 		return err
