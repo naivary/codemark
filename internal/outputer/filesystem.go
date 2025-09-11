@@ -23,8 +23,9 @@ func NewFsOutputer() (outv1.Outputer, error) {
 
 func (o *fsOutputer) Doc() docv1.Outputer {
 	return docv1.Outputer{
-		Name: "fs",
-		Desc: "",
+		Name:    "fs",
+		Summary: "write artifacts to the local filesystem",
+		Desc:    "",
 	}
 }
 

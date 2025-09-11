@@ -13,7 +13,19 @@ import (
 
 const _truncLen = 75
 
-func Ident(w io.Writer, gen genv1.Generator, ident string) error {
+func AllGens(w io.Writer, gens []genv1.Generator) error {
+	const cols = "DOMAIN\tDESCRIPTION\n"
+	tw := newTabWriter(w)
+	fmt.Fprintf(tw, cols)
+	for _, gen := range gens {
+		doc := gen.Domain()
+		desc := trunc(doc.Desc, _truncLen)
+		writeLinesInCol(tw, "%s\t%s\n", desc, []any{doc.Name})
+	}
+	return tw.Flush()
+}
+
+func Generator(w io.Writer, gen genv1.Generator, ident string) error {
 	if len(ident) == 0 {
 		return errors.New("ident cannot be empty")
 	}
@@ -42,14 +54,13 @@ func domain(w io.Writer, domain docv1.Domain, resources map[string]*docv1.Resour
 	fmt.Fprintf(tw, cols)
 	for name, resource := range resources {
 		desc := trunc(resource.Desc, _truncLen)
-		name := fmt.Sprintf("%s:%s", domain.Name, name)
 		writeLinesInCol(tw, "%s\t%s\n", desc, []any{name})
 	}
 	return tw.Flush()
 }
 
 func resource(w io.Writer, resource docv1.Resource, opts map[string]*optv1.Option) error {
-	const cols = "IDENT\tDEFAULT\tTYPE\tTARGETS\tDESCRIPTION\n"
+	const cols = "IDENT\tTYPE\tTARGETS\tSUMMARY\n"
 	// display resource descriptioon
 	desc := trunc(resource.Desc, _truncLen)
 	fmt.Println("DESCRIPTION")
@@ -59,22 +70,21 @@ func resource(w io.Writer, resource docv1.Resource, opts map[string]*optv1.Optio
 	fmt.Fprintf(tw, cols)
 	for ident, opt := range opts {
 		doc := opt.Doc
-		desc := trunc(doc.Desc, _truncLen)
-		writeLinesInCol(tw, "%s\t%s\t%s\t%s\t%s\n", desc, []any{ident, doc.Default, TypeOf(opt.Type), targetsToString(opt.Targets)})
+		summary := trunc(doc.Summary, _truncLen)
+		if summary == "" {
+			summary = _none
+		}
+		writeLinesInCol(tw, "%s\t%s\t%s\t%s\n", summary, []any{ident, TypeOf(opt.Type), targetsToString(opt.Targets)})
 	}
 	return tw.Flush()
 }
 
 func option(w io.Writer, opt *optv1.Option) error {
 	doc := opt.Doc
-	if doc.Default == "" {
-		doc.Default = _none
-	}
 	if doc.Desc == "" {
 		doc.Desc = _none
 	}
 	tw := newTabWriter(w)
-	fmt.Fprintf(tw, "DEFAULT: %s\n", doc.Default)
 	fmt.Fprintf(tw, "TYPE: %s\n", TypeOf(opt.Type))
 	fmt.Fprintf(tw, "TARGETS: %s\n", targetsToString(opt.Targets))
 	fmt.Println("DESCRIPTION:")

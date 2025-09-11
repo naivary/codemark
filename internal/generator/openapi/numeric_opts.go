@@ -14,8 +14,7 @@ type MultipleOf int64
 
 func (m MultipleOf) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "Multiple of",
-		Default: "",
+		Desc: "Multiple of",
 	}
 }
 
@@ -46,7 +45,6 @@ type Minimum int64
 func (m Minimum) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Minimum allowable number (non-exclusive)",
-		Default: "",
 	}
 }
 
@@ -74,7 +72,6 @@ type Maximum int64
 func (m Maximum) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Maximum allowable number (non-exclusive)",
-		Default: "",
 	}
 }
 
@@ -102,7 +99,6 @@ type ExclusiveMinimum int64
 func (e ExclusiveMinimum) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Exclusive minimum",
-		Default: "",
 	}
 }
 
@@ -130,7 +126,6 @@ type ExclusiveMaximum int
 func (e ExclusiveMaximum) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Exclusive maximum",
-		Default: "",
 	}
 }
 

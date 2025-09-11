@@ -10,11 +10,17 @@ type Resource struct {
 }
 
 type Option struct {
-	Desc    string
-	Default string
+	// Desc is the detailed description of the option
+	Desc string
+	// Short summart of the option to show in the listing of the options in the
+	// explain coimmand
+	Summary string
 }
 
 type Outputer struct {
 	Name string
+
+	Summary string
+
 	Desc string
 }

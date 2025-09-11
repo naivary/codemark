@@ -46,7 +46,6 @@ type MinLength int64
 func (m MinLength) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Minimum length of the string",
-		Default: "",
 	}
 }
 
@@ -75,7 +74,6 @@ type MaxLength int
 func (m MaxLength) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Maximum length of the string",
-		Default: "",
 	}
 }
 
@@ -104,7 +102,6 @@ type ContentEncoding string
 func (c ContentEncoding) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Content encoding",
-		Default: "",
 	}
 }
 
@@ -133,7 +130,6 @@ type ContentMediaType string
 func (c ContentMediaType) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Content media type",
-		Default: "",
 	}
 }
 
@@ -162,7 +158,6 @@ type Format string
 func (f Format) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Format",
-		Default: "",
 	}
 }
 

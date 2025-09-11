@@ -29,9 +29,28 @@ go install github.com/naivary/codemark@latest
 
 ## Getting started
 
-To get started choose one generator you like to use and read the documentation
-of generators usage. All documentation for the built-in generators can be found
-here.
+To get started run the following command:
+
+```bash
+# NOTE: --kind=gen can be left out becuase its the default. It's only included
+# for better understanding
+codemark explain --kind=gen all
+```
+
+This will give you a list of generators available and a short description of
+their usage. If you want to know more about a generator and the available
+resources and options you can use the following command:
+
+```bash
+# To get a list of all resources
+codemark explain openapi
+
+# To get a list of all options of a resource
+codemark explain openapi:schema
+
+# To get a detail description of the option and how to use it.
+codemark explain openapi:schema:minItems
+```
 
 ## Architecture
 

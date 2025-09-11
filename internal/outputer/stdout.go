@@ -21,8 +21,9 @@ func NewStdoutOutputer() (outv1.Outputer, error) {
 
 func (o *stdoutOutputer) Doc() dov1.Outputer {
 	return dov1.Outputer{
-		Name: "stdout",
-		Desc: "",
+		Name:    "stdout",
+		Summary: "write artifacts to standard output",
+		Desc:    "",
 	}
 }
 

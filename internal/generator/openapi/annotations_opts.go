@@ -12,8 +12,7 @@ type Description string
 
 func (d Description) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "Description",
-		Default: "",
+		Desc: "Description",
 	}
 }
 
@@ -30,8 +29,7 @@ type Title string
 
 func (t Title) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "Title",
-		Default: "",
+		Desc: "Title",
 	}
 }
 
@@ -48,8 +46,7 @@ type Examples []any
 
 func (e Examples) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "Examples",
-		Default: "",
+		Desc: "Examples",
 	}
 }
 
@@ -75,7 +72,6 @@ type Deprecated bool
 func (d Deprecated) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "Deprecated",
-		Default: "",
 	}
 }
 
@@ -89,7 +85,6 @@ type ReadOnly bool
 func (r ReadOnly) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "indicates that the field is read only",
-		Default: "",
 	}
 }
 
@@ -106,7 +101,6 @@ type WriteOnly bool
 func (w WriteOnly) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "indicates that the field is write only",
-		Default: "",
 	}
 }
 
@@ -123,7 +117,6 @@ type Default string
 func (d Default) Doc() docv1.Option {
 	return docv1.Option{
 		Desc:    "default value fot this field",
-		Default: "",
 	}
 }
 

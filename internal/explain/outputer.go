@@ -15,23 +15,27 @@ func Outputer(w io.Writer, out outv1.Outputer) error {
 	}
 	fmt.Fprintf(w, "NAME: %s\n", doc.Name)
 	fmt.Fprintf(w, "DESCRIPTION: %s\n", trunc(doc.Desc, _truncLen))
-	fmt.Println("FLAGS:")
-	usage := strings.TrimSpace(out.Flags().FlagUsages())
-	if usage == "" {
-		usage = _none
+	fmt.Printf("FLAGS:")
+	usage := _none
+	// inline format if usage is none
+	format := " %s\n"
+	flags := out.Flags()
+	if flags != nil {
+		format = "\n  %s\n"
+		usage = strings.TrimSpace(out.Flags().FlagUsages())
 	}
-	fmt.Fprintf(w, "  %s\n", usage)
+	fmt.Fprintf(w, format, usage)
 	return nil
 }
 
 func AllOutputer(w io.Writer, outs []outv1.Outputer) error {
-	const cols = "NAME\tDESCRIPTION\n"
+	const cols = "NAME\tSUMMARY\n"
 	tw := newTabWriter(w)
 	fmt.Fprintf(tw, cols)
 	for _, out := range outs {
 		doc := out.Doc()
-		desc := trunc(doc.Desc, _truncLen)
-		writeLinesInCol(tw, "%s\t%s\n", desc, []any{doc.Name})
+		summary := trunc(doc.Summary, _truncLen)
+		writeLinesInCol(tw, "%s\t%s\n", summary, []any{doc.Name})
 	}
 	return tw.Flush()
 }
