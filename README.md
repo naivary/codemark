@@ -37,29 +37,37 @@ To get started run the following command:
 codemark explain --kind=gen all
 ```
 
-This will give you a list of generators available and a short description of
-their usage. If you want to know more about a generator and the available
-resources and options you can use the following command:
+This gives you a list of generators available and a summary. If you want to know
+more about a generator, their available resources and options you can use the
+following commands:
 
 ```bash
-# To get a list of all resources
+# Get a list of all resources
 codemark explain openapi
 
-# To get a list of all options of a resource
+# Get a list of all options of a resource
 codemark explain openapi:schema
 
-# To get a detail description of the option and how to use it.
+# Get a detail description of the option and how to use it.
 codemark explain openapi:schema:minItems
 ```
 
-## Architecture
+## OpenAPI generator
 
-The internal architecture of codemark is composed of the following key
-components:
+One of the builtin generators is the OpenAPI generator. To generate a OpenAPI
+compatible JSON Schema you can use the following example:
 
-1. Loader: Read a Go project and extract key information.
-2. Converter: Convert the value type of a marker to the user-defined Option type
-   allowing users to associate methods with options (extensible)
-3. Generator: Generate artifacts based on the information by the loader
-   (extensible)
-4. Outputer: Write the generated artifacts to a target (extensible)
+```go
+//go:generate codemark gen ./... -o openapi:fs
+
+type AuthRequest struct {
+    // +openapi:schema:format="email"
+    // +openapi:schema:required
+    Email string
+
+    // +openapi:schema:required
+    Password string
+}
+
+func main() {}
+```
