@@ -72,4 +72,14 @@ type AuthRequest struct {
 func main() {}
 ```
 
-This will generate JSON Schemas and write them to the local file system.
+This generates JSON Schemas and write them to the local file system.
+
+## Custom development of converter, generator or outputer
+
+codemark is designed to be highly extensible and can be used as a library to
+implement your own converter, generator and outputer. To get started with the
+implementation read the documentation of the component you want to implement:
+
+- [converter](/docs/converter.md)
+- [generator](/docs/generator.md)
+- [outputer](/docs/outputer.md)
