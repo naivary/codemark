@@ -1,3 +1,10 @@
 cli:
-generators:
+  defaultOutputer: "stdout"
+gens:
+  openapi:
+    schema:
+      idBaseURL: "",
+      formats: 
+        property: "camelCase",
+        filename: "snake_case",
 outputers:

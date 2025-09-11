@@ -71,3 +71,5 @@ type AuthRequest struct {
 
 func main() {}
 ```
+
+This will generate JSON Schemas and write them to the local file system.
