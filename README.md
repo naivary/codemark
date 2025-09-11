@@ -74,6 +74,15 @@ func main() {}
 
 This generates JSON Schemas and write them to the local file system.
 
+## Config file
+
+You can define a custom `codemark.yaml` in the current directory or pass in a
+CLI flag. Best practice is to keep one `codemark.yaml` file at the same location
+as your `go.mod`. Because that is the location from which you will run
+`go generate ./...`. If you need custom configuration options for one part of
+your project you can define a `codemark.yaml` in the working directory and it
+will be picked up automatically.
+
 ## Custom development of converter, generator or outputer
 
 codemark is designed to be highly extensible and can be used as a library to
