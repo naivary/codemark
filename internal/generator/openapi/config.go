@@ -5,8 +5,6 @@ import (
 
 	"github.com/goccy/go-yaml"
 	"github.com/santhosh-tekuri/jsonschema/v6"
-
-	v1 "github.com/naivary/codemark/api/doc/v1"
 )
 
 func newConfig(cfg map[string]any) (*config, error) {
@@ -52,17 +50,6 @@ func validateConfig(data []byte) error {
 		return err
 	}
 	return schm.Validate(inst)
-}
-
-var _ = map[string]any{
-	"schema": map[string]any{
-		"draft":     v1.Config{Default: "", Description: "", Summary: ""},
-		"idBaseURL": v1.Config{},
-		"formats": map[string]any{
-			"property": v1.Config{},
-			"filename": v1.Config{},
-		},
-	},
 }
 
 // +openapi:schema:description="config options for the openapi generator"
