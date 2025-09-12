@@ -23,6 +23,8 @@ type Generator interface {
 	// Resources which are supported by the generator with appropiate
 	// documentation. The map is indexed by the resource name.
 	Resources() map[string]*docv1.Resource
+
+	Config() map[string]any
 }
 
 type Artifact struct {

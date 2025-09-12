@@ -5,6 +5,7 @@ import (
 	"maps"
 	"os"
 	"slices"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -38,8 +39,8 @@ func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager)
 			return e.explainGen(name, genMngr)
 		case "outputer":
 			return e.explainOutputer(name, outMngr)
-		case "all":
-			return e.explainOutputer(name, outMngr)
+		case "config":
+			return e.explainConfig(name, genMngr)
 		default:
 			return fmt.Errorf("unknown kind: %s", e.kind)
 		}
@@ -70,14 +71,14 @@ func (e *explainCmd) explainOutputer(name string, mngr *outputer.Manager) error 
 	return explain.Outputer(os.Stdout, out)
 }
 
-func (e *explainCmd) explainConfig(name string, mngr *outputer.Manager) error {
-	if name == "all" {
-		all := slices.Collect(maps.Values(mngr.All()))
-		return explain.AllOutputer(os.Stdout, all)
-	}
-	out, err := mngr.Get(name)
+// codemark explain --kind=config
+
+func (e *explainCmd) explainConfig(dotPath string, mngr *generator.Manager) error {
+	paths := strings.Split(dotPath, ".")
+	name := paths[0]
+	gen, err := mngr.Get(name)
 	if err != nil {
 		return err
 	}
-	return explain.Outputer(os.Stdout, out)
+	return explain.Config(os.Stdout, strings.Join(paths[1:], "."), gen.Config())
 }

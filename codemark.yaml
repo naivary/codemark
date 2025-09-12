@@ -3,8 +3,8 @@ cli:
 gens:
   openapi:
     schema:
-      idBaseURL: "",
+      #idBaseURL: "",
       formats: 
-        property: "camelCase",
-        filename: "snake_case",
+        property: "camelCase"
+        filename: "snake_case"
 outputers:
