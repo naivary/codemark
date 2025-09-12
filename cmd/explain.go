@@ -80,5 +80,5 @@ func (e *explainCmd) explainConfig(dotPath string, mngr *generator.Manager) erro
 	if err != nil {
 		return err
 	}
-	return explain.Config(os.Stdout, strings.Join(paths[1:], "."), gen.Config())
+	return explain.Config(os.Stdout, strings.Join(paths[1:], "."), gen.ConfigDoc())
 }

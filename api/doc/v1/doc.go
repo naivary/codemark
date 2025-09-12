@@ -27,6 +27,6 @@ type Outputer struct {
 
 type Config struct {
 	Default     any
-	Summary     string
 	Description string
+	Options     map[string]Config
 }

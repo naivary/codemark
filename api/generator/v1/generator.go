@@ -8,8 +8,6 @@ import (
 	regv1 "github.com/naivary/codemark/api/registry/v1"
 )
 
-// TODO: I want to be able to use codemark explain with config opttions too so
-// its self documenting
 type Generator interface {
 	// Domain for which the generator is responsible
 	Domain() docv1.Domain
@@ -24,7 +22,9 @@ type Generator interface {
 	// documentation. The map is indexed by the resource name.
 	Resources() map[string]*docv1.Resource
 
-	Config() map[string]any
+	// ConfigDoc is returning the documentation of the available configuration
+	// options. It is used by the explain command to provide self documentation.
+	ConfigDoc() map[string]docv1.Config
 }
 
 type Artifact struct {

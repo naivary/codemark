@@ -9,74 +9,55 @@ import (
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 )
 
-// openapi.schema
-//
-//
-// OPTIONS:
-//   draft <string>
-//   <summary>
-//
-//   idBaseUrl <string>
-//   <summary>
-//
-//   formats <map[string]any>
-
-var _ = map[string]any{
-	"schema": map[string]any{
-		"draft":     docv1.Config{Default: "", Description: "", Summary: ""},
-		"idBaseURL": docv1.Config{},
-		"formats": map[string]any{
-			"property": docv1.Config{},
-			"filename": docv1.Config{},
-		},
-	},
+func Config(w io.Writer, dotPath string, configDocs map[string]docv1.Config) error {
+	const sep = "."
+	paths := strings.Split(dotPath, sep)
+	for _, path := range paths[:len(paths)-1] {
+		configDocs = configDocs[path].Options
+	}
+	optName := paths[len(paths)-1]
+	doc := configDocs[optName]
+	if optName == "" {
+		return config(w, docv1.Config{Options: configDocs})
+	}
+	return config(w, doc)
 }
 
-func Config(w io.Writer, dotPath string, configDocs map[string]any) error {
-	paths := strings.Split(dotPath, ".")
-	for _, p := range paths[:len(paths)-1] {
-		var isMap bool
-		configDocs, isMap = configDocs[p].(map[string]any)
-		if !isMap {
-			return fmt.Errorf("dot path is not map: %s", p)
-		}
+func config(w io.Writer, doc docv1.Config) error {
+	if doc.Options == nil {
+		return configOptDetail(w, doc)
+		// its a options documetnation not the e.g. not a leaf
 	}
-	path := paths[len(paths)-1]
-	v := configDocs[path]
-	if doc, isDoc := v.(docv1.Config); isDoc {
-		return detailConfigOption(w, doc)
-	}
-	return configMap(w, v)
-}
-
-func configMap(w io.Writer, v any) error {
-	for option, doc := range v.(map[string]any) {
-		switch v := doc.(type) {
-		case docv1.Config:
-			fmt.Fprintf(w, "%s (%#v) <%s>\n", option, v.Default, TypeOf(reflect.TypeOf(v.Default)))
-			v.Summary = trunc(v.Summary, _truncLen)
-			if v.Summary == "" {
-				v.Summary = _none
-			}
-			writeLinesInCol(w, "  %s\n", v.Summary, nil)
-			fmt.Fprintf(w, "\n")
-		case map[string]any:
-			fmt.Fprintf(w, "%s <%s>\n", option, "map[string]any")
+	// its an overview of all opts available
+	for optName, doc := range doc.Options {
+		typ := TypeOf(reflect.TypeOf(doc.Default))
+		if doc.Options != nil {
+			typ = "Object"
 		}
+		fmt.Fprintf(w, "%s (%#v) %s", optName, doc.Default, typ)
+		format := "\n   %s"
+		desc := trunc(doc.Description, _truncLen)
+		if desc == "" {
+			desc = _none
+			format = "\n   %s"
+		}
+		writeLinesInCol(w, format, desc, nil)
+		fmt.Fprintln(w)
 	}
 	return nil
 }
 
-func detailConfigOption(w io.Writer, doc docv1.Config) error {
+func configOptDetail(w io.Writer, doc docv1.Config) error {
 	fmt.Fprintf(w, "DEFAULT: %#v\n", doc.Default)
 	fmt.Fprintf(w, "TYPE: %s\n", TypeOf(reflect.TypeOf(doc.Default)))
-	desc := trunc(doc.Description, _truncLen)
+	fmt.Fprintf(w, "DESCRIPTION:")
 	format := "\n  %s"
+	desc := trunc(doc.Description, _truncLen)
 	if desc == "" {
 		desc = _none
-		format = "%s\n"
+		format = " %s"
 	}
-	fmt.Fprintf(w, "DESCRIPTION: ")
 	writeLinesInCol(w, format, desc, nil)
+	fmt.Fprintf(w, "\n")
 	return nil
 }

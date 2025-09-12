@@ -69,14 +69,22 @@ func (g *openAPIGenerator) Registry() regv1.Registry {
 	return g.reg
 }
 
-func (g *openAPIGenerator) Config() map[string]any {
-	return map[string]any{
-		"schema": map[string]any{
-			"draft":     docv1.Config{Default: "", Description: "", Summary: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis."},
-			"idBaseURL": docv1.Config{Default: "", Description: "", Summary: ""},
-			"formats": map[string]any{
-				"property": docv1.Config{Default: "camelCase"},
-				"filename": docv1.Config{Default: "snake_case"},
+func (g *openAPIGenerator) ConfigDoc() map[string]docv1.Config {
+	return map[string]docv1.Config{
+		"schema": {
+			Description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis.`,
+			Options: map[string]docv1.Config{
+				"draft": {
+					Default:     "",
+					Description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis.",
+				},
+				"idBaseURL": {Default: "", Description: ""},
+				"formats": {
+					Options: map[string]docv1.Config{
+						"property": {Default: "camelCase"},
+						"filename": {Default: "snake_case"},
+					},
+				},
 			},
 		},
 	}
