@@ -5,3 +5,5 @@
   e.g. the definition is domain:resource:option.[args]
 - add NIL Token to lexer and parser
 - explain command should also work fro config options
+- Infos sollten alle Doc string beinhalten ohne marker (wahscheinlich notwendig,
+  dass wir pos tracken in den Tokens).

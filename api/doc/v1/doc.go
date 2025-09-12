@@ -24,3 +24,9 @@ type Outputer struct {
 
 	Desc string
 }
+
+type Config struct {
+	Default     any
+	Summary     string
+	Description string
+}

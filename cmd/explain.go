@@ -69,3 +69,15 @@ func (e *explainCmd) explainOutputer(name string, mngr *outputer.Manager) error 
 	}
 	return explain.Outputer(os.Stdout, out)
 }
+
+func (e *explainCmd) explainConfig(name string, mngr *outputer.Manager) error {
+	if name == "all" {
+		all := slices.Collect(maps.Values(mngr.All()))
+		return explain.AllOutputer(os.Stdout, all)
+	}
+	out, err := mngr.Get(name)
+	if err != nil {
+		return err
+	}
+	return explain.Outputer(os.Stdout, out)
+}
