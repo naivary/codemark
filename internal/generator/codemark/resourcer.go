@@ -18,7 +18,5 @@ type Resourcer interface {
 	Options() []*optv1.Option
 
 	// Create generated the actual artifact
-	Create(pkg *packages.Package, obj types.Object, info infov1.Info) (*genv1.Artifact, error)
-
-	CanCreate(info infov1.Info) bool
+	Create(pkg *packages.Package, info map[types.Object][]infov1.Info) (*genv1.Artifact, error)
 }

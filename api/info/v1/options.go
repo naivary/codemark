@@ -21,10 +21,10 @@ func (o Options) Add(ident string, value any, isUnique bool) error {
 	return nil
 }
 
-func (o Options) Filter(resource string) Options {
+func (o Options) Filter(domain, resource string) Options {
 	opts := make(Options)
 	for ident, opt := range o {
-		if optionutil.ResourceOf(ident) == resource {
+		if optionutil.ResourceOf(ident) == resource && optionutil.DomainOf(ident) == domain {
 			opts[ident] = opt
 		}
 	}

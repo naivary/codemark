@@ -25,7 +25,6 @@ type Docer[T any] interface {
 	Doc() T
 }
 
-// TODO: automatically assign the type to doc
 func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
 	format := CamelCase
 	rtype := reflect.TypeOf(output)
@@ -44,14 +43,10 @@ func makeOpts(resource string, opts ...*optionv1.Option) []*optionv1.Option {
 	for _, opt := range opts {
 		opt.Ident = fmt.Sprintf("%s:%s:%s", _domain, resource, optionutil.OptionOf(opt.Ident))
 		if isResource(opt.Ident, "undefined") {
-			opt.Ident = fmt.Sprintf("k8s:%s:%s", resource, opt.Type.Name())
+			opt.Ident = fmt.Sprintf("%s:%s:%s", _domain, resource, opt.Type.Name())
 		}
 	}
 	return opts
-}
-
-func isResource(ident, resource string) bool {
-	return optionutil.ResourceOf(ident) == resource
 }
 
 func newArtifact(name string, manifests ...any) (*genv1.Artifact, error) {
@@ -66,6 +61,10 @@ func newArtifact(name string, manifests ...any) (*genv1.Artifact, error) {
 		}
 	}
 	return artifact, nil
+}
+
+func isResource(ident, resource string) bool {
+	return optionutil.ResourceOf(ident) == resource
 }
 
 func flatten[T any](lists [][]T) []T {
