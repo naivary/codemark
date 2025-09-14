@@ -29,7 +29,11 @@ type Docer[T any] interface {
 
 func mustMakeOpt(name string, output any, isUnique bool, targets ...optionv1.Target) *optionv1.Option {
 	rtype := reflect.TypeOf(output)
-	doc := output.(Docer[docv1.Option]).Doc()
+	docer, isDoc := output.(Docer[docv1.Option])
+	doc := docv1.Option{}
+	if isDoc {
+		doc = docer.Doc()
+	}
 	if name == "" {
 		name = strcase.ToLowerCamel(rtype.Name())
 	}
