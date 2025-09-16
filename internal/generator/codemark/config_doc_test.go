@@ -15,6 +15,10 @@ func TestConfigDocResourcer(t *testing.T) {
 			path:    "testdata/config_simple.go",
 			isValid: true,
 		},
+		{
+			path:    "testdata/config_with_map.go",
+			isValid: true,
+		},
 	}
 	for _, tc := range tests {
 		name := filepath.Base(tc.path)

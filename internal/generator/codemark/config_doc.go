@@ -2,6 +2,7 @@ package codemark
 
 import (
 	"fmt"
+	"go/types"
 
 	"golang.org/x/tools/go/packages"
 
@@ -47,7 +48,7 @@ func (c configDocResourcer) Create(pkg *packages.Package, info infov1.Info, proj
 	}
 	s := info.(*infov1.StructInfo)
 	configDocs := make(map[string]docv1.Config)
-	for _, field := range s.Fields {
+	for obj, field := range s.Fields {
 		configDoc := docv1.Config{}
 		fieldName := field.Ident.Name
 		for _, opts := range field.Options().Filter(_domain, _configDocResource) {
@@ -57,6 +58,18 @@ func (c configDocResourcer) Create(pkg *packages.Package, info infov1.Info, proj
 					configDoc.Default = string(v)
 				case ConfigDocDescription:
 					configDoc.Description = string(v)
+				}
+			}
+		}
+		m, isMap := obj.Type().Underlying().(*types.Map)
+		if isMap {
+			s, isStruct := m.Elem().Underlying().(*types.Struct)
+			_ = isStruct
+			for _, info := range proj {
+				for obj := range info.Structs {
+					if obj.Type().Underlying() == s.Underlying() {
+						fmt.Println(obj.Name())
+					}
 				}
 			}
 		}
