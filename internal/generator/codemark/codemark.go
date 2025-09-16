@@ -18,11 +18,14 @@ type codemarkGenerator struct {
 	reg regv1.Registry
 
 	optDocRes *optDocResourcer
+
+	configDocRes *configDocResourcer
 }
 
 func New() (genv1.Generator, error) {
 	gen := &codemarkGenerator{
-		optDocRes: NewOptDocResourcer(),
+		optDocRes:    NewOptDocResourcer(),
+		configDocRes: NewConfigDocResourcer(),
 	}
 	reg, err := gen.newRegistry()
 	if err != nil {
@@ -55,6 +58,11 @@ func (c *codemarkGenerator) Generate(proj infov1.Project, config map[string]any)
 	artifacts := make([]*genv1.Artifact, 0)
 	optDoc := NewOptDocResourcer()
 	for pkg, info := range proj {
+		for _, s := range info.Structs {
+			c.configDocRes.Create(pkg, s, proj)
+		}
+	}
+	for pkg, info := range proj {
 		artifact, err := optDoc.Create(pkg, info.Named)
 		if err != nil {
 			return nil, err
@@ -68,6 +76,7 @@ func (c codemarkGenerator) newRegistry() (regv1.Registry, error) {
 	reg := registry.InMemory()
 	opts := slices.Concat(
 		c.optDocRes.Options(),
+		c.configDocRes.Options(),
 	)
 	for _, opt := range opts {
 		err := reg.Define(opt)

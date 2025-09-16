@@ -1,7 +1,7 @@
 package codemark
 
 import (
-	"go/types"
+	"fmt"
 
 	"golang.org/x/tools/go/packages"
 
@@ -15,8 +15,8 @@ const _configDocResource = "config"
 
 type configDocResourcer struct{}
 
-func NewConfigDocResourcer() (*configDocResourcer, error) {
-	return &configDocResourcer{}, nil
+func NewConfigDocResourcer() *configDocResourcer {
+	return &configDocResourcer{}
 }
 
 func (c configDocResourcer) Options() []*optv1.Option {
@@ -40,12 +40,11 @@ func (c configDocResourcer) CanCreate(info infov1.Info) bool {
 	return false
 }
 
-func (c configDocResourcer) Create(pkg *packages.Package, obj types.Object, info infov1.Info) (*genv1.Artifact, error) {
+func (c configDocResourcer) Create(pkg *packages.Package, info infov1.Info, proj infov1.Project) (*genv1.Artifact, error) {
 	if !c.CanCreate(info) {
 		// just cannot create it. It's not really an error
 		return nil, nil
 	}
-	// TODO: recursively add structs, maps
 	s := info.(*infov1.StructInfo)
 	configDocs := make(map[string]docv1.Config)
 	for _, field := range s.Fields {
@@ -63,5 +62,6 @@ func (c configDocResourcer) Create(pkg *packages.Package, obj types.Object, info
 		}
 		configDocs[fieldName] = configDoc
 	}
+	fmt.Println(configDocs)
 	return nil, nil
 }

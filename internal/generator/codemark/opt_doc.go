@@ -101,6 +101,5 @@ func (o optDocResourcer) createFile(pkg *packages.Package, docs map[types.Object
 			fmt.Fprintf(&b, "\n\n")
 		}
 	}
-	fmt.Println(b.String())
 	return nil, nil
 }
