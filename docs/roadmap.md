@@ -8,3 +8,4 @@
 - Infos sollten alle Doc string beinhalten ohne marker (wahscheinlich notwendig,
   dass wir pos tracken in den Tokens).
 - replacing targets witha fcuntion which is returning if the target is correct.
+- how to handle required optoins?
