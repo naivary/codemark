@@ -71,7 +71,7 @@ type Deprecated bool
 
 func (d Deprecated) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "Deprecated",
+		Desc: "Deprecated",
 	}
 }
 
@@ -84,7 +84,7 @@ type ReadOnly bool
 
 func (r ReadOnly) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "indicates that the field is read only",
+		Desc: "indicates that the field is read only",
 	}
 }
 
@@ -100,7 +100,7 @@ type WriteOnly bool
 
 func (w WriteOnly) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "indicates that the field is write only",
+		Desc: "indicates that the field is write only",
 	}
 }
 
@@ -116,7 +116,7 @@ type Default string
 
 func (d Default) Doc() docv1.Option {
 	return docv1.Option{
-		Desc:    "default value fot this field",
+		Desc: "default value fot this field",
 	}
 }
 

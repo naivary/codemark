@@ -24,7 +24,7 @@ type Manager struct {
 func NewManager(cfgFile string, gens ...genv1.Generator) (*Manager, error) {
 	const configSection = "gens"
 	mngr := &Manager{
-		gens: make(map[domain]genv1.Generator),
+		gens: make(map[domain]genv1.Generator, len(gens)),
 	}
 	cfg, err := config.ReadIn(cfgFile, configSection)
 	if err != nil {
@@ -44,7 +44,7 @@ func (m *Manager) Domains() []string {
 	return slices.Collect(maps.Keys(m.gens))
 }
 
-func (m *Manager) All() map[domain]genv1.Generator {
+func (m *Manager) Gens() map[domain]genv1.Generator {
 	return m.gens
 }
 
@@ -85,10 +85,13 @@ func (m *Manager) Add(gen genv1.Generator) error {
 	return nil
 }
 
+// allGens returns all managed generators.
 func (m *Manager) allGens() []genv1.Generator {
 	return slices.Collect(maps.Values(m.gens))
 }
 
+// configFor returns the configuration part in the found codemark.yaml for
+// `gen`.
 func (m *Manager) configFor(gen genv1.Generator) map[string]any {
 	genCfg, isMap := m.cfg[gen.Domain().Name].(map[string]any)
 	if isMap {
@@ -97,6 +100,8 @@ func (m *Manager) configFor(gen genv1.Generator) map[string]any {
 	return make(map[string]any)
 }
 
+// merge returns a registry containing all the options defined in everything
+// generator in `gens`.
 func (m *Manager) merge(gens []genv1.Generator) (regv1.Registry, error) {
 	regs := make([]regv1.Registry, 0, len(gens))
 	for _, gen := range gens {

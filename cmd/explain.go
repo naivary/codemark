@@ -49,7 +49,7 @@ func (e *explainCmd) runE(genMngr *generator.Manager, outMngr *outputer.Manager)
 
 func (e *explainCmd) explainGen(ident string, mngr *generator.Manager) error {
 	if ident == "all" {
-		gens := slices.Collect(maps.Values(mngr.All()))
+		gens := slices.Collect(maps.Values(mngr.Gens()))
 		return explain.AllGens(os.Stdout, gens)
 	}
 	gen, err := mngr.Get(optionutil.DomainOf(ident))
@@ -70,8 +70,6 @@ func (e *explainCmd) explainOutputer(name string, mngr *outputer.Manager) error 
 	}
 	return explain.Outputer(os.Stdout, out)
 }
-
-// codemark explain --kind=config
 
 func (e *explainCmd) explainConfig(dotPath string, mngr *generator.Manager) error {
 	paths := strings.Split(dotPath, ".")
