@@ -72,17 +72,17 @@ func (g *openAPIGenerator) Registry() regv1.Registry {
 func (g *openAPIGenerator) ConfigDoc() map[string]docv1.Config {
 	return map[string]docv1.Config{
 		"schema": {
-			Description: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis.`,
+			Description: `schema is containing all config options available to generate OpenAPI compatible JSON Schemas`,
 			Options: map[string]docv1.Config{
 				"draft": {
-					Default:     "",
-					Description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce posuere augue nisi, vehicula condimentum justo tempus in. Sed non turpis.",
+					Default:     "https://json-schema.org/draft/2020-12/schema",
+					Description: "JSON Schema draft. It's an option for future extending but right now the default value is the only valid option.",
 				},
-				"idBaseURL": {Default: "", Description: ""},
+				"idBaseURL": {Default: "", Description: "Base URL for the $id key in the JSON Schema."},
 				"formats": {
 					Options: map[string]docv1.Config{
-						"property": {Default: "camelCase"},
-						"filename": {Default: "snake_case"},
+						"property": {Default: "camelCase", Description: "Format of the object properties in the JSON Schema."},
+						"filename": {Default: "snake_case", Description: "Format of the generated files."},
 					},
 				},
 			},
