@@ -72,17 +72,27 @@ func (g *openAPIGenerator) Registry() regv1.Registry {
 func (g *openAPIGenerator) ConfigDoc() map[string]docv1.Config {
 	return map[string]docv1.Config{
 		"schema": {
-			Description: `schema is containing all config options available to generate OpenAPI compatible JSON Schemas`,
+			Description: `Defines the full set of configuration options that control the generation of JSON Schemas compliant with the OpenAPI Specification. This includes structural metadata, type definitions, validation constraints, and any OpenAPI-specific extensions required for interoperability.`,
 			Options: map[string]docv1.Config{
 				"draft": {
 					Default:     "https://json-schema.org/draft/2020-12/schema",
-					Description: "JSON Schema draft. It's an option for future extending but right now the default value is the only valid option.",
+					Description: `Specifies the JSON Schema draft version to use for validation. Currently, this setting is not configurable — the default value is the only supported option. It exists for future compatibility and may allow other drafts in later releases.`,
 				},
-				"idBaseURL": {Default: "", Description: "Base URL for the $id key in the JSON Schema."},
+				"idBaseURL": {
+					Default:     "",
+					Description: `Sets the base URL for the $id field in generated JSON Schemas. The base URL is prepended to schema identifiers so they can be resolved consistently. If left empty (default), schemas will not have a network-resolvable $id and will only be referenceable from the local filesystem.`,
+				},
 				"formats": {
+					Description: "Controls the output style of generated JSON Schemas. Use this option to align schema formatting (e.g., indentation, line wrapping, property ordering) with your organization’s conventions.",
 					Options: map[string]docv1.Config{
-						"property": {Default: "camelCase", Description: "Format of the object properties in the JSON Schema."},
-						"filename": {Default: "snake_case", Description: "Format of the generated files."},
+						"property": {
+							Default:     "camelCase",
+							Description: "Defines how object properties are represented in the generated JSON Schema. This controls the formatting style (e.g. naming conventions) to ensure consistency with your organization’s schema style.",
+						},
+						"filename": {
+							Default:     "snake_case",
+							Description: "Specifies the naming convention for generated files. Use this option to control how schema filenames are produced (e.g., snake_case, kebab-case, PascalCase), ensuring they align with your project or organizational standards.",
+						},
 					},
 				},
 			},
