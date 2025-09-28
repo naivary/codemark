@@ -33,7 +33,7 @@ func New(mngr *converter.Manager, cfg *packages.Config) Loader {
 	l := &loader{
 		mngr: mngr,
 		cfg: &packages.Config{
-			Mode: packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes | packages.NeedImports,
+			Mode: packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedTypes | packages.NeedImports | packages.NeedName,
 			ParseFile: func(fset *token.FileSet, filename string, src []byte) (*ast.File, error) {
 				return parser.ParseFile(fset, filename, src, parser.ParseComments)
 			},
