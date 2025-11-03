@@ -81,11 +81,20 @@ func (s schemaResourcer) Create(pkg *packages.Package, obj types.Object, info in
 		if !finfo.Ident.IsExported() {
 			continue
 		}
+		if isOmitted(finfo.Field.Tag) {
+			continue
+		}
 		fieldSchema, err := s.buildFieldSchema(&root, structInfo, obj, finfo, cfg)
 		if err != nil {
 			return nil, err
 		}
 		name := cfg.Schema.Formats.Property.Format(finfo.Ident.Name)
+		if finfo.Field.Tag != nil {
+			jsonTagName := jsonNameFromTag(finfo.Field.Tag)
+			if jsonTagName != "" {
+				name = jsonTagName
+			}
+		}
 		root.Properties[name] = fieldSchema
 	}
 	filename := filepath.Base(root.ID)

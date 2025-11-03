@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"go/ast"
 	"go/types"
 	"reflect"
+	"strings"
 
 	docv1 "github.com/naivary/codemark/api/doc/v1"
 	genv1 "github.com/naivary/codemark/api/generator/v1"
@@ -128,4 +130,35 @@ func infoCap(info *infov1.Information) int {
 	) + len(
 		info.Files,
 	)
+}
+
+func parseTagValue(tagValue string) reflect.StructTag {
+	return reflect.StructTag(strings.ReplaceAll(tagValue, "`", ""))
+}
+
+func jsonNameFromTag(tag *ast.BasicLit) string {
+	if tag == nil {
+		return ""
+	}
+	stag := parseTagValue(tag.Value)
+	values := strings.Split(stag.Get("json"), ",")
+	if len(values) == 0 {
+		return ""
+	}
+	if values[0] == "-" {
+		return ""
+	}
+	return values[0]
+}
+
+func isOmitted(tag *ast.BasicLit) bool {
+	if tag == nil {
+		return false
+	}
+	stag := parseTagValue(tag.Value)
+	values := strings.Split(stag.Get("json"), ",")
+	if len(values) == 0 {
+		return false
+	}
+	return values[0] == "-" && len(values) == 1
 }

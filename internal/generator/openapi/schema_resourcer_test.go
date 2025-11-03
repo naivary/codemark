@@ -102,6 +102,21 @@ func TestResourcer_Schema(t *testing.T) {
 			isValid: false,
 			want:    _schemaz,
 		},
+		{
+			path:    "testdata/schema/tag.go",
+			isValid: true,
+			want: Schema{
+				ID:    "tagging.json",
+				Draft: "https://json-schema.org/draft/2020-12/schema",
+				Title: "tagging test",
+				Type:  objectType,
+				Properties: map[string]*Schema{
+					"EMAIL": {
+						Type: stringType,
+					},
+				},
+			},
+		},
 	}
 	for _, tc := range tests {
 		name := filepath.Base(tc.path)
